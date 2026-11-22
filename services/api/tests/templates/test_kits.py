@@ -112,6 +112,20 @@ def test_css_scoped(sector: str) -> None:
 
 
 @pytest.mark.parametrize("sector", SECTORS)
+def test_css_has_no_global_at_rules(sector: str) -> None:
+    """@font-face and @import load or define things globally; keyframe names are global too."""
+    kit, meta = _kit(sector)
+    for name in ("product.css", "icons.css"):
+        css = _strip_comments((kit / name).read_text(encoding="utf-8"))
+        assert not re.search(r"@(font-face|import)", css, re.I), f"{sector}/{name}"
+    css = _strip_comments((kit / "product.css").read_text(encoding="utf-8"))
+    for kf in re.findall(r"@(?:-\w+-)?keyframes\s+([^\s{]+)", css):
+        assert kf.startswith(meta["app_class"] + "-"), (
+            f"{sector}: keyframes {kf} must start with the app class"
+        )
+
+
+@pytest.mark.parametrize("sector", SECTORS)
 def test_app_kit_copies_match(sector: str) -> None:
     for f in ("product.css", "icons.css"):
         a = (TEMPLATES / sector / "kit" / f).read_bytes()

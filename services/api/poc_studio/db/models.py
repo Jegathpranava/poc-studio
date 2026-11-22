@@ -108,7 +108,12 @@ class AgentStep(Base):
 
 class Artifact(Base):
     __tablename__ = "artifacts"
-    __table_args__ = (CheckConstraint(_in("type", ARTIFACT_TYPES), name="ck_artifacts_type"),)
+    __table_args__ = (
+        CheckConstraint(_in("type", ARTIFACT_TYPES), name="ck_artifacts_type"),
+        # Versioned file names make this the guard against two writers taking the same version.
+        # (type, version) cannot be unique: one architecture version is a .json and a .md row.
+        UniqueConstraint("run_id", "path", name="uq_artifacts_run_path"),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     run_id: Mapped[str] = mapped_column(ForeignKey("runs.id"), index=True)

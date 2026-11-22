@@ -16,14 +16,16 @@ interface RunContextValue {
   timeline: TimelineState;
   connection: Connection;
   reload: () => void;
+  /** Reconnect the live stream after it gave up. */
+  reconnect: () => void;
 }
 
 const RunContext = createContext<RunContextValue | null>(null);
 
 export function RunProvider({ runId, children }: { runId: string; children: ReactNode }) {
-  const { timeline, connection } = useRunEvents(runId);
   const [detail, setDetail] = useState<RunDetail | null>(null);
   const [detailError, setDetailError] = useState<ApiError | null>(null);
+  const { timeline, connection, retry } = useRunEvents(runId, { halt: detailError?.status === 404 });
   const [tick, setTick] = useState(0);
 
   const status = timeline.runStatus ?? detail?.status ?? null;
@@ -45,10 +47,14 @@ export function RunProvider({ runId, children }: { runId: string; children: Reac
   }, [runId, timeline.runStatus, tick]);
 
   const reload = useCallback(() => setTick((n) => n + 1), []);
+  const reconnect = useCallback(() => {
+    retry();
+    setTick((n) => n + 1);
+  }, [retry]);
 
   const value = useMemo(
-    () => ({ runId, detail, detailError, status, timeline, connection, reload }),
-    [runId, detail, detailError, status, timeline, connection, reload],
+    () => ({ runId, detail, detailError, status, timeline, connection, reload, reconnect }),
+    [runId, detail, detailError, status, timeline, connection, reload, reconnect],
   );
   return <RunContext.Provider value={value}>{children}</RunContext.Provider>;
 }

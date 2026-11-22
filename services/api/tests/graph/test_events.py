@@ -31,6 +31,12 @@ def test_sse_replays_after_last_event_id(client_for) -> None:
         assert [int(e["id"]) for e in replay] == [i for i in ids if i > 3]
         assert int(replay[0]["id"]) == 4
 
+        via_query = parse_sse(client.get(url + "&after=3").text)
+        assert [int(e["id"]) for e in via_query] == [i for i in ids if i > 3]
+        header_wins = parse_sse(client.get(url + "&after=1", headers={"Last-Event-ID": "5"}).text)
+        assert [int(e["id"]) for e in header_wins] == [i for i in ids if i > 5]
+        assert [int(e["id"]) for e in parse_sse(client.get(url + "&after=junk").text)] == ids
+
         assert {e["event"] for e in everything} == {"step", "run"}
         first = json.loads(everything[0]["data"])
         assert first["run_id"] == run_id and first["kind"] == "status"

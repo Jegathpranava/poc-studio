@@ -71,6 +71,10 @@ def _gate_node(name: str, gate: str, key: str) -> NodeFn:
             verdict = decision["decision"]
             emit(run_id, RUN_AGENT, "gate", status=verdict, message=f"Gate {gate}: {verdict}")
             update: dict[str, Any] = {key: decision}
+            if name == "gate1" and verdict == "approve" and decision.get("edits"):
+                update["requirements"] = decision[
+                    "edits"
+                ]  # later agents see the owner's brief, not the draft
             if name == "gate1":
                 update["intelligence_note"] = decision.get("note") if verdict == "changes" else None
             return update

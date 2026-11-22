@@ -1,10 +1,13 @@
 """Meeting Intelligence (agent 1): transcript in, validated `requirements` artifact out."""
 
 import hashlib
+import os
 import re
+from pathlib import Path
 from typing import Any
 
 from sqlalchemy import func, select
+from sqlalchemy.orm import Session
 
 from poc_studio.config import get_settings
 from poc_studio.db.models import AgentStep, Artifact, Project, Run
@@ -97,38 +100,57 @@ def load_transcript(state: RunState) -> Transcript:
     return parse_files(files)
 
 
-def next_requirements_version(run_id: str) -> int:
-    with open_session() as session:
-        latest = session.scalar(
-            select(func.max(Artifact.version)).where(
-                Artifact.run_id == run_id, Artifact.type == "requirements"
-            )
-        )
+def next_requirements_version(session: Session, run_id: str) -> int:
+    latest = session.scalar(
+        select(func.max(Artifact.version)).where(Artifact.run_id == run_id, Artifact.type == "requirements")
+    )
     return (latest or 0) + 1
 
 
-def persist_requirements(run_id: str, version: int, req: Requirements) -> None:
+def write_requirements_file(run_id: str, version: int, data: bytes) -> Path:
+    """Write `requirements.vN.json` via a temp file and `os.replace` (never half-written)."""
     path = get_settings().runs_dir / run_id / f"requirements.v{version}.json"
     path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(path.name + ".tmp")
+    try:
+        tmp.write_bytes(data)
+        os.replace(tmp, path)
+    finally:
+        tmp.unlink(missing_ok=True)
+    return path
+
+
+def stage_requirements(session: Session, run_id: str, req: Requirements) -> int:
+    """Add the next requirements version to `session` (no commit): the row first, so a version race fails
+    on the unique (run_id, path) before any file is written, then the file. Returns the version."""
+    version = next_requirements_version(session, run_id)
     data = req.model_dump_json(indent=2).encode("utf-8")
-    path.write_bytes(data)
-    with open_session() as session:
-        session.add(
-            Artifact(
-                run_id=run_id,
-                type="requirements",
-                version=version,
-                path=f"{run_id}/{path.name}",
-                sha256=hashlib.sha256(data).hexdigest(),
-            )
+    name = f"requirements.v{version}.json"
+    session.add(
+        Artifact(
+            run_id=run_id,
+            type="requirements",
+            version=version,
+            path=f"{run_id}/{name}",
+            sha256=hashlib.sha256(data).hexdigest(),
         )
-        run = session.get(Run, run_id)
-        if run is not None:
-            run.title = req.title[:300]
-            project = session.get(Project, run.project_id)
-            if project is not None and not project.sector:
-                project.sector = req.sector
+    )
+    session.flush()  # IntegrityError here means another writer took this version
+    write_requirements_file(run_id, version, data)
+    run = session.get(Run, run_id)
+    if run is not None:
+        run.title = req.title[:300]
+        project = session.get(Project, run.project_id)
+        if project is not None and not project.sector:
+            project.sector = req.sector
+    return version
+
+
+def save_requirements(run_id: str, req: Requirements) -> int:
+    with open_session() as session:
+        version = stage_requirements(session, run_id, req)
         session.commit()
+    return version
 
 
 def _client_name(run_id: str) -> str:
@@ -177,8 +199,7 @@ async def run_intelligence(state: RunState) -> dict[str, Any]:
             emit(run_id, AGENT, "log", status="warning", message=warning)
         if not req.features:
             raise ValueError("no feature has a source quote found in the transcript")
-        version = next_requirements_version(run_id)
-        persist_requirements(run_id, version, req)
+        version = save_requirements(run_id, req)
         emit(run_id, AGENT, "log", message=f"requirements v{version}: {len(req.features)} features")
         return {
             "requirements": req.model_dump(mode="json"),

@@ -11,8 +11,10 @@ from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 from langgraph.types import Command
 from pydantic import BaseModel, Field
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from poc_studio.agents.intelligence import stage_requirements
 from poc_studio.config import get_settings
 from poc_studio.db.models import Approval, Project, Run, new_run_id, now
 from poc_studio.db.session import open_session
@@ -22,13 +24,13 @@ from poc_studio.graph.registry import NodeSpec, collect_nodes
 from poc_studio.ingest.parse import MAX_FILE_BYTES, SUPPORTED
 from poc_studio.llm import BudgetExceeded
 from poc_studio.redact import install_log_redaction
-from poc_studio.runs.edits import save_requirements_edit
 from poc_studio.schemas.requirements import Requirements
 
 log = logging.getLogger(__name__)
 
 GATE_STATUS = {"scope": "waiting_gate1", "publish": "waiting_gate2"}
 MAX_FILES = 10
+SAVE_FAILED = "Could not save your edits, so nothing was changed and the run is still waiting. Try again."
 MAX_TOTAL_BYTES = 60 * 1024 * 1024
 
 
@@ -147,12 +149,45 @@ class RunService:
         self, run_id: str, gate: str, decision: str, edits: dict[str, object] | None, note: str | None
     ) -> str:
         """Record the approval and resume the graph. Returns the run status after the decision."""
+        save_edits = gate == "scope" and decision == "approve" and bool(edits)
+        for attempt in (1, 2):
+            try:
+                self._claim_gate(run_id, gate, decision, edits, note, save_edits)
+                break
+            except (
+                IntegrityError
+            ):  # another writer took the same requirements version: re-read and retry once
+                if attempt == 2:
+                    raise GateError("save_failed", SAVE_FAILED) from None
+            except GateError:
+                raise
+            except Exception as exc:
+                log.exception("saving the gate decision for %s failed", run_id)
+                raise GateError("save_failed", SAVE_FAILED) from exc
+        payload = {"decision": decision, "edits": edits, "note": note}
+        # The gate node emits the "gate" decision event once it consumes this payload.
+        self._spawn(run_id, self._drive(run_id, Command(resume=payload)))
+        return "running"
+
+    @staticmethod
+    def _claim_gate(
+        run_id: str,
+        gate: str,
+        decision: str,
+        edits: dict[str, object] | None,
+        note: str | None,
+        save_edits: bool,
+    ) -> None:
+        """One transaction: edited brief (file, then row), Approval row and status change. If anything
+        raises, nothing is committed and the run stays at its gate."""
         with open_session() as session:
             run = session.get(Run, run_id)
             if run is None:
                 raise GateError("not_found", f"run {run_id} not found")
             if run.status != GATE_STATUS[gate]:
                 raise GateError("conflict", f"run is {run.status}, not waiting at gate {gate}")
+            if save_edits:  # the route validated `edits`
+                stage_requirements(session, run_id, Requirements.model_validate(edits))
             run.status = "running"  # claimed here, so a second click gets a 409
             session.add(
                 Approval(
@@ -164,13 +199,6 @@ class RunService:
                 )
             )
             session.commit()
-        if gate == "scope" and decision == "approve" and edits:
-            # The route validated `edits`; save them before the graph resumes so later agents read them.
-            save_requirements_edit(run_id, Requirements.model_validate(edits))
-        payload = {"decision": decision, "edits": edits, "note": note}
-        # The gate node emits the "gate" decision event once it consumes this payload.
-        self._spawn(run_id, self._drive(run_id, Command(resume=payload)))
-        return "running"
 
     async def resume(self, run_id: str, budget_usd: float | None = None) -> None:
         """Continue a run that stopped on `paused_budget` (or was left running) from its checkpoint.

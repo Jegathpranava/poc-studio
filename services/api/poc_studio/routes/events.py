@@ -40,15 +40,17 @@ async def event_stream(run_id: str, after_id: int, follow: bool) -> AsyncIterato
 async def stream_events(
     run_id: str,
     last_event_id: Annotated[str | None, Header(alias="Last-Event-ID")] = None,
+    after: str | None = None,
     follow: bool = True,
 ) -> EventSourceResponse:
-    """`follow=false` ends the stream after the replay (for tests and curl)."""
+    """`follow=false` ends the stream after the replay (for tests and curl). `after=<id>` is the same as
+    Last-Event-ID, for a client that reconnects by hand (EventSource only sends the header by itself)."""
     with open_session() as session:  # closed before the stream starts: SSE can stay open for hours
         exists = session.get(Run, run_id) is not None
     if not exists:
         raise HTTPException(404, f"run {run_id} not found")
     try:
-        after = max(int(last_event_id), 0) if last_event_id else 0
+        start = max(int(last_event_id or after or 0), 0)
     except ValueError:
-        after = 0
-    return EventSourceResponse(event_stream(run_id, after, follow), ping=15)
+        start = 0
+    return EventSourceResponse(event_stream(run_id, start, follow), ping=15)
