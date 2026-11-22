@@ -3,6 +3,7 @@
 import { CircleAlert, RefreshCw, TestTube } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { ShareActions } from "@/components/share/share-actions";
 import { notify } from "@/components/shell/notify";
 import { PageHead } from "@/components/shell/page-head";
 import { api, ApiError, type FileNode, type PublishOptions, type QaReport, type RunDetail } from "@/lib/api";
@@ -88,12 +89,15 @@ export function Gate2View({ runId, detail, onSubmitted }: Props) {
         title="Ready to publish"
         description="Preview everything below. Nothing has left your machine."
         actions={
-          mock ? (
-            <span className="mock-note" data-testid="mock-note">
-              <TestTube aria-hidden="true" />
-              Mock mode: nothing is sent to GitHub
-            </span>
-          ) : undefined
+          <>
+            {mock ? (
+              <span className="mock-note" data-testid="mock-note">
+                <TestTube aria-hidden="true" />
+                Mock mode: nothing is sent to GitHub
+              </span>
+            ) : null}
+            <ShareActions runId={runId} />
+          </>
         }
       />
       <div className="grid-2">

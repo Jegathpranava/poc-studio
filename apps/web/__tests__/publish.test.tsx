@@ -105,6 +105,14 @@ describe("QA report", () => {
 });
 
 describe("Gate 2", () => {
+  it("mounts the share actions in the header", async () => {
+    stubApi(report());
+    render(<Gate2View runId="r_aaaaaa" detail={detail} onSubmitted={() => undefined} />);
+    expect(screen.getByRole("button", { name: /Copy client share link/ })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /Download share zip/ })).toBeTruthy();
+    await screen.findByRole("button", { name: "Publish to GitHub" });
+  });
+
   it("disables Publish and shows the blocked banner when QA says block_publish", async () => {
     stubApi(report({ block_publish: true, checks: [check("no_secrets", false, "app/leak.ts:1 github_token")] }));
     render(<Gate2View runId="r_aaaaaa" detail={detail} onSubmitted={() => undefined} />);
@@ -184,8 +192,10 @@ describe("Delivered", () => {
     expect(screen.getByRole("link", { name: /Pitch deck/ }).getAttribute("href")).toBe("/runs/r_aaaaaa/deck");
     expect(screen.getByRole("link", { name: /Walkthrough video/ }).getAttribute("href")).toBe("/runs/r_aaaaaa/deck");
     expect(screen.getByRole("link", { name: /Architecture spec/ }).getAttribute("href")).toBe("/runs/r_aaaaaa/architecture");
-    expect(screen.getByText("Coming soon")).toBeTruthy();
-    expect((screen.getByRole("button", { name: /Copy client share link/ }) as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.queryByText("Coming soon")).toBeNull();
+    expect(screen.getByRole("link", { name: /Client share page/ }).getAttribute("href")).toBe("#share-actions");
+    expect((screen.getByRole("button", { name: /Copy client share link/ }) as HTMLButtonElement).disabled).toBe(false);
+    expect(screen.getByRole("button", { name: /Download share zip/ })).toBeTruthy();
     expect(screen.getByText(/Nothing was sent to GitHub/)).toBeTruthy();
   });
 });

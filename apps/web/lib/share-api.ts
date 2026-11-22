@@ -1,62 +1,18 @@
 import { ApiError, BASE_URL } from "./api";
+import type { components } from "./api-types";
 
 // Fetch helpers for sharing, settings and templates. They live here because api.ts belongs to the run pages.
 
-export interface ShareToken {
-  token: string;
-  path: string;
-  expires_at: string;
-}
+type Schemas = components["schemas"];
 
-export interface ShareExport {
-  run_id: string;
-  download_url: string;
-  share_token: string;
-  expires_at: string;
-  warnings: string[];
-}
-
-export interface SharePage {
-  title: string;
-  client: string;
-  summary: string;
-  pain_points: string[];
-  pilot: string | null;
-  expires_at: string;
-  video_url: string | null;
-  deck_url: string | null;
-}
-
-export interface SettingsData {
-  gateway: { base_url: string; fast_model: string; smart_model: string; polish_model: string; api_key_set: boolean };
-  github: { mode: "mock" | "live"; token_set: boolean; private_default: true };
-  budget: { run_limit_usd: number; monthly_cap_usd: number; hours_saved_per_run: number };
-  retention_days: number;
-}
-
+export type ShareToken = Schemas["ShareTokenOut"];
+export type ShareExport = Schemas["ShareExportOut"];
+export type SharePage = Schemas["SharePageOut"];
+export type SettingsData = Schemas["SettingsOut"];
 /** The fields the form may change. There is no key or token field on purpose. */
-export interface SettingsPatch {
-  gateway?: { base_url?: string; fast_model?: string; smart_model?: string; polish_model?: string };
-  budget?: { run_limit_usd?: number; monthly_cap_usd?: number; hours_saved_per_run?: number };
-  retention_days?: number;
-}
-
-export interface GatewayTest {
-  ok: boolean;
-  models: string[];
-  error: string | null;
-}
-
-export interface TemplateStat {
-  sector: string;
-  app_class: string;
-  accent: string;
-  screens: number;
-  runs_used: number;
-  builds_counted: number;
-  first_time_ok: number;
-  first_time_build_rate: number | null;
-}
+export type SettingsPatch = Schemas["SettingsPatch"];
+export type GatewayTest = Schemas["GatewayTest"];
+export type TemplateStat = Schemas["TemplateStat"];
 
 async function call<T>(path: string, init?: RequestInit): Promise<T> {
   let res: Response;

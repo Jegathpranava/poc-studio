@@ -1,7 +1,8 @@
-import { Check, ChevronRight, Copy, ExternalLink, GitBranch, Link2, Monitor, Network, Presentation, Video } from "lucide-react";
+import { Check, ChevronRight, ExternalLink, GitBranch, Link2, Monitor, Network, Presentation, Video } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { ShareActions } from "@/components/share/share-actions";
 import { PageHead } from "@/components/shell/page-head";
 import type { PublishStatus, RunDetail } from "@/lib/api";
 import { formatDuration, runTimes } from "@/lib/publish";
@@ -47,10 +48,9 @@ export function DeliveredView({ runId, detail, status }: { runId: string; detail
         title={agentMs === null ? "Delivered" : `Delivered in ${formatDuration(agentMs)}`}
         description={`Paid spend $${detail.paid_usd.toFixed(3)}. Send the share link to the client, or the pieces separately.`}
         actions={
-          <button type="button" className="btn primary" disabled title="The client share page arrives in a later step">
-            <Copy className="icon" aria-hidden="true" />
-            Copy client share link
-          </button>
+          <div id="share-actions">
+            <ShareActions runId={runId} />
+          </div>
         }
       />
       <div className="banner ok" role="status">
@@ -96,13 +96,12 @@ export function DeliveredView({ runId, detail, status }: { runId: string; detail
           title="Architecture spec"
           sub="Diagram, models and monthly cost"
         />
-        <div className="item soon" aria-disabled="true">
-          <Link2 className="lg" aria-hidden="true" />
-          <div className="grow">
-            <b>Client share page</b>
-            <div className="u">Coming soon</div>
-          </div>
-        </div>
+        <InAppItem
+          href="#share-actions"
+          icon={<Link2 className="lg" aria-hidden="true" />}
+          title="Client share page"
+          sub="Copy the link or download the zip"
+        />
       </div>
     </section>
   );

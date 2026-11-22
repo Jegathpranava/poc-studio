@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 
-import { AppShell } from "@/components/shell/app-shell";
 import { AppToaster } from "@/components/shell/app-toaster";
 
 import "./globals.css";
@@ -14,7 +13,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en">
       <body>
-        <AppShell>{children}</AppShell>
+        {children}
         <AppToaster />
       </body>
     </html>

@@ -297,6 +297,214 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/runs/{run_id}/artifacts/{artifact_type}/revise": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Revise Artifact */
+        post: operations["revise_artifact_api_runs__run_id__artifacts__artifact_type__revise_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/runs/{run_id}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Retry Run */
+        post: operations["retry_run_api_runs__run_id__retry_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/runs/{run_id}/budget": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Raise Budget */
+        post: operations["raise_budget_api_runs__run_id__budget_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/runs/{run_id}/share-export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Export Share */
+        post: operations["export_share_api_runs__run_id__share_export_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/runs/{run_id}/share-export/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Download Share Zip */
+        get: operations["download_share_zip_api_runs__run_id__share_export_download_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/share/{run_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Share Token */
+        post: operations["create_share_token_api_share__run_id__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/share/t/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Share Page */
+        get: operations["get_share_page_api_share_t__token__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/share/t/{token}/video": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Share Video */
+        get: operations["get_share_video_api_share_t__token__video_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/share/t/{token}/deck.html": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Share Deck */
+        get: operations["get_share_deck_api_share_t__token__deck_html_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Current Settings */
+        get: operations["get_current_settings_api_settings_get"];
+        /** Update Settings */
+        put: operations["update_settings_api_settings_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/settings/test-gateway": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Test Gateway
+         * @description Mock mode answers at once. Gateway mode lists the models (`GET /models`): no completion, so $0.
+         */
+        post: operations["test_gateway_api_settings_test_gateway_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Templates */
+        get: operations["list_templates_api_templates_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -311,6 +519,8 @@ export interface components {
             status: string;
             /** Attempt */
             attempt: number;
+            /** Reason */
+            reason?: string | null;
             /** Model */
             model?: string | null;
             /** Tokens In */
@@ -382,6 +592,39 @@ export interface components {
             title?: string | null;
             /** Budget Usd */
             budget_usd?: number | null;
+            /**
+             * Mask Pii
+             * @default false
+             */
+            mask_pii: boolean;
+        };
+        /** BudgetPatch */
+        BudgetPatch: {
+            /** Run Limit Usd */
+            run_limit_usd?: number | null;
+            /** Monthly Cap Usd */
+            monthly_cap_usd?: number | null;
+            /** Hours Saved Per Run */
+            hours_saved_per_run?: number | null;
+        };
+        /** BudgetRequest */
+        BudgetRequest: {
+            /** Budget Usd */
+            budget_usd?: number | null;
+            /**
+             * Use Free Model
+             * @default false
+             */
+            use_free_model: boolean;
+        };
+        /** BudgetSettings */
+        BudgetSettings: {
+            /** Run Limit Usd */
+            run_limit_usd: number;
+            /** Monthly Cap Usd */
+            monthly_cap_usd: number;
+            /** Hours Saved Per Run */
+            hours_saved_per_run: number;
         };
         /** CreateRunResponse */
         CreateRunResponse: {
@@ -436,6 +679,58 @@ export interface components {
              * @enum {string}
              */
             status: "queued" | "running" | "waiting_gate1" | "waiting_gate2" | "paused_budget" | "failed" | "delivered";
+        };
+        /** GatewayPatch */
+        GatewayPatch: {
+            /** Base Url */
+            base_url?: string | null;
+            /** Fast Model */
+            fast_model?: string | null;
+            /** Smart Model */
+            smart_model?: string | null;
+            /** Polish Model */
+            polish_model?: string | null;
+        };
+        /** GatewaySettings */
+        GatewaySettings: {
+            /** Base Url */
+            base_url: string;
+            /** Fast Model */
+            fast_model: string;
+            /** Smart Model */
+            smart_model: string;
+            /** Polish Model */
+            polish_model: string;
+            /** Api Key Set */
+            api_key_set: boolean;
+        };
+        /** GatewayTest */
+        GatewayTest: {
+            /** Ok */
+            ok: boolean;
+            /**
+             * Models
+             * @default []
+             */
+            models: string[];
+            /** Error */
+            error?: string | null;
+        };
+        /** GithubSettings */
+        GithubSettings: {
+            /**
+             * Mode
+             * @enum {string}
+             */
+            mode: "mock" | "live";
+            /** Token Set */
+            token_set: boolean;
+            /**
+             * Private Default
+             * @default true
+             * @constant
+             */
+            private_default: true;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -536,6 +831,30 @@ export interface components {
             /** Error */
             error?: string | null;
         };
+        /** RetryRequest */
+        RetryRequest: {
+            /** Note */
+            note?: string | null;
+            /**
+             * Attempts
+             * @default 3
+             */
+            attempts: number;
+        };
+        /** ReviseRequest */
+        ReviseRequest: {
+            /** Note */
+            note: string;
+        };
+        /** ReviseResponse */
+        ReviseResponse: {
+            /** Run Id */
+            run_id: string;
+            /** Status */
+            status: string;
+            /** Agent */
+            agent?: string | null;
+        };
         /** RunDetail */
         RunDetail: {
             /** Id */
@@ -601,6 +920,96 @@ export interface components {
             started_at?: string | null;
             /** Finished At */
             finished_at?: string | null;
+        };
+        /** SettingsOut */
+        SettingsOut: {
+            gateway: components["schemas"]["GatewaySettings"];
+            github: components["schemas"]["GithubSettings"];
+            budget: components["schemas"]["BudgetSettings"];
+            /** Retention Days */
+            retention_days: number;
+        };
+        /**
+         * SettingsPatch
+         * @description Only these fields can change. There is no field for a key or token; unknown fields are refused.
+         */
+        SettingsPatch: {
+            gateway?: components["schemas"]["GatewayPatch"] | null;
+            budget?: components["schemas"]["BudgetPatch"] | null;
+            /** Retention Days */
+            retention_days?: number | null;
+        };
+        /** ShareExportOut */
+        ShareExportOut: {
+            /** Run Id */
+            run_id: string;
+            /** Download Url */
+            download_url: string;
+            /** Share Token */
+            share_token: string;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings: string[];
+        };
+        /** SharePageOut */
+        SharePageOut: {
+            /** Title */
+            title: string;
+            /** Client */
+            client: string;
+            /** Summary */
+            summary: string;
+            /** Pain Points */
+            pain_points: string[];
+            /** Pilot */
+            pilot: string | null;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /** Video Url */
+            video_url: string | null;
+            /** Deck Url */
+            deck_url: string | null;
+        };
+        /** ShareTokenOut */
+        ShareTokenOut: {
+            /** Token */
+            token: string;
+            /** Path */
+            path: string;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+        };
+        /** TemplateStat */
+        TemplateStat: {
+            /** Sector */
+            sector: string;
+            /** App Class */
+            app_class: string;
+            /** Accent */
+            accent: string;
+            /** Screens */
+            screens: number;
+            /** Runs Used */
+            runs_used: number;
+            /** Builds Counted */
+            builds_counted: number;
+            /** First Time Ok */
+            first_time_ok: number;
+            /** First Time Build Rate */
+            first_time_build_rate: number | null;
         };
         /** ValidationError */
         ValidationError: {
@@ -1146,6 +1555,391 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revise_artifact_api_runs__run_id__artifacts__artifact_type__revise_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+                artifact_type: "brief" | "architecture" | "prototype" | "deck";
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviseRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviseResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    retry_run_api_runs__run_id__retry_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RetryRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviseResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    raise_budget_api_runs__run_id__budget_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BudgetRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviseResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    export_share_api_runs__run_id__share_export_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShareExportOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    download_share_zip_api_runs__run_id__share_export_download_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_share_token_api_share__run_id__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShareTokenOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_share_page_api_share_t__token__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SharePageOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_share_video_api_share_t__token__video_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_share_deck_api_share_t__token__deck_html_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_current_settings_api_settings_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SettingsOut"];
+                };
+            };
+        };
+    };
+    update_settings_api_settings_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SettingsPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SettingsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    test_gateway_api_settings_test_gateway_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GatewayTest"];
+                };
+            };
+        };
+    };
+    list_templates_api_templates_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TemplateStat"][];
                 };
             };
         };

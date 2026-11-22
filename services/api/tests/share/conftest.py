@@ -1,4 +1,4 @@
-"""Share tests: a temp DB and runs dir, the app with the Task 20 routers, and a seeded delivered run."""
+"""Share tests: a temp DB and runs dir, the app, and a seeded delivered run."""
 
 import json
 import secrets
@@ -13,7 +13,6 @@ from poc_studio.agents.store import record
 from poc_studio.config import get_settings
 from poc_studio.db.models import Project, Run, now
 from poc_studio.db.session import open_session
-from poc_studio.extra_routes import include_extra
 from poc_studio.llm.provider import FIXTURE_DIR
 from poc_studio.main import create_app
 from poc_studio.share import export
@@ -41,9 +40,7 @@ def _fake_pdf(request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch) -
 
 @pytest.fixture
 def client(env: Path) -> Iterator[TestClient]:  # noqa: F811
-    app = create_app()
-    include_extra(app)
-    with TestClient(app) as c:
+    with TestClient(create_app()) as c:
         yield c
 
 

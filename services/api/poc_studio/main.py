@@ -1,14 +1,18 @@
+import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from poc_studio.extra_routes import include_extra, on_startup
 from poc_studio.graph.registry import NodeSpec
 from poc_studio.preview import set_preview_manager
 from poc_studio.preview.manager import PreviewManager
 from poc_studio.routes import artifacts, events, gates, health, preview, publish, revise, runs
 from poc_studio.runs.service import RunService
+
+log = logging.getLogger(__name__)
 
 
 def create_app(nodes: dict[str, NodeSpec] | None = None) -> FastAPI:
@@ -24,6 +28,7 @@ def create_app(nodes: dict[str, NodeSpec] | None = None) -> FastAPI:
         previews.start_reaper()
         app.state.preview = previews
         set_preview_manager(previews)
+        log.info("retention removed %d input folders", on_startup())
         try:
             yield
         finally:
@@ -42,6 +47,7 @@ def create_app(nodes: dict[str, NodeSpec] | None = None) -> FastAPI:
     for module in (health, runs, events, gates, artifacts, preview, publish, revise):
         api.include_router(module.router)
     app.include_router(api)
+    include_extra(app)
     return app
 
 

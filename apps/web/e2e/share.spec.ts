@@ -65,9 +65,10 @@ test("a delivered run shares a zip and a token page without app chrome; settings
   await expect(page.getByRole("link", { name: /Open the interactive deck/ })).toBeVisible();
   await expect(page.getByText("What we heard")).toBeVisible();
   await expect(page.getByText(/This page is read-only and expires on/)).toBeVisible();
-  // No app chrome: the rail links are hidden and nothing on the page links into the app.
+  // No app chrome: the share route has its own layout, so the shell is not in the DOM at all.
   await expect(page.getByRole("link", { name: "Settings" })).toHaveCount(0);
-  await expect(page.locator(".rail")).toBeHidden();
+  await expect(page.locator(".rail")).toHaveCount(0);
+  await expect(page.locator(".tabbar")).toHaveCount(0);
   await expect(page.locator('.share-root a[href^="/"]')).toHaveCount(0);
 
   await page.goto("/share/not-a-real-token");

@@ -1,7 +1,7 @@
 """The Task 20 routers and the startup hook, kept out of `main.py` (owned by Task 19).
 
-`include_extra(app)` adds the share, settings and templates routers under `/api`. The coordinator calls it
-from `create_app` after the existing routers; until then `scripts/dev_with_extra.py` and the test helper do.
+`include_extra(app)` adds the share, settings and templates routers under `/api`. `create_app` calls
+it after the existing routers, and calls `on_startup` from the lifespan.
 """
 
 import logging

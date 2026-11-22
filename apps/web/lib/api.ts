@@ -49,11 +49,7 @@ export interface BuildInfo {
 }
 
 /** Answer of the revise, retry and budget routes (`routes/revise.py`). */
-export interface ReviseResponse {
-  run_id: string;
-  status: string;
-  agent?: string | null;
-}
+export type ReviseResponse = components["schemas"]["ReviseResponse"];
 
 /** The artifact pages that can ask for changes at Gate 2 (the brief has its own Gate 1 flow). */
 export type RevisableType = "architecture" | "prototype" | "deck";

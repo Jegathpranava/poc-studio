@@ -48,6 +48,6 @@ test("Gate 2 lists the QA checks, publishes in mock mode and shows Delivered", a
   const repo = page.getByRole("link", { name: /GitHub repo/ });
   await expect(repo).toHaveAttribute("href", "https://github.com/Jegathpranava/e2e-acme-poc");
   await expect(repo).toHaveAttribute("target", "_blank");
-  await expect(page.getByText("Coming soon")).toBeVisible();
+  await expect(page.getByRole("link", { name: /Client share page/ })).toBeVisible();
   await expect(page.getByRole("link", { name: /Pitch deck/ })).toHaveAttribute("href", `/runs/${runId}/deck`);
 });
