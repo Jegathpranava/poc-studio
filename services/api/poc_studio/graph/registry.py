@@ -22,7 +22,10 @@ STAGES: tuple[str, ...] = (
 )  # fmt: skip
 
 # The one place to extend: modules that define `NODE`.
-AGENT_MODULES: tuple[str, ...] = ("poc_studio.agents.intelligence",)
+AGENT_MODULES: tuple[str, ...] = (
+    "poc_studio.agents.intelligence",
+    "poc_studio.agents.architect",
+)
 
 
 @dataclass(frozen=True)

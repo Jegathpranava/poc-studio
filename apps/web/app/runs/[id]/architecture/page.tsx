@@ -1,5 +1,5 @@
-import { RunPlaceholder } from "@/components/run/run-placeholder";
+import { ArchitectureView } from "@/components/architecture/architecture-view";
 
-export default function Page() {
-  return <RunPlaceholder title="Architecture" after="the brief is approved at Gate 1" />;
+export default function ArchitecturePage() {
+  return <ArchitectureView />;
 }

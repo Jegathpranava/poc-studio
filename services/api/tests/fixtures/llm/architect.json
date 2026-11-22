@@ -1,0 +1,31 @@
+{
+  "use_case_class": "other",
+  "components": [
+    {"name": "Sales data import", "kind": "ingest", "detail": "Reads the weekly sales export (CSV or API) into a staging table."},
+    {"name": "Weekly aggregator", "kind": "service", "detail": "Rolls sales up by week, region and product line."},
+    {"name": "Insight summariser", "kind": "llm", "detail": "Writes a short plain-language summary of each week's movements."},
+    {"name": "Dashboard API", "kind": "api", "detail": "Serves weekly figures and summaries to the web app."},
+    {"name": "Sales dashboard", "kind": "ui", "detail": "Weekly view with trend charts and the timing view."}
+  ],
+  "mermaid": "flowchart LR\n  A[Sales export] --> B[Import job]\n  B --> C[(Staging store)]\n  C --> D[Weekly aggregator]\n  D --> E[Insight summariser]\n  D --> F[Dashboard API]\n  E --> F\n  F --> G[Sales dashboard]",
+  "models": [
+    {"job": "Weekly insight summaries", "model": "fast", "cost_per_1k_calls_usd": 0.0},
+    {"job": "Anomaly explanations", "model": "smart", "cost_per_1k_calls_usd": 0.0},
+    {"job": "Executive digest polish", "model": "claude-haiku-5-5", "cost_per_1k_calls_usd": 1.2}
+  ],
+  "monthly_cost": {
+    "lines": [
+      {"item": "Hosting (API and web app)", "usd": 25.0},
+      {"item": "Database", "usd": 15.0},
+      {"item": "LLM calls (about 4k a month)", "usd": 5.0}
+    ],
+    "total_usd": 45.0,
+    "assumptions": "About 4,000 summary calls a month, one small database, two hosted services."
+  },
+  "phases": [
+    {"name": "Data access and import", "weeks": 1, "detail": "Agree on the export format and load a sample of weekly sales data."},
+    {"name": "Dashboard build", "weeks": 2, "detail": "Weekly view, trend charts and the quick timing view."},
+    {"name": "Summaries and handover", "weeks": 1, "detail": "Add the weekly insight summaries, review with the sales team and hand over."}
+  ],
+  "rationale": "The brief asks for one clear weekly view of sales, inside a budget of about ten thousand dollars. A plain import, aggregate and chart pipeline covers the core need cheaply. A small language model adds the weekly summary the team would otherwise write by hand, and free-tier models keep the running cost low. The legacy SAP link is unconfirmed, so the import step stays file-based until the client confirms it."
+}

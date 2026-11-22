@@ -1,4 +1,5 @@
 import type { components } from "./api-types";
+import type { Architecture } from "./architecture";
 import type { Requirements } from "./requirements";
 
 export type RunSummary = components["schemas"]["RunSummary"];
@@ -73,6 +74,8 @@ export const api = {
     get: (id: string) => request<RunDetail>(`/api/runs/${id}`),
     create: (form: FormData) => request<{ id: string }>("/api/runs", { method: "POST", body: form }),
     requirements: (id: string) => request<ArtifactJson<Requirements>>(`/api/runs/${id}/artifacts/requirements`),
+    architecture: (id: string) => request<ArtifactJson<Architecture>>(`/api/runs/${id}/artifacts/architecture`),
+    architectureMarkdownUrl: (id: string) => `${BASE_URL}/api/runs/${id}/artifacts/architecture/markdown`,
     decideScope: (id: string, body: { decision: "approve" | "changes"; edits?: Requirements; note?: string }) =>
       request<GateDecisionResponse>(`/api/runs/${id}/gates/scope`, json(body)),
   },

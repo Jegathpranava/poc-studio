@@ -110,6 +110,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/runs/{run_id}/artifacts/{artifact_type}/markdown": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Download Markdown Artifact
+         * @description Latest `.md` of an artifact type. The type is from the allow-list; the path comes from the DB row.
+         */
+        get: operations["download_markdown_artifact_api_runs__run_id__artifacts__artifact_type__markdown_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -545,6 +565,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ArtifactJson"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    download_markdown_artifact_api_runs__run_id__artifacts__artifact_type__markdown_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+                artifact_type: "requirements" | "architecture" | "prototype" | "deck" | "pptx" | "video" | "docs" | "qa_report" | "share_export" | "screenpack";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */

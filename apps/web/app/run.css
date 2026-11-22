@@ -91,3 +91,9 @@
 .banner.note { background: var(--color-surface); border-color: var(--color-border-strong); }
 .banner.note > svg { color: var(--color-muted); margin-top: 2px; }
 .plain-list { margin: var(--space-1) 0 0; padding-left: var(--space-4); }
+.diagram { width: 100%; overflow-x: auto; display: flex; justify-content: center; }
+.diagram svg { max-width: 100%; height: auto; }
+.diagram-sk { height: 180px; }
+.diagram-fallback pre { background: var(--color-sunken); padding: var(--space-3); border-radius: var(--radius-md); overflow-x: auto; margin: var(--space-2) 0 0; }
+.prose p { margin: 0 0 var(--space-3); max-width: 70ch; line-height: 1.55; }
+.prose h3 { font-size: var(--text-base); margin: var(--space-4) 0 var(--space-2); }

@@ -1,12 +1,13 @@
 """GET /api/runs/{id}/artifacts/{type}: the latest version of a JSON artifact.
 
-Downloads join this file in Task 13.
+`/markdown` downloads its rendered `.md` sibling. Other downloads join this file in Task 13.
 """
 
 import json
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import FileResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -38,3 +39,22 @@ def get_json_artifact(
         raise HTTPException(404, f"{artifact_type} v{row.version} is missing on disk")
     data: dict[str, Any] = json.loads(path.read_text(encoding="utf-8"))
     return ArtifactJson(type=artifact_type, version=row.version, data=data)
+
+
+@router.get("/runs/{run_id}/artifacts/{artifact_type}/markdown")
+def download_markdown_artifact(
+    run_id: str, artifact_type: ArtifactType, session: Session = Depends(get_session)
+) -> FileResponse:
+    """Latest `.md` of an artifact type. The type is from the allow-list; the path comes from the DB row."""
+    row = session.scalars(
+        select(Artifact)
+        .where(Artifact.run_id == run_id, Artifact.type == artifact_type, Artifact.path.like("%.md"))
+        .order_by(Artifact.version.desc())
+    ).first()
+    if row is None:
+        raise HTTPException(404, f"run {run_id} has no markdown {artifact_type} artifact")
+    root = get_settings().runs_dir.resolve()
+    path = (root / row.path).resolve()
+    if not path.is_relative_to(root / run_id) or not path.is_file():
+        raise HTTPException(404, f"{artifact_type} markdown is missing on disk")
+    return FileResponse(path, media_type="text/markdown", filename=f"{artifact_type}.v{row.version}.md")
