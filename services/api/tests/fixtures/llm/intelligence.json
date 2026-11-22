@@ -1,0 +1,55 @@
+{
+  "client": "Acme",
+  "sector": "logistics",
+  "title": "Weekly sales dashboard",
+  "summary": "Acme needs a dashboard that reports weekly sales. The client has a fixed budget of about ten thousand dollars. Alice Smith raised the dashboard need and Bob Jones confirmed the budget.",
+  "goals": ["Give the sales team a weekly view of results"],
+  "pain_points": ["Weekly sales numbers are not visible in one place"],
+  "features": [
+    {
+      "name": "Weekly sales dashboard",
+      "detail": "A dashboard summarising sales by week.",
+      "priority": "P1",
+      "confidence": 0.9,
+      "source_ts": "00:00:01",
+      "source_quote": "We need a dashboard for weekly sales."
+    },
+    {
+      "name": "Quick timing view",
+      "detail": "Show timing entries in a short form without speaker labels.",
+      "priority": "P3",
+      "confidence": 0.4,
+      "source_ts": "00:00:10",
+      "source_quote": "Short form timing with no speaker."
+    },
+    {
+      "name": "Driver route optimiser",
+      "detail": "Plans delivery routes automatically.",
+      "priority": "P2",
+      "confidence": 0.6,
+      "source_ts": "00:30:00",
+      "source_quote": "We want the system to optimise every driver route overnight."
+    }
+  ],
+  "constraints": [
+    {
+      "text": "Budget is about ten thousand dollars",
+      "confirmed": true,
+      "source_quote": "Budget is ten thousand dollars."
+    },
+    {
+      "text": "Must integrate with the legacy SAP system",
+      "confirmed": true,
+      "source_quote": "It has to plug into our legacy SAP system."
+    }
+  ],
+  "budget": {"text": "ten thousand dollars", "amount_usd": 10000},
+  "timeline": null,
+  "stakeholders": [
+    {"name": "Alice Smith", "role": "Requester"},
+    {"name": "Bob Jones", "role": "Budget holder"}
+  ],
+  "action_items": [
+    {"text": "Share a sample of the weekly sales data", "owner": "Alice Smith", "due": null}
+  ]
+}
