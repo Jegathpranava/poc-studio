@@ -1,0 +1,8 @@
+{
+  "files": [
+    {
+      "path": "app/broken/page.tsx",
+      "content": "export default function Page() {\n  return (\n    <div className=\"pf\">\n      <div className=\"lgx\">\n        <main className=\"page\">\n          <h1 className=\"page-title\">Fixed page</h1>\n        </main>\n      </div>\n    </div>\n  );\n}\n"
+    }
+  ]
+}
