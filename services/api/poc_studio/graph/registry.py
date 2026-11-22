@@ -25,6 +25,7 @@ STAGES: tuple[str, ...] = (
 AGENT_MODULES: tuple[str, ...] = (
     "poc_studio.agents.intelligence",
     "poc_studio.agents.architect",
+    "poc_studio.agents.screens",
 )
 
 
