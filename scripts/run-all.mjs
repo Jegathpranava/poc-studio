@@ -14,6 +14,8 @@ const groups = {
   ],
   typecheck: [
     [api, "uv", ["run", "pyright", "poc_studio"]],
+    // typegen emits the route types (LayoutProps etc.) that a clean checkout lacks
+    [root, "npm", ["--workspace", "apps/web", "exec", "--", "next", "typegen"]],
     [root, "npm", ["--workspace", "apps/web", "exec", "--", "tsc", "--noEmit"]],
   ],
   test: [
