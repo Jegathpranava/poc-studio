@@ -113,7 +113,9 @@ class Approval(Base):
     gate: Mapped[str] = mapped_column(String(10))
     decision: Mapped[str] = mapped_column(String(10))
     edits_json: Mapped[str | None] = mapped_column(Text)
+    note: Mapped[str | None] = mapped_column(Text)
     decided_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    consumed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))  # set by the gate node
 
 
 class Event(Base):

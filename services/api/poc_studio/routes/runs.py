@@ -14,6 +14,7 @@ from poc_studio.routes.schemas import (
     RunDetail,
     RunSummary,
 )
+from poc_studio.runs import service as run_limits
 from poc_studio.runs.service import InvalidUpload, RunOptions, RunService
 
 router = APIRouter()
@@ -69,6 +70,10 @@ def get_run(run_id: str, session: Session = Depends(get_session)) -> RunDetail:
     )
 
 
+def _total_message() -> str:
+    return f"uploads exceed the total limit of {run_limits.MAX_TOTAL_BYTES / (1024 * 1024):g} MB"
+
+
 @router.post("/runs", response_model=CreateRunResponse, status_code=201)
 async def create_run(
     service: Annotated[RunService, Depends(get_service)],
@@ -82,9 +87,15 @@ async def create_run(
     name = (client or client_name or "").strip()
     if not name:
         raise HTTPException(422, "client is required")
+    if len(files) > run_limits.MAX_FILES:
+        raise HTTPException(422, f"at most {run_limits.MAX_FILES} files per run")
     uploads: list[tuple[str, bytes]] = []
+    total = 0
     for f in files:
         data = await f.read(MAX_FILE_BYTES + 1)  # one byte over the limit is enough to reject it
+        total += len(data)
+        if total > run_limits.MAX_TOTAL_BYTES:  # stop reading as soon as the sum is too big
+            raise HTTPException(422, _total_message())
         uploads.append((f.filename or "upload", data))
     try:
         run_id = await service.create_run(

@@ -3,12 +3,11 @@
 from collections.abc import AsyncIterator
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Header, HTTPException
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Header, HTTPException
 from sse_starlette import EventSourceResponse, ServerSentEvent
 
 from poc_studio.db.models import Run
-from poc_studio.db.session import get_session
+from poc_studio.db.session import open_session
 from poc_studio.events import bus, event_name, load_events
 from poc_studio.routes.schemas import RunEvent
 
@@ -40,12 +39,13 @@ async def event_stream(run_id: str, after_id: int, follow: bool) -> AsyncIterato
 @router.get("/runs/{run_id}/events")
 async def stream_events(
     run_id: str,
-    session: Session = Depends(get_session),
     last_event_id: Annotated[str | None, Header(alias="Last-Event-ID")] = None,
     follow: bool = True,
 ) -> EventSourceResponse:
     """`follow=false` ends the stream after the replay (for tests and curl)."""
-    if session.get(Run, run_id) is None:
+    with open_session() as session:  # closed before the stream starts: SSE can stay open for hours
+        exists = session.get(Run, run_id) is not None
+    if not exists:
         raise HTTPException(404, f"run {run_id} not found")
     try:
         after = max(int(last_event_id), 0) if last_event_id else 0

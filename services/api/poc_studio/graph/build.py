@@ -24,7 +24,7 @@ def after_gate1(state: RunState) -> str:
 def after_qa(state: RunState) -> str | list[str]:
     """Send-back edge. Inert until the QA agent sets `qa_send_back`; capped at MAX_SEND_BACKS."""
     target = state.get("qa_send_back")
-    if not target or state.get("sent_back_count", 0) > MAX_SEND_BACKS:
+    if not target or state.get("sent_back_count", 0) >= MAX_SEND_BACKS:
         return "gate2"
     if target == "screens":
         return "screens"

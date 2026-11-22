@@ -1,11 +1,7 @@
 """Graph state (spec 7) plus the ScreenPack from 7b and a few routing fields. Every value is JSON-safe."""
 
+import operator
 from typing import Annotated, Any, Required, TypedDict
-
-
-def last_write_wins(old: dict[str, Any] | None, new: dict[str, Any] | None) -> dict[str, Any] | None:
-    """Parallel branches (pitch, port) may both return `budget`; the later write wins."""
-    return new if new is not None else old
 
 
 class RunState(TypedDict, total=False):
@@ -20,7 +16,9 @@ class RunState(TypedDict, total=False):
     video: dict[str, Any] | None
     qa_report: dict[str, Any] | None
     repo_url: str | None
-    budget: Annotated[dict[str, Any] | None, last_write_wins]  # {"limit_usd": float, "spent_usd": float}
+    # Nodes return `spent_delta` (what they spent); parallel branches add up. Total spend = their sum.
+    spent_delta: Annotated[float, operator.add]
+    limit_usd: float
     # routing and gate bookkeeping
     gate1: dict[str, Any] | None  # last resume payload: {"decision", "edits", "note"}
     gate2: dict[str, Any] | None

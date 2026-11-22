@@ -11,10 +11,11 @@ from poc_studio.db.models import AgentStep, Artifact, Project, Run
 from poc_studio.db.session import open_session
 from poc_studio.events import emit
 from poc_studio.graph.registry import NodeSpec
+from poc_studio.graph.spend import node_budget
 from poc_studio.graph.state import RunState
 from poc_studio.graph.steps import step_scope
 from poc_studio.ingest import Transcript, parse_files
-from poc_studio.llm import RunBudget, complete_json, wrap_untrusted
+from poc_studio.llm import complete_json, wrap_untrusted
 from poc_studio.schemas.requirements import Requirements
 
 AGENT = "intelligence"
@@ -96,7 +97,7 @@ def load_transcript(state: RunState) -> Transcript:
     return parse_files(files)
 
 
-def _next_version(run_id: str) -> int:
+def next_requirements_version(run_id: str) -> int:
     with open_session() as session:
         latest = session.scalar(
             select(func.max(Artifact.version)).where(
@@ -106,7 +107,7 @@ def _next_version(run_id: str) -> int:
     return (latest or 0) + 1
 
 
-def _persist(run_id: str, version: int, req: Requirements) -> None:
+def persist_requirements(run_id: str, version: int, req: Requirements) -> None:
     path = get_settings().runs_dir / run_id / f"requirements.v{version}.json"
     path.parent.mkdir(parents=True, exist_ok=True)
     data = req.model_dump_json(indent=2).encode("utf-8")
@@ -146,7 +147,6 @@ def _record_usage(
             row.tokens_in, row.tokens_out, row.cost_usd, row.model = tokens_in, tokens_out, cost, model
         run = session.get(Run, run_id)
         if run is not None:
-            run.paid_usd += cost
             run.tokens_total += tokens_in + tokens_out
         session.commit()
 
@@ -157,8 +157,7 @@ async def run_intelligence(state: RunState) -> dict[str, Any]:
     model = settings.default_fast_model
     async with step_scope(run_id, AGENT, model=model) as step_id:
         transcript = load_transcript(state)
-        b = state.get("budget") or {}
-        budget = RunBudget(run_id, b.get("limit_usd", settings.run_budget_usd), b.get("spent_usd", 0.0))
+        budget = node_budget(state)  # each charge also lands in runs.paid_usd
         result = await complete_json(
             agent=AGENT,
             model=model,
@@ -178,12 +177,12 @@ async def run_intelligence(state: RunState) -> dict[str, Any]:
             emit(run_id, AGENT, "log", status="warning", message=warning)
         if not req.features:
             raise ValueError("no feature has a source quote found in the transcript")
-        version = _next_version(run_id)
-        _persist(run_id, version, req)
+        version = next_requirements_version(run_id)
+        persist_requirements(run_id, version, req)
         emit(run_id, AGENT, "log", message=f"requirements v{version}: {len(req.features)} features")
         return {
             "requirements": req.model_dump(mode="json"),
-            "budget": {"limit_usd": budget.limit_usd, "spent_usd": budget.spent_usd},
+            "spent_delta": budget.charged_usd,
             "intelligence_note": None,
         }
 

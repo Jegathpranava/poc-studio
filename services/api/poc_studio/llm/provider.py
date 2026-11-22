@@ -13,8 +13,8 @@ FIXTURE_DIR = Path(__file__).resolve().parents[2] / "tests" / "fixtures" / "llm"
 @dataclass(frozen=True)
 class ChatReply:
     text: str
-    tokens_in: int
-    tokens_out: int
+    tokens_in: int | None  # None when the gateway sent no `usage`; the client then uses its estimate
+    tokens_out: int | None
 
 
 class ChatProvider(Protocol):
@@ -54,8 +54,8 @@ class GatewayProvider:
         usage = resp.usage
         return ChatReply(
             text=resp.choices[0].message.content or "",
-            tokens_in=usage.prompt_tokens if usage else 0,
-            tokens_out=usage.completion_tokens if usage else 0,
+            tokens_in=usage.prompt_tokens if usage else None,
+            tokens_out=usage.completion_tokens if usage else None,
         )
 
 

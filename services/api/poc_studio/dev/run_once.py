@@ -40,7 +40,7 @@ async def _run(path: Path) -> int:
     input_dir.mkdir(parents=True)
     shutil.copy(path, input_dir / path.name)
 
-    state: RunState = {"run_id": run_id, "budget": {"limit_usd": settings.run_budget_usd, "spent_usd": 0.0}}
+    state: RunState = {"run_id": run_id, "limit_usd": settings.run_budget_usd, "spent_delta": 0.0}
     state = {**state, **await intake(state)}  # pyright: ignore[reportAssignmentType]
     update = await run_intelligence(state)
     req = update["requirements"]

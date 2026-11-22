@@ -1,5 +1,6 @@
 """Per-run budget with a pre-call estimate guard."""
 
+from collections.abc import Callable
 from dataclasses import dataclass
 
 import tiktoken
@@ -37,6 +38,8 @@ class RunBudget:
     run_id: str
     limit_usd: float
     spent_usd: float = 0.0
+    charged_usd: float = 0.0  # what this object charged itself, i.e. the delta a node reports to the graph
+    on_charge: Callable[[float], None] | None = None  # persists each charge before a later call can raise
 
     @property
     def remaining(self) -> float:
@@ -59,3 +62,6 @@ class RunBudget:
 
     def charge(self, cost: float) -> None:
         self.spent_usd += cost
+        self.charged_usd += cost
+        if self.on_charge is not None:
+            self.on_charge(cost)

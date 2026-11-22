@@ -21,10 +21,15 @@ from poc_studio.graph.build import build_graph
 from poc_studio.graph.registry import NodeSpec, collect_nodes
 from poc_studio.ingest.parse import MAX_FILE_BYTES, SUPPORTED
 from poc_studio.llm import BudgetExceeded
+from poc_studio.redact import install_log_redaction
+from poc_studio.runs.edits import save_requirements_edit
+from poc_studio.schemas.requirements import Requirements
 
 log = logging.getLogger(__name__)
 
 GATE_STATUS = {"scope": "waiting_gate1", "publish": "waiting_gate2"}
+MAX_FILES = 10
+MAX_TOTAL_BYTES = 60 * 1024 * 1024
 
 
 class RunOptions(BaseModel):
@@ -43,12 +48,14 @@ class GateError(Exception):
 
 
 def safe_name(name: str, taken: set[str]) -> str:
+    if "\x00" in name or ":" in name:
+        raise InvalidUpload("file names must not contain NUL or ':' characters")
     base = Path(name.replace("\\", "/")).name.strip() or "upload"
     candidate, n = base, 1
-    while candidate in taken:
+    while candidate.casefold() in taken:  # case-insensitive file systems would merge A.vtt and a.vtt
         n += 1
         candidate = f"{n}_{base}"
-    taken.add(candidate)
+    taken.add(candidate.casefold())
     return candidate
 
 
@@ -61,6 +68,7 @@ class RunService:
 
     # --- lifecycle ----------------------------------------------------------
     async def start(self) -> None:
+        install_log_redaction()  # exception text in logs may carry secrets
         path = get_settings().checkpoint_db_path
         if path is not None:
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -94,6 +102,10 @@ class RunService:
             raise InvalidUpload("client name is required")
         if not files:
             raise InvalidUpload("at least one file is required")
+        if len(files) > MAX_FILES:
+            raise InvalidUpload(f"at most {MAX_FILES} files per run")
+        if sum(len(d) for _, d in files) > MAX_TOTAL_BYTES:
+            raise InvalidUpload(f"uploads exceed the total limit of {MAX_TOTAL_BYTES / (1024 * 1024):g} MB")
         taken: set[str] = set()
         named = [(safe_name(n, taken), data) for n, data in files]
         for name, data in named:
@@ -148,23 +160,41 @@ class RunService:
                     gate=gate,
                     decision=decision,
                     edits_json=json.dumps(edits) if edits else None,
+                    note=note,
                 )
             )
             session.commit()
+        if gate == "scope" and decision == "approve" and edits:
+            # The route validated `edits`; save them before the graph resumes so later agents read them.
+            save_requirements_edit(run_id, Requirements.model_validate(edits))
         payload = {"decision": decision, "edits": edits, "note": note}
-        emit(run_id, RUN_AGENT, "gate", status=decision, message=f"Gate {gate} decision: {decision}")
+        # The gate node emits the "gate" decision event once it consumes this payload.
         self._spawn(run_id, self._drive(run_id, Command(resume=payload)))
         return "running"
 
-    async def resume(self, run_id: str) -> None:
-        """Continue a run that stopped on `paused_budget` (or was left running) from its checkpoint."""
+    async def resume(self, run_id: str, budget_usd: float | None = None) -> None:
+        """Continue a run that stopped on `paused_budget` (or was left running) from its checkpoint.
+
+        `budget_usd` raises the limit first (in `runs.budget_usd` and in the checkpointed state).
+        """
+        if budget_usd is not None and budget_usd <= 0:
+            raise ValueError("budget_usd must be greater than 0")
         with open_session() as session:
             run = session.get(Run, run_id)
             if run is None:
                 raise GateError("not_found", f"run {run_id} not found")
             if run.status not in ("paused_budget", "running"):
                 raise GateError("conflict", f"run is {run.status}, nothing to resume")
-        self._spawn(run_id, self._drive(run_id, None))
+            self._ensure_idle(run_id)
+            if budget_usd is not None:
+                run.budget_usd = budget_usd
+                session.commit()
+        config = {"configurable": {"thread_id": run_id}}
+        if budget_usd is not None and (await self.graph.aget_state(config)).created_at is not None:
+            await self.graph.aupdate_state(config, {"limit_usd": budget_usd})
+        payload = await self._next_input(run_id)
+        self._ensure_idle(run_id)  # the awaits above let another resume or decision slip in
+        self._spawn(run_id, self._drive(run_id, payload))
 
     # --- internals ---------------------------------------------------------------
     @staticmethod
@@ -176,7 +206,33 @@ class RunService:
 
     @staticmethod
     def _initial_input(run_id: str, budget: float) -> dict[str, Any]:
-        return {"run_id": run_id, "budget": {"limit_usd": budget, "spent_usd": 0.0}, "sent_back_count": 0}
+        return {"run_id": run_id, "limit_usd": budget, "spent_delta": 0.0, "sent_back_count": 0}
+
+    def _ensure_idle(self, run_id: str) -> None:
+        task = self._tasks.get(run_id)
+        if task is not None and not task.done():
+            raise GateError("conflict", f"run {run_id} is already being driven")
+
+    async def _next_input(self, run_id: str) -> Any:
+        """What to feed the graph to continue: the first input, a decision lost to a crash, or None."""
+        snap = await self.graph.aget_state({"configurable": {"thread_id": run_id}})
+        if snap.created_at is None:  # no checkpoint yet: the run never got going
+            with open_session() as session:
+                run = session.get(Run, run_id)
+                budget = run.budget_usd if run else get_settings().run_budget_usd
+            return self._initial_input(run_id, budget)
+        gates = [i.value.get("gate") for i in snap.interrupts if isinstance(i.value, dict)]
+        with open_session() as session:
+            row = session.scalars(
+                select(Approval)
+                .where(Approval.run_id == run_id, Approval.gate.in_(gates), Approval.consumed_at.is_(None))
+                .order_by(Approval.id.desc())
+                .limit(1)
+            ).first()
+            if row is not None:  # decided, but the process died before the gate node consumed it
+                edits = json.loads(row.edits_json) if row.edits_json else None
+                return Command(resume={"decision": row.decision, "edits": edits, "note": row.note})
+        return None
 
     def _spawn(self, run_id: str, coro: Any) -> None:
         task = asyncio.create_task(coro, name=f"run-{run_id}")
@@ -184,15 +240,7 @@ class RunService:
         task.add_done_callback(lambda t: self._tasks.get(run_id) is t and self._tasks.pop(run_id, None))
 
     async def _recover(self, run_id: str) -> None:
-        config = {"configurable": {"thread_id": run_id}}
-        snap = await self.graph.aget_state(config)
-        if snap.created_at is None:  # no checkpoint yet: the run never got going
-            with open_session() as session:
-                run = session.get(Run, run_id)
-                budget = run.budget_usd if run else get_settings().run_budget_usd
-            await self._drive(run_id, self._initial_input(run_id, budget))
-        else:
-            await self._drive(run_id, None)
+        await self._drive(run_id, await self._next_input(run_id))
 
     def _set_status(self, run_id: str, status: str, *, finished: bool = False) -> None:
         with open_session() as session:
@@ -203,6 +251,13 @@ class RunService:
                     run.finished_at = now()
                 session.commit()
 
+    def _settle(self, run_id: str, status: str, *, finished: bool = False) -> None:
+        """Final status of a drive. Unregisters this task first, so an observer who sees the status can
+        call resume() without hitting the "already being driven" conflict."""
+        if self._tasks.get(run_id) is asyncio.current_task():
+            del self._tasks[run_id]
+        self._set_status(run_id, status, finished=finished)
+
     async def _drive(self, run_id: str, payload: Any) -> None:
         config = {"configurable": {"thread_id": run_id}}
         self._set_status(run_id, "running")
@@ -211,24 +266,24 @@ class RunService:
             await self.graph.ainvoke(payload, config)
             snap = await self.graph.aget_state(config)
         except BudgetExceeded as exc:
-            self._set_status(run_id, "paused_budget")
+            self._settle(run_id, "paused_budget")
             emit(run_id, RUN_AGENT, "status", status="paused_budget", message=str(exc))
             return
         except asyncio.CancelledError:
             raise  # shutting down: the run stays `running` and is resumed on the next start
         except Exception as exc:
             log.exception("run %s failed", run_id)
-            self._set_status(run_id, "failed", finished=True)
+            self._settle(run_id, "failed", finished=True)
             emit(run_id, RUN_AGENT, "error", status="failed", error={"message": str(exc)})
             return
         gates = [i.value.get("gate") for i in snap.interrupts if isinstance(i.value, dict)]
         if gates and gates[0] in GATE_STATUS:
             status = GATE_STATUS[gates[0]]
-            self._set_status(run_id, status)
+            self._settle(run_id, status)
             emit(run_id, RUN_AGENT, "gate", status=status, message=f"Waiting at gate {gates[0]}")
         elif not snap.next:
-            self._set_status(run_id, "delivered", finished=True)
+            self._settle(run_id, "delivered", finished=True)
             emit(run_id, RUN_AGENT, "status", status="delivered")
         else:
-            self._set_status(run_id, "failed", finished=True)
+            self._settle(run_id, "failed", finished=True)
             emit(run_id, RUN_AGENT, "error", status="failed", error={"message": f"stopped at {snap.next}"})

@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from pydantic import BaseModel, ValidationError
 
 from poc_studio.config import get_settings
-from poc_studio.llm.budget import RunBudget
+from poc_studio.llm.budget import RunBudget, count_tokens
 from poc_studio.llm.json_repair import repair_prompt, strip_fences
 from poc_studio.llm.pricing import cost_usd
 from poc_studio.llm.provider import ChatProvider, get_provider
@@ -85,12 +85,16 @@ async def complete_json[T: BaseModel](
     total_cost = 0.0
     last_error = ""
     for attempt in range(1, MAX_ATTEMPTS + 1):
-        run.check(model, "\n".join(m["content"] for m in messages), max_tokens)
+        prompt = "\n".join(m["content"] for m in messages)
+        run.check(model, prompt, max_tokens)
         reply = await prov.chat(model, messages, max_tokens, TIMEOUT_S, agent=agent)
-        cost = cost_usd(model, reply.tokens_in, reply.tokens_out)
+        # No `usage` from the gateway: charge the pre-call estimate (worst case), never $0.
+        used_in = count_tokens(prompt) if reply.tokens_in is None else reply.tokens_in
+        used_out = max_tokens if reply.tokens_out is None else reply.tokens_out
+        cost = cost_usd(model, used_in, used_out)
         run.charge(cost)
-        tokens_in += reply.tokens_in
-        tokens_out += reply.tokens_out
+        tokens_in += used_in
+        tokens_out += used_out
         total_cost += cost
         try:
             value = schema.model_validate_json(strip_fences(reply.text))
