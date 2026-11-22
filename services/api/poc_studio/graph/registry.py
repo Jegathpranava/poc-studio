@@ -1,6 +1,6 @@
 """Node registry. Each agent module exposes `NODE = NodeSpec(name, fn, owner_agent)`.
 
-To add an agent, append its module path to `AGENT_MODULES`. Its NODE replaces the stub of the same name.
+To add an agent, append its module path to `AGENT_MODULES`. `collect_nodes` fails if a stage has no node.
 `graph/build.py` is never edited for that.
 """
 
@@ -43,7 +43,7 @@ class NodeSpec:
 
 
 def collect_nodes(modules: tuple[str, ...] | None = None) -> dict[str, NodeSpec]:
-    """Built-in nodes and stubs, overridden by each module's NODE. Every stage ends up with a node."""
+    """Built-in nodes (intake, gates) plus each module's NODE. Every stage must end up with a node."""
     from poc_studio.graph.nodes import builtin_nodes
 
     nodes = {spec.name: spec for spec in builtin_nodes()}

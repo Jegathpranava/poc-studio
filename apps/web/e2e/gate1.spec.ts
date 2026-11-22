@@ -23,6 +23,7 @@ async function waitForGate1(page: Page) {
 }
 
 test("upload, review the brief, edit the budget and approve", async ({ page }) => {
+  test.setTimeout(5 * 60_000);
   await startRun(page);
   await waitForGate1(page);
   await expect(page.locator('.step[data-agent="intelligence"]')).toHaveAttribute("data-state", "done");
@@ -37,7 +38,7 @@ test("upload, review the brief, edit the budget and approve", async ({ page }) =
   await expect(page.getByText("Brief approved", { exact: true })).toBeVisible();
   await expect(page).toHaveURL(/\/runs\/r_[0-9a-f]{6}$/);
   await expect(page.locator('.gate[data-gate="gate1"]')).toHaveAttribute("data-view", "passed");
-  await expect(page.locator(".badge", { hasText: "Waiting at Gate 2" })).toBeVisible();
+  await expect(page.locator(".badge", { hasText: "Waiting at Gate 2" })).toBeVisible({ timeout: 4 * 60_000 }); // the real pipeline runs now
 
   await page.getByRole("link", { name: "Brief", exact: true }).click();
   await expect(page.getByTestId("brief-version")).toContainText("Brief v2");

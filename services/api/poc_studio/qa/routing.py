@@ -2,7 +2,7 @@
 
 `decide` returns `{"send_back": "pitch" | "screens" | "port" | None, "block_publish": bool}`. The graph edge
 `after_qa` (graph/build.py) reads the agent name from state key `qa_send_back` and stops at MAX_SEND_BACKS,
-and it sends "port" and "pitch" back through both branches (the join before assemble needs both).
+and it sends "port" and "pitch" back alone through `port_retry` / `pitch_retry`, then on to assemble.
 """
 
 from typing import TypedDict

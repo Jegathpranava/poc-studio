@@ -2,6 +2,14 @@
 
 intake -> intelligence -> gate1 -> architect -> screens -> (pitch || port) -> assemble -> qa -> gate2
 -> video -> repo. Agent tasks never edit this file; they register through `graph/registry.py`.
+
+QA send-backs (at most MAX_SEND_BACKS executed, then the run goes on to Gate 2 with the report):
+  screens -> screens, then both branches and the join as usual
+  pitch   -> pitch_retry -> assemble     (the port result stays in state; port is not re-run)
+  port    -> port_retry  -> assemble     (pitch is not re-run)
+`pitch_retry` and `port_retry` reuse the pitch and port functions; they exist because the
+`["pitch", "port"] -> assemble` join would wait forever for the branch that did not run again.
+Step rows are still written as `pitch` and `port` (the agents name their own step).
 """
 
 from typing import Any
@@ -21,14 +29,12 @@ def after_gate1(state: RunState) -> str:
     return "intelligence" if gate.get("decision") == "changes" else "architect"
 
 
-def after_qa(state: RunState) -> str | list[str]:
-    """Send-back edge. Inert until the QA agent sets `qa_send_back`; capped at MAX_SEND_BACKS."""
+def after_qa(state: RunState) -> str:
+    """Send-back edge: the node QA named, capped at MAX_SEND_BACKS. A lone branch uses a retry node."""
     target = state.get("qa_send_back")
     if not target or state.get("sent_back_count", 0) >= MAX_SEND_BACKS:
         return "gate2"
-    if target == "screens":
-        return "screens"
-    return ["pitch", "port"]  # the join before assemble needs both branches to run again
+    return {"screens": "screens", "pitch": "pitch_retry", "port": "port_retry"}.get(target, "gate2")
 
 
 def after_gate2(state: RunState) -> str:
@@ -53,8 +59,14 @@ def build_graph(
     g.add_edge("screens", "port")
     g.add_edge(["pitch", "port"], "assemble")
     g.add_edge("assemble", "qa")
+    g.add_node("pitch_retry", nodes["pitch"].fn)
+    g.add_node("port_retry", nodes["port"].fn)
+    g.add_edge("pitch_retry", "assemble")
+    g.add_edge("port_retry", "assemble")
     g.add_conditional_edges(
-        "qa", after_qa, {"gate2": "gate2", "screens": "screens", "pitch": "pitch", "port": "port"}
+        "qa",
+        after_qa,
+        {"gate2": "gate2", "screens": "screens", "pitch_retry": "pitch_retry", "port_retry": "port_retry"},
     )
     g.add_conditional_edges("gate2", after_gate2, {"gate2": "gate2", "video": "video"})
     g.add_edge("video", "repo")
