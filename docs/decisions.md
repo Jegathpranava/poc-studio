@@ -26,3 +26,16 @@ Resolved values, recorded by Task 1. The design spec (`docs/specs/2026-11-22-poc
 ## Verified prices
 
 Appended by Task 4.
+
+## LLM pricing
+
+Task 4. Constants live in `services/api/poc_studio/llm/pricing.py`. Prices are USD per 1M tokens (input / output).
+
+| Model | Input | Output | Status |
+|---|---|---|---|
+| `fast`, `smart`, `vision`, `embed`, `guard` | 0 | 0 | Free gateway models |
+| `claude-haiku-5-5` | 0.10 | 0.50 | VERIFY_PRICE: from the claude-api skill table (cached 2026-11-03), list price for prompts up to 100K tokens |
+| `claude-sonnet-5-5` | 2.00 | 10.00 | VERIFY_PRICE: same source |
+| `claude-opus-5-5` | 4.00 | 20.00 | VERIFY_PRICE: same source |
+
+These are Anthropic first-party list prices. The gateway's own billing is not confirmed. The owner-only live test (`EVAL_LIVE=1`) must compare them with the gateway usage before they count as verified. Haiku input is capped at 12,000 tokens (`InputTooLarge`).
