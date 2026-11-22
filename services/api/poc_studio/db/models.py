@@ -5,6 +5,7 @@ from datetime import UTC, datetime
 
 from sqlalchemy import CheckConstraint, DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.types import TypeDecorator
 
 from poc_studio.db.base import Base
 
@@ -33,6 +34,23 @@ def now() -> datetime:
     return datetime.now(UTC)
 
 
+class UTCDateTime(TypeDecorator[datetime]):
+    """Stores UTC; SQLite drops the offset, so re-attach UTC on load (API then emits a Z/+00:00 suffix)."""
+
+    impl = DateTime(timezone=True)
+    cache_ok = True
+
+    def process_bind_param(self, value: datetime | None, dialect: object) -> datetime | None:
+        if value is not None and value.tzinfo is None:
+            value = value.replace(tzinfo=UTC)
+        return value.astimezone(UTC) if value is not None else None
+
+    def process_result_value(self, value: datetime | None, dialect: object) -> datetime | None:
+        if value is not None and value.tzinfo is None:
+            return value.replace(tzinfo=UTC)
+        return value
+
+
 def new_run_id() -> str:
     return "r_" + secrets.token_hex(3)
 
@@ -45,7 +63,7 @@ class Project(Base):
     client_name: Mapped[str] = mapped_column(String(200))
     client_name_key: Mapped[str] = mapped_column(String(200))  # lower-cased, for case-insensitive reuse
     sector: Mapped[str | None] = mapped_column(String(80))
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime(), default=now)
 
 
 class Run(Base):
@@ -65,8 +83,8 @@ class Run(Base):
     budget_usd: Mapped[float] = mapped_column(Float, default=0.05)
     preview_pid: Mapped[int | None] = mapped_column(Integer)
     preview_port: Mapped[int | None] = mapped_column(Integer)
-    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    started_at: Mapped[datetime | None] = mapped_column(UTCDateTime())
+    finished_at: Mapped[datetime | None] = mapped_column(UTCDateTime())
 
 
 class AgentStep(Base):
@@ -81,8 +99,8 @@ class AgentStep(Base):
     tokens_in: Mapped[int] = mapped_column(Integer, default=0)
     tokens_out: Mapped[int] = mapped_column(Integer, default=0)
     cost_usd: Mapped[float] = mapped_column(Float, default=0.0)
-    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    started_at: Mapped[datetime | None] = mapped_column(UTCDateTime())
+    finished_at: Mapped[datetime | None] = mapped_column(UTCDateTime())
     error_file: Mapped[str | None] = mapped_column(String(500))
     error_line: Mapped[int | None] = mapped_column(Integer)
     error_message: Mapped[str | None] = mapped_column(Text)
@@ -98,7 +116,7 @@ class Artifact(Base):
     version: Mapped[int] = mapped_column(Integer, default=1)
     path: Mapped[str] = mapped_column(String(500))
     sha256: Mapped[str | None] = mapped_column(String(64))
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime(), default=now)
 
 
 class Approval(Base):
@@ -114,8 +132,8 @@ class Approval(Base):
     decision: Mapped[str] = mapped_column(String(10))
     edits_json: Mapped[str | None] = mapped_column(Text)
     note: Mapped[str | None] = mapped_column(Text)
-    decided_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
-    consumed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))  # set by the gate node
+    decided_at: Mapped[datetime] = mapped_column(UTCDateTime(), default=now)
+    consumed_at: Mapped[datetime | None] = mapped_column(UTCDateTime())  # set by the gate node
 
 
 class Event(Base):
@@ -125,7 +143,7 @@ class Event(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     run_id: Mapped[str] = mapped_column(ForeignKey("runs.id"), index=True)
-    ts: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    ts: Mapped[datetime] = mapped_column(UTCDateTime(), default=now)
     agent: Mapped[str] = mapped_column(String(40))
     level: Mapped[str] = mapped_column(String(10), default="log")  # the spec 7b `kind`
     message: Mapped[str] = mapped_column(Text, default="")
