@@ -37,7 +37,7 @@ class Settings(BaseSettings):
     run_budget_usd: float = Field(0.05, validation_alias=_a("RUN_BUDGET_USD"))
     monthly_cap_usd: float = Field(5.0, validation_alias=_a("MONTHLY_CAP_USD"))
     eval_live: bool = Field(False, validation_alias=_a("EVAL_LIVE"))
-    retention_days: int = Field(30, validation_alias=_a("RETENTION_DAYS"))
+    retention_days: int = Field(0, validation_alias=_a("RETENTION_DAYS"))
     runs_dir_setting: str = Field("runs", validation_alias=_a("RUNS_DIR"))
 
     @model_validator(mode="after")

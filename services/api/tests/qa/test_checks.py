@@ -130,4 +130,4 @@ def test_missing_inputs_fail_in_a_real_run_and_skip_in_stub_mode() -> None:
     real = c.spotlights_resolve(QAInputs())
     assert not real.ok and real.report_only
     stub = c.spotlights_resolve(QAInputs(lenient=True))
-    assert stub.ok and stub.detail == "skipped (stub)"
+    assert stub.ok and stub.detail == "skipped (test mode)"

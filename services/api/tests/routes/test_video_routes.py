@@ -2,7 +2,9 @@ from poc_studio.agents.store import record
 from tests.graph.conftest import create_run
 
 CSP = (
-    "default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; font-src data:"
+    "default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; "
+    "img-src data:; font-src data:; "
+    "media-src 'none'; frame-ancestors http://127.0.0.1:3000 http://localhost:3000"
 )
 
 

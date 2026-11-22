@@ -1,12 +1,15 @@
 import logging
+import os
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from poc_studio.extra_routes import include_extra, on_startup
 from poc_studio.graph.registry import NodeSpec
+from poc_studio.guard import UnsafeRequestGuard
 from poc_studio.preview import set_preview_manager
 from poc_studio.preview.manager import PreviewManager
 from poc_studio.routes import artifacts, events, gates, health, preview, publish, revise, runs
@@ -20,6 +23,8 @@ def create_app(nodes: dict[str, NodeSpec] | None = None) -> FastAPI:
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+        if os.environ.get("VIDEO_FAKE"):
+            log.warning("VIDEO_FAKE is set: videos are placeholder clips (ignored when APP_ENV=production)")
         service = RunService(nodes)
         await service.start()  # opens the checkpoint DB and resumes runs left `running`
         app.state.run_service = service
@@ -37,12 +42,14 @@ def create_app(nodes: dict[str, NodeSpec] | None = None) -> FastAPI:
             await service.stop()
 
     app = FastAPI(title="PoC Studio API", version="0.1.0", lifespan=lifespan)
+    app.add_middleware(UnsafeRequestGuard)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["http://127.0.0.1:3000", "http://localhost:3000"],
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost", "testserver"])
     api = APIRouter(prefix="/api")
     for module in (health, runs, events, gates, artifacts, preview, publish, revise):
         api.include_router(module.router)

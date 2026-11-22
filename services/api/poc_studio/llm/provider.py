@@ -1,6 +1,7 @@
 """Chat providers: the gateway (OpenAI-compatible) and a fixture-backed mock."""
 
 import json
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Protocol
@@ -59,12 +60,40 @@ class GatewayProvider:
         )
 
 
+_PROMPT_KIT = re.compile(r"app_class `([^`]+)`; accent `([^`]+)`")
+_PROMPT_CLIENT = re.compile(r"^Client: (.+?)\. Accent colour", re.MULTILINE)
+_PROMPT_CSS = re.compile(r"```css\n(.*?)\n```", re.DOTALL)
+_ICON_CLASS = re.compile(r" ic-[\w-]+")
+
+
+def _reskin_screens(pack: dict[str, Any], kit: tuple[str, str, str]) -> dict[str, Any]:
+    """The canned ScreenPack is the logistics one. When the prompt named another sector kit (the owner picked
+    the sector), swap in that kit's app class, accent and CSS so the reply still validates. Mock only."""
+    app_class, accent, kit_css = kit
+    old = str(pack["app_class"])
+    if app_class == old:
+        return pack
+
+    def rename(text: str) -> str:
+        return text.replace(f".{old}", f".{app_class}").replace(f'class="{old}"', f'class="{app_class}"')
+
+    out = dict(pack, app_class=app_class, accent=accent)
+    out["product_css"] = kit_css + "\n" + rename(str(pack["product_css"]))  # the kit, plus the canned extras
+    out["step_css"] = rename(str(pack.get("step_css", "")))
+    out["screens"] = [dict(sc, html=_ICON_CLASS.sub("", rename(str(sc["html"])))) for sc in pack["screens"]]
+    return out
+
+
 class MockProvider:
     """Canned replies from tests/fixtures/llm/<agent>.json: an object (always) or a list (in order)."""
 
     def __init__(self, fixture_dir: Path = FIXTURE_DIR) -> None:
         self._dir = fixture_dir
         self._calls: dict[str, int] = {}
+        self._client: str | None = None
+        self._kit: tuple[str, str, str] | None = (
+            None  # (app_class, accent, css) of the sector kit last asked for
+        )
 
     async def chat(
         self,
@@ -80,7 +109,19 @@ class MockProvider:
             i = self._calls.get(name, 0)
             self._calls[name] = i + 1
             data = data[min(i, len(data) - 1)]
+        if name == "screens" and isinstance(data, dict):
+            prompt = "\n".join(m["content"] for m in messages)
+            found, css = _PROMPT_KIT.search(prompt), _PROMPT_CSS.search(prompt)
+            if found and css:  # a repair prompt carries no kit: keep the last one
+                self._kit = (found.group(1), found.group(2), css.group(1))
+            if self._kit:
+                data = _reskin_screens(data, self._kit)
         text = data if isinstance(data, str) else json.dumps(data)
+        if name == "pitch":  # the canned deck names "Acme"; the owner's client name wins
+            found_client = _PROMPT_CLIENT.search("\n".join(m["content"] for m in messages))
+            self._client = found_client.group(1) if found_client else self._client
+            if self._client and self._client != "Acme":
+                text = text.replace("Acme", json.dumps(self._client)[1:-1])
         return ChatReply(text=text, tokens_in=0, tokens_out=0)
 
 

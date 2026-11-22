@@ -143,3 +143,23 @@ def _plan_for(pack: ScreenPack) -> dict[str, Any]:
             {"id": "close", "kind": "close", "title": "Next steps", "caption": "What we build next."},
         ],
     }
+
+
+def test_mock_screens_follow_the_chosen_sector_kit(client_for, env) -> None:
+    """The owner's sector now decides the kit, so the canned (logistics) reply is re-skinned to it."""
+    from tests.graph.conftest import SAMPLE_VTT
+
+    set_provider(Recorder())
+    try:
+        with client_for() as client:
+            res = client.post(
+                "/api/runs",
+                files=[("files", ("s.vtt", SAMPLE_VTT.read_bytes(), "text/vtt"))],
+                data={"client": "Acme", "sector": "fintech"},
+            )
+            run_id = res.json()["id"]
+            wait_status(client, run_id, "waiting_gate1")
+            client.post(f"/api/runs/{run_id}/gates/scope", json={"decision": "approve"})
+            wait_status(client, run_id, "waiting_gate2")
+    finally:
+        set_provider(None)

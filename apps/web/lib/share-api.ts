@@ -36,7 +36,7 @@ async function call<T>(path: string, init?: RequestInit): Promise<T> {
 const send = (method: string, body?: unknown): RequestInit => ({
   method,
   headers: { "Content-Type": "application/json" },
-  body: body === undefined ? undefined : JSON.stringify(body),
+  body: JSON.stringify(body ?? {}), // the API guard needs a JSON body on every unsafe request
 });
 
 export const shareApi = {

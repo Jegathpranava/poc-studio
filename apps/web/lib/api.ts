@@ -135,7 +135,7 @@ export const api = {
     files: (id: string) => request<FileNode[]>(`/api/runs/${id}/files`),
     build: (id: string) => request<BuildInfo>(`/api/runs/${id}/build`),
     /** Starts (or reuses) the preview server. Calling it again counts as activity for the idle timer. */
-    startPreview: (id: string) => request<PreviewInfo>(`/api/runs/${id}/preview`, { method: "POST" }),
+    startPreview: (id: string) => request<PreviewInfo>(`/api/runs/${id}/preview`, json({})),
     qaReport: (id: string) => request<ArtifactJson<QaReport>>(`/api/runs/${id}/artifacts/qa_report`),
     publish: (id: string) => request<PublishStatus>(`/api/runs/${id}/publish`),
     decidePublish: (id: string, options: PublishOptions) =>

@@ -21,7 +21,7 @@ from poc_studio.schemas.requirements import Requirements
 from poc_studio.schemas.screenpack import ScreenPack
 
 MATCH_SHARE = 0.6
-STUB = "skipped (stub)"
+STUB = "skipped (test mode)"
 
 
 class Check(BaseModel):

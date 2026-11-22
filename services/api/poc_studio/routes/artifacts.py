@@ -128,7 +128,8 @@ def get_build(run_id: str, session: Session = Depends(get_session)) -> dict[str,
 
 
 DECK_CSP = (
-    "default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; font-src data:"
+    "default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; "
+    "img-src data:; font-src data:; media-src 'none'; frame-ancestors http://127.0.0.1:3000 http://localhost:3000"
 )
 DocName = Literal["exec-summary", "user-flows"]
 

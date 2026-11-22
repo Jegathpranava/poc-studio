@@ -154,11 +154,32 @@ def save_requirements(run_id: str, req: Requirements) -> int:
     return version
 
 
-def _client_name(run_id: str) -> str:
+def _project_input(run_id: str) -> tuple[str, str | None]:
+    """The client name and the sector the owner gave when creating the run (sector may be None)."""
     with open_session() as session:
         run = session.get(Run, run_id)
         project = session.get(Project, run.project_id) if run else None
-        return project.client_name if project else ""
+        return (project.client_name, project.sector) if project else ("", None)
+
+
+def _client_name(run_id: str) -> str:
+    return _project_input(run_id)[0]
+
+
+def apply_owner_input(req: Requirements, client: str, sector: str | None) -> Requirements:
+    """The owner's client name and chosen sector win over what the model extracted."""
+    update: dict[str, Any] = {}
+    if client:
+        update["client"] = client
+    if sector:
+        update["sector"] = sector
+    if not update:
+        return req
+    try:
+        return Requirements.model_validate({**req.model_dump(mode="json"), **update})
+    except ValueError:  # a sector outside the known list: keep the extracted one
+        update.pop("sector", None)
+        return req.model_copy(update=update)
 
 
 def _record_usage(
@@ -201,6 +222,7 @@ async def run_intelligence(state: RunState) -> dict[str, Any]:
             emit(run_id, AGENT, "log", status="warning", message=warning)
         if not req.features:
             raise ValueError("no feature has a source quote found in the transcript")
+        req = apply_owner_input(req, *_project_input(run_id))
         version = save_requirements(run_id, req)
         emit(run_id, AGENT, "log", message=f"requirements v{version}: {len(req.features)} features")
         return {

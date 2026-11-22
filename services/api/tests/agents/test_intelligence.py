@@ -103,3 +103,34 @@ def test_gate1_changes_makes_v2_with_note(client_for, env) -> None:
     assert "budget is 40k, not 4k" not in rec.prompts[0]
     assert "budget is 40k, not 4k" in rec.prompts[1]
     assert "<untrusted>" in rec.prompts[1] and "[00:00:01] Alice Smith:" in rec.prompts[1]
+
+
+def _create(client: Any, name: str, sector: str | None) -> str:
+    from tests.graph.conftest import SAMPLE_VTT
+
+    data = {"client": name, **({"sector": sector} if sector else {})}
+    files = [("files", ("s.vtt", SAMPLE_VTT.read_bytes(), "text/vtt"))]
+    res = client.post("/api/runs", files=files, data=data)
+    assert res.status_code == 201, res.text
+    return res.json()["id"]
+
+
+def test_client_and_sector_follow_the_owners_input(client_for, env) -> None:
+    with client_for() as client:
+        run_id = _create(client, "Acme Retail", "healthcare")  # the mock fixture says "Acme" and logistics
+        wait_status(client, run_id, "waiting_gate1")
+        brief = _brief(env, run_id)
+        assert (brief.client, brief.sector) == ("Acme Retail", "healthcare")
+        # Gate 1 identity check: the saved brief round-trips unchanged
+        res = client.post(
+            GATE.format(run_id, "scope"), json={"decision": "approve", "edits": brief.model_dump(mode="json")}
+        )
+        assert res.status_code == 200, res.text
+
+
+def test_extracted_sector_is_kept_when_the_owner_picked_none(client_for, env) -> None:
+    with client_for() as client:
+        run_id = _create(client, "Acme Retail", None)
+        wait_status(client, run_id, "waiting_gate1")
+    brief = _brief(env, run_id)
+    assert (brief.client, brief.sector) == ("Acme Retail", "logistics")

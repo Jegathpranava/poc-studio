@@ -61,7 +61,9 @@ def test_video_and_deck_need_a_valid_token(client) -> None:
     assert video.status_code == 200 and video.headers["content-type"] == "video/mp4"
     deck = client.get(f"/api/share/t/{token}/deck.html")
     assert deck.status_code == 200 and deck.text == DECK
-    assert "default-src 'none'" in deck.headers["content-security-policy"]
+    csp = deck.headers["content-security-policy"]
+    assert "default-src 'none'" in csp and "media-src 'none'" in csp
+    assert "frame-ancestors http://127.0.0.1:3000 http://localhost:3000" in csp
     assert client.get(f"/api/share/t/{token}x/deck.html").status_code == 404
 
 

@@ -31,3 +31,13 @@ def test_zero_days_turns_it_off(env, monkeypatch) -> None:
     _with_input(old)
     assert apply_retention(get_settings()) == 0
     assert (run_dir(old) / "input").is_dir()
+
+
+def test_default_is_off_and_startup_deletes_nothing(client, env) -> None:
+    from poc_studio.extra_routes import on_startup
+
+    assert client.get("/api/settings").json()["retention_days"] == 0
+    old = seed_run(started_at=now() - timedelta(days=400))
+    _with_input(old)
+    assert on_startup() == 0
+    assert (run_dir(old) / "input").is_dir()

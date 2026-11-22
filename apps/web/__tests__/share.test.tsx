@@ -63,7 +63,7 @@ describe("settings", () => {
     gateway: { base_url: "https://gateway.example/v1", fast_model: "fast", smart_model: "smart", polish_model: "claude-haiku-5-5", api_key_set: true },
     github: { mode: "mock", token_set: false, private_default: true },
     budget: { run_limit_usd: 0.05, monthly_cap_usd: 5, hours_saved_per_run: 5.5 },
-    retention_days: 30,
+    retention_days: 0,
   };
 
   it("shows only whether a key is set, never a value", async () => {
@@ -94,7 +94,7 @@ describe("settings", () => {
   it("refuses a bad amount without calling the API", () => {
     const base = {
       base_url: "https://x.test/v1", fast_model: "fast", smart_model: "smart", polish_model: "p",
-      run_limit_usd: "0", monthly_cap_usd: "5", hours_saved_per_run: "5.5", retention_days: "30",
+      run_limit_usd: "0", monthly_cap_usd: "5", hours_saved_per_run: "5.5", retention_days: "0",
     };
     expect(buildPatch(base)).toMatchObject({ field: "run_limit_usd" });
     expect(buildPatch({ ...base, run_limit_usd: "0.08" })).toHaveProperty("patch");

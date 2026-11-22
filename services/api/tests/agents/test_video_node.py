@@ -59,3 +59,26 @@ def test_failing_recorder_fails_the_step_but_not_the_run(client_for, monkeypatch
     assert steps["video"] == "failed" and steps["repo"] == "done"
     errors = [e for e in load_events(run_id) if e.agent == "video" and e.kind == "error"]
     assert errors and "Chromium crashed" in errors[0].error.message
+
+
+def test_video_fake_emits_a_placeholder_warning(client_for, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("VIDEO_FAKE", "1")
+    run_id = _to_end(client_for)
+    warnings = [e for e in load_events(run_id) if e.agent == "video" and e.status == "warning"]
+    assert len(warnings) == 1
+    assert warnings[0].message == "Video is a placeholder clip: VIDEO_FAKE is on"
+
+
+def test_no_placeholder_warning_without_video_fake(client_for, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("VIDEO_FAKE", raising=False)
+    run_id = _to_end(client_for)
+    assert not [e for e in load_events(run_id) if e.agent == "video" and e.status == "warning"]
+
+
+def test_startup_logs_a_warning_when_video_fake_is_set(
+    client_for, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    monkeypatch.setenv("VIDEO_FAKE", "1")
+    with caplog.at_level("WARNING"), client_for():
+        pass
+    assert any("VIDEO_FAKE" in r.getMessage() for r in caplog.records if r.levelname == "WARNING")

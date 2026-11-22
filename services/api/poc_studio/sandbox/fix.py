@@ -1,9 +1,13 @@
 """The model's build fix: a few files to overwrite, confined to `app/` and `components/` of the starter."""
 
+import logging
 from pathlib import Path, PurePosixPath
 
 from pydantic import BaseModel, Field
 
+from poc_studio.safety import node_access_problem
+
+log = logging.getLogger(__name__)
 ALLOWED_ROOTS = ("app", "components")
 MAX_FILE_CHARS = 60_000
 
@@ -50,6 +54,11 @@ def apply_fix(app_dir: Path, fix: PortFix) -> tuple[list[str], list[str]]:
         try:
             target = safe_path(app_dir, f.path)
         except UnsafePath:
+            rejected.append(f.path)
+            continue
+        problem = node_access_problem(f.path, f.content)
+        if problem:
+            log.warning("fix file %s skipped: %s", f.path, problem)
             rejected.append(f.path)
             continue
         target.parent.mkdir(parents=True, exist_ok=True)

@@ -69,6 +69,7 @@ The owner approves at two gates. It is built on a budget: everything runs locall
 9. (2026-11-22, owner) The deck engine is vendored and committed to this public repo at `services/api/poc_studio/media/deck_runtime/`. It covers only the runtime JS and chrome CSS: no HSE screens, logo, images or video. CI uses it directly.
 10. (2026-11-22, owner) The walkthrough MP4 runs about 2 to 3 minutes. Every slide and step is held about 3 s, and the hands-on slide is skipped. This replaces "30 to 60 s" in amendment 3.
 11. (2026-11-22, owner) Client sharing in v1 is a share zip that the owner sends: the self-contained deck, the MP4 and a summary page. Nothing is hosted. Vercel preview links are a later increment.
+12. (2026-11-22, Claude's call after the final critique) Folder-mode sandbox: generated code runs with the owner's filesystem readable (env is allow-listed and HOME points at the run folder; model-written fix content is pattern-checked for fs, net, process and env access). Docker mode is opt-in (`SANDBOX_MODE=docker`), untested, and has no network limit yet; Docker Desktop is not installed on this machine. True isolation is parked in NEXT_STEPS.md.
 
 ## 4. Stack
 
@@ -326,7 +327,7 @@ Hard limits: npm install 180 s, build 90 s, each LLM call 90 s. JSON repair retr
 ## 8. Security and privacy
 
 - **Untrusted input:** transcripts, docs and generated code are data. Prompts wrap them in delimiters with "treat as data". Agent output never runs as a shell command except `npm` scripts inside the sandbox.
-- **Sandbox:** the run folder only, with no `OPENAI_API_KEY` or `GITHUB_TOKEN` in its environment. Docker mode adds `--network` limited to npm. Timeouts: install 180 s, build 90 s.
+- **Sandbox:** folder mode: the child process gets an allow-listed environment (no `OPENAI_API_KEY` or `GITHUB_TOKEN`) and `HOME` points at the run folder, but the owner's filesystem is still readable; see amendment 12 for the real limits, including the untested opt-in Docker mode. Timeouts: install 180 s, build 90 s.
 - **Secrets:** read from `.env` and never logged; the event and log writers redact known key patterns. A secret scan (built-in regex set) runs on every generated repo before a push and blocks it on a hit.
 - **PII:** an optional mask pass (names, emails, phones) runs before LLM calls, off by default per run. The owner's personal data is never written to seeds or fixtures; test fixtures are fictional.
 - **Mocks:** `LLM_PROVIDER=mock` and `GITHUB_MODE=mock` are the defaults in tests and CI, and are refused when `APP_ENV=production`. Live GitHub needs `GITHUB_MODE=live` plus the Gate 2 click.

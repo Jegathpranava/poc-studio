@@ -62,7 +62,10 @@ def _fake_enabled() -> bool:
 async def _record(run_id: str, deck: Path) -> dict[str, Any]:
     version = next_version(run_id, "video")
     out = deck.with_name(f"{deck.name.split('.v')[0]}.v{version}.mp4")
-    recorder = media_video.fake_record if _fake_enabled() else media_video.record
+    fake = _fake_enabled()
+    if fake:
+        emit(run_id, AGENT, "log", status="warning", message="Video is a placeholder clip: VIDEO_FAKE is on")
+    recorder = media_video.fake_record if fake else media_video.record
     try:
         result = await asyncio.to_thread(recorder, deck, out)
     except media_video.VideoError as exc:

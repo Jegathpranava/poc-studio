@@ -3,6 +3,8 @@
 import re
 from html.parser import HTMLParser
 
+from poc_studio.safety import node_access_problem
+
 VOID = frozenset(
     "area base br col embed hr img input link meta param source track wbr".split()
 )  # fmt: skip
@@ -153,10 +155,14 @@ def html_to_jsx(fragment: str, hrefs: dict[str, str] | None = None) -> str:
 
 def page_source(screen_id: str, fragment: str, hrefs: dict[str, str] | None = None) -> str:
     body = html_to_jsx(fragment.strip(), hrefs)
-    return (
+    source = (
         "export default function Page() {\n"
         "  return (\n"
         f'    <div className="pf"><div className="sl-{screen_id}">{body}</div></div>\n'
         "  );\n"
         "}\n"
     )
+    problem = node_access_problem(f"app/{screen_id}/page.tsx", source)
+    if problem:  # never expected from deterministic output; asserted so a regression cannot ship
+        raise ValueError(f"generated page for {screen_id!r} has node or system access: {problem}")
+    return source
