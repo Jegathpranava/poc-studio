@@ -66,6 +66,10 @@ The owner approves at two gates. It is built on a budget: everything runs locall
    - This replaces the earlier Reveal.js deck. The `.pptx` export stays as a static extra. The Next.js app remains the code that goes into the GitHub repo.
    - The `reference/` folder is git-ignored because this repo is public.
 
+9. (2026-11-22, owner) The deck engine is vendored and committed to this public repo at `services/api/poc_studio/media/deck_runtime/`. It covers only the runtime JS and chrome CSS: no HSE screens, logo, images or video. CI uses it directly.
+10. (2026-11-22, owner) The walkthrough MP4 runs about 2 to 3 minutes. Every slide and step is held about 3 s, and the hands-on slide is skipped. This replaces "30 to 60 s" in amendment 3.
+11. (2026-11-22, owner) Client sharing in v1 is a share zip that the owner sends: the self-contained deck, the MP4 and a summary page. Nothing is hosted. Vercel preview links are a later increment.
+
 ## 4. Stack
 
 | Layer | Choice | Reason |
@@ -237,6 +241,88 @@ Reference: `reference/hse-deck/hse-risk-assesment-site-safety-advisor.html` (own
 - The Deck and video page embeds the deck in a 16:9 iframe with "Open full screen", plus an MP4 player with chapters and "Download MP4". The approved sample shows this with the reference files.
 - The share view and share export carry the same MP4 player and a link to the self-contained deck.
 
+## 7b. Pipeline, schemas and budgets (resolved after the builder check, Claude's call unless marked)
+
+**Agent order** (replaces "builder ∥ pitch" in section 6):
+
+```
+intake → intelligence → GATE 1 → architect → screens (Prototype Builder: ScreenPack)
+   → ( pitch: dk-data slide plan  ∥  port: Next.js app + build loop )
+   → assemble deck (deterministic) → qa → GATE 2 → video (MP4) → repo
+```
+
+- The deck depends only on the ScreenPack, never on the Next.js build.
+- A failed Next.js port does not block the deck or Gate 2. QA marks it as failing, and Gate 2 shows "repo code did not build". The owner can publish anyway, retry, or add a note.
+- The video is recorded after Gate 2 approval, from the approved deck, so a rejected deck costs no recording time.
+
+**Template, design kit, ScreenPack and pages:**
+- `templates/<sector>/` holds two things:
+  - `kit/`: the sector's product CSS tokens, 3 example screen fragments and a selector naming guide;
+  - `app/`: a Next.js starter with layout, nav and the tokens wired in.
+- **Prototype Builder (`smart`)** writes the ScreenPack from the brief, the architecture and `kit/`.
+- **Port (`smart`)** turns each ScreenPack screen into `app/<route>/page.tsx`. The class names and the CSS file are kept verbatim, so it is a JSX transform plus data wiring, not a redesign. The build loop runs up to 3 attempts.
+
+**ScreenPack schema** (Pydantic):
+
+```
+ScreenPack { app_class: str, accent: hex, product_css: str (scoped under .pf .<app_class>), screens: [Screen] (6..12) }
+Screen     { id: slug, label: str, route: str, html: str, step_css: str (only .pf.sl-<id>[data-step] rules),
+             script: str | None (window.__dkScripts body), anchors: [Anchor] (3..8), play: bool }
+Anchor     { selector: str (must match ≥1 element in html; checked at parse), purpose: str }
+```
+
+- Pitch may only use `anchors[].selector` values as spotlights, which is enforced by validation. The selector contract is therefore checked before the deck is assembled.
+
+**QA routing** (a check sends work back to its owner at most 2 times in total per run; after that QA reports and the run goes to Gate 2):
+
+| Check | Goes back to |
+|---|---|
+| Spotlight unresolved | pitch |
+| Deck not self-contained | assembler (a bug; fails the run) |
+| Feature or name mismatch | pitch, or screens if a screen lacks the feature |
+| Figure without a source | pitch |
+| Secret found | port, and the push is blocked |
+| Next.js build failed | port (its own 3 attempts already used, so it is only reported) |
+
+**Time budget per step** (target, median): intelligence 30 s; architect 60 s; screens 75 s; pitch and port in parallel 90 s; assemble 2 s; QA 20 s. That is about 4.5 minutes and counts toward G1. Not counted toward G1: time waiting at the gates, video recording (after Gate 2), and repo publish. "Agent time" means the wall clock from the run start to Gate 2 ready, minus the time spent at Gate 1.
+
+Hard limits: npm install 180 s, build 90 s, each LLM call 90 s. JSON repair retries: 2 per call.
+
+**Budget:**
+- `budget_usd` defaults to $0.05 per run, and the monthly cap is $5.
+- `fast`, `smart`, `vision`, `embed` and `guard` are priced at $0, because the gateway runs them on Ollama.
+- Claude models are priced per million tokens in `llm/pricing.py`. Increment 2 checks those prices against the gateway's usage response; the prices are not guessed in this spec.
+- **Pre-call guard:** the estimated cost (input tokens counted with tiktoken `o200k_base`, plus `max_tokens` times the output price) must fit the remaining budget. Otherwise the step pauses before the call.
+- **Pause:** the run status becomes `paused_budget`. The step is checkpointed before the call. A raise or a "use the free model" choice resumes from that checkpoint, with no partial spend lost.
+- Haiku input is capped at 12k tokens: only titles, captions and the brief summary go to it.
+
+**Events (SSE):**
+- The event name is `step` or `run`.
+- `data` is `{ id, ts, run_id, agent, kind: "status"|"log"|"cost"|"gate"|"error", status?, message?, model?, tokens_in?, tokens_out?, cost_usd?, attempt?, error?: { file, line, col, message, excerpt } }`.
+- Request and response bodies for each endpoint are defined as Pydantic models in increment 1 (`routes/schemas.py`). The web app is generated from the OpenAPI spec (`openapi-typescript`).
+
+**Secrets and PII scan:**
+- Patterns:
+  - AWS key ids;
+  - GitHub tokens (`ghp_`, `gho_`, `github_pat_`);
+  - `sk-` style API keys;
+  - Slack tokens;
+  - private key blocks;
+  - JWTs;
+  - `password=` and `api_key=` literals with values;
+  - any `.env` value that exists on this machine (matched by hash, never stored in plain text).
+- PII in v1 means emails and phone numbers (regex), plus the stakeholder names from `requirements.json`. Those names are masked in fixtures and seeds, but kept in the deck, where they belong to the client. No NER model.
+
+**Sandbox, folder mode:** network isolation is a known gap without Docker. The mitigation is that the child process gets an allow-listed environment only (PATH, HOME, npm cache vars). Secrets never enter it.
+
+**Processes:** preview servers are tracked in the `runs` table (pid, port). On API start, orphans are killed with `taskkill /T /F` on Windows or a process-group kill elsewhere.
+
+**Ids:** run ids are `r_` plus 6 hex characters. `projects` are reused by a case-insensitive client name. `approvals.decision` is `approve` or `changes`. `artifacts.type` adds `screenpack` and `video`.
+
+**Eval fixtures:** the 10 fictional transcripts are created in increment 2, not 7, so increment 4 can be measured.
+
+**CLAUDE.md:** updated to point at this spec as the authority (Next.js 16, the HTML deck format, and the agent order above).
+
 ## 8. Security and privacy
 
 - **Untrusted input:** transcripts, docs and generated code are data. Prompts wrap them in delimiters with "treat as data". Agent output never runs as a shell command except `npm` scripts inside the sandbox.
@@ -342,17 +428,21 @@ Every list and form has loading, empty and error states, as in the preview.
 - Prototype dependency speed: one warmed npm cache per template, and `npm ci --prefer-offline` per run. If the median install goes over 60 s, switch to linking the template's pre-installed `node_modules`.
 - The secret scan is a built-in regex set, not gitleaks, to avoid another binary.
 - Mermaid is rendered on the client with the `mermaid` npm package.
-- The video is MP4 (H.264), 1280x720, recorded from the deck. Each step is held for 3 s plus 25 ms per caption character, and chapters come from the slide titles. A 9 to 12 slide deck gives about 2 to 4 minutes; your reference video is 9:12, so I can lengthen the hold times if you want it longer.
+- The video is MP4 (H.264), 1280x720, recorded from the deck. Each step is held for 3 s plus 25 ms per caption character, capped so the total is 2 to 3 minutes (amendment 10). Chapters come from the slide titles.
 - The deck runtime and chrome CSS are vendored once from your reference HTML. Only the screens and the slide plan are generated per run, which keeps every deck on the same proven runtime.
 - The ScreenPack (HTML fragments) is the single source of screens: the deck uses it directly, and the Next.js repo pages are ported from it.
 - Run ids are `r_` plus 4 hex characters (collision check on insert).
 - The prototype preview runs `next start` on ports 4300 to 4399 behind the API proxy, and stops after 30 minutes idle.
 - The pricing table for paid models lives in `services/api/poc_studio/llm/pricing.py`; the Ollama models cost $0.
 
-## 14. Open questions (each changes what gets built)
+## 14. Open questions
 
-1. **Client share link hosting** (owner). The app is local, so a client cannot open `localhost`. v1 makes a share export (a zip with a static `index.html`, the deck, the video and a summary) that you send. Should a later increment publish it to a Vercel preview under `*.skyformit.com`? That uses the Vercel free tier and needs your yes for each deploy.
-2. **Prototype hosting for clients** (owner). The same question for the prototype: keep it local plus the video, or offer a Vercel preview deploy per run at Gate 2 (free tier, opt-in per run)?
+None blocking. Answered on 2026-11-22:
+- deck engine committed to the repo (amendment 9);
+- video 2 to 3 minutes (amendment 10);
+- share zip in v1 (amendment 11).
+
+Later, not in v1: Vercel preview links for the share page and the prototype, on the owner's yes for each deploy.
 
 ## Success measures
 

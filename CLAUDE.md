@@ -5,7 +5,7 @@ A local, single-user developer tool that turns a meeting transcript, BRD, TRD or
 ## Start here
 - Requirements: `docs/requirements/original-brief.md` (verbatim brief), `technical-solution-proposal.txt`, `problem-statement.txt`, `owner-direction-2026-11-22.md`.
 - Intake decisions: `docs/intake/answers.json` (budget, single-user scope; overrides the proposal where they differ).
-- Design spec and amendments: `docs/specs/` (written after the UI sample is approved). The spec wins over the brief.
+- Design spec (AUTHORITY): `docs/specs/2026-11-22-poc-studio-design.md`. It wins over the brief and over this file where they differ; read sections 3, 7a and 7b before building.
 - Visual reference (APPROVED 2026-11-22, 2 rounds): `design/preview/preview.html` (sources in `design/preview/src/`), tokens frozen in `design/preview/tokens.css`. Approval record with sha256: `docs/intake/approval.json`.
 - Cloud sessions: read `docs/handoff/` first (not prepared; cloud handoff is "maybe").
 
@@ -20,16 +20,17 @@ Transcript or requirements doc -> requirements.json + action items -> architectu
   - Bulk extraction and code gen: `fast` / `smart` (Ollama, free)
   - Executive pitch deck polish: `claude-haiku-5-5` (only paid call; budget target under $0.05 per run)
 - Prototype sandbox: local Docker container per run when Docker exists; plain folder fallback (Docker is not installed on this machine yet).
-- Deck: Reveal.js + python-pptx export. Video: Playwright headless recording.
+- Deck: self-contained HTML deck in the owner reference format (1280x720 stage, template product frames, step spotlights); runtime vendored, assembled deterministically (spec 7a). `.pptx` as static export. Video: Playwright walkthrough of the deck, MP4 via imageio-ffmpeg; MP4 player on deck and share views.
+- Owner reference material lives in `reference/` (git-ignored; this repo is public). Never commit it.
 - GitHub: fine-grained personal token on `Jegathpranava`, REST. Generated client repos default to private.
 
 ## 7 agents
 - Orchestrator (0): LangGraph supervisor, event stream, 2 approval gates, retries, per-run budget stop.
 - Meeting Intelligence (1): transcript/doc -> goals, ranked features, constraints, budget, timeline, sector, stakeholders, action items -> `requirements.json`.
 - Solution Architect (2): requirements -> use-case class, model picks, data flow, Mermaid, monthly cost -> `architecture.md`.
-- Prototype Builder (3): sector template (healthcare, logistics, e-commerce, fintech) -> pages, forms, mock data, API stubs -> `npm run build`, fix loop max 3.
+- Prototype Builder (3): sector kit -> ScreenPack (6-12 product screens as scoped HTML fragments with spotlight anchors) -> deck; then ported to a Next.js app for the repo -> `npm run build`, fix loop max 3.
 - Repo & DevOps (4): repo, README, `.env.example`, CI workflow, push, issues from action items.
-- Pitch & Docs (5): 8-10 slide deck, executive summary, user flows, walkthrough video.
+- Pitch & Docs (5): dk-data slide plan (welcome, overview tour, area slides with steps, play, close with sourced figures), executive summary, user flows, .pptx; walkthrough MP4 recorded after Gate 2.
 - QA Reviewer (6): cross-artifact consistency, build passed, secret scan, link check; failures go back to the owner agent at most twice.
 
 ## Human approval gates
