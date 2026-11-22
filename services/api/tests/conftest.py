@@ -5,6 +5,15 @@ os.environ["LLM_PROVIDER"] = "mock"
 os.environ["GITHUB_MODE"] = "mock"
 os.environ["APP_ENV"] = "test"
 os.environ["POC_DATABASE_URL"] = "sqlite:///:memory:"
+# Pin the model and budget settings tests assert on, so the owner's .env choices (for example a free
+# POLISH_MODEL) cannot change test results. Values are the code defaults in poc_studio/config.py.
+os.environ["DEFAULT_FAST_MODEL"] = "fast"
+os.environ["DEFAULT_SMART_MODEL"] = "smart"
+os.environ["POLISH_MODEL"] = "claude-haiku-5-5"
+os.environ["RUN_BUDGET_USD"] = "0.05"
+os.environ["MONTHLY_CAP_USD"] = "5.0"
+os.environ["RETENTION_DAYS"] = "0"
+os.environ["EVAL_LIVE"] = "false"
 
 import pytest  # noqa: E402
 

@@ -99,6 +99,17 @@ class DeckPlanInvalid(RuntimeError):
 _SOURCE = re.compile(r"^\s*(brief|architecture)\s*:\s*(\S+)\s*$", re.IGNORECASE)
 _SEGMENT = re.compile(r"^([A-Za-z_][A-Za-z0-9_]*)(?:\[(\d+)\])?$")
 MIN_FIGURES, MAX_FIGURES = 2, 4
+FIGURE_CODES = frozenset({"bad_figure_source", "unsupported_figure", "figure_count"})
+MAX_LISTED_PATHS = 40
+_NOT_FIGURES = frozenset({"confidence"})  # internal extraction scores, not facts for a pitch slide
+# Dashes a model may write where a selector needs the ASCII hyphen-minus:
+# U+2010-2015, U+2212, U+FE63 and U+FF0D.
+_DASHES = str.maketrans(dict.fromkeys("\u2010\u2011\u2012\u2013\u2014\u2015\u2212\ufe63\uff0d", "-"))
+
+
+def norm_hyphens(s: str) -> str:
+    """`[data\u2011anchor="x"]` -> `[data-anchor="x"]`: Unicode dashes become the ASCII hyphen."""
+    return s.translate(_DASHES)
 
 
 def resolve_source(source: str, sources: dict[str, Any]) -> list[float] | None:
@@ -147,6 +158,53 @@ def figure_problem(fig: Figure, sources: dict[str, Any]) -> tuple[str, str] | No
     return None
 
 
+def _numeric_leaves(sources: dict[str, Any]) -> list[tuple[str, float, str]]:
+    """(source, value, label) for every path in `brief` and `architecture` that `resolve_source` turns into
+    exactly one number. The label comes from a sibling `name`/`item`/`label` when the number has one."""
+    out: list[tuple[str, float, str]] = []
+
+    def label_for(parent: dict[str, Any], key: str, path: str) -> str:
+        unit = "weeks" if key == "weeks" else "USD" if key.endswith("usd") else ""
+        named = next((parent[k] for k in ("name", "item", "label") if isinstance(parent.get(k), str)), None)
+        words = [p.split("[")[0] for p in path.split(".")[-2:]]
+        words[-1] = words[-1].removesuffix("usd").rstrip("_")  # the unit goes in brackets instead
+        base = named or " ".join(words).replace("_", " ").strip()
+        base = base[:1].upper() + base[1:]
+        return f"{base} ({unit})" if unit and unit.lower() not in base.lower() else base
+
+    def walk(node: Any, path: str, root: str) -> None:
+        if isinstance(node, dict):
+            for key, value in node.items():
+                if not _SEGMENT.match(key) or key in _NOT_FIGURES:
+                    continue
+                sub = f"{path}.{key}" if path else key
+                if isinstance(value, int | float) and not isinstance(value, bool):
+                    out.append((f"{root}: {sub}", float(value), label_for(node, key, sub)))
+                else:
+                    walk(value, sub, root)
+        elif isinstance(node, list) and path:
+            for i, item in enumerate(node):
+                if isinstance(item, dict):  # the resolver indexes one level: `lines[0].usd`
+                    walk(item, f"{path}[{i}]", root)
+
+    for root in ("architecture", "brief"):
+        if isinstance(sources.get(root), dict):
+            walk(sources[root], "", root)
+    return out
+
+
+def available_figure_paths(sources: dict[str, Any]) -> list[tuple[str, float]]:
+    """Every `brief: ...` / `architecture: ...` source that resolves to a number, with that number."""
+    return [(source, value) for source, value, _ in _numeric_leaves(sources)]
+
+
+def format_figure_paths(sources: dict[str, Any]) -> str:
+    paths = available_figure_paths(sources)[:MAX_LISTED_PATHS]
+    if not paths:
+        return "(none: the brief and architecture hold no numbers)"
+    return "\n".join(f"- {source} = {value:g}" for source, value in paths)
+
+
 def check_plan(plan: DeckPlan, pack: ScreenPack, req: Requirements, arch: Architecture) -> list[Issue]:
     issues: list[Issue] = []
 
@@ -162,10 +220,17 @@ def check_plan(plan: DeckPlan, pack: ScreenPack, req: Requirements, arch: Archit
                     slide.id, "unknown_screen", f"slide id {slide.id!r} is not a screen id: {sorted(screens)}"
                 )
                 continue
-            allowed = {a.selector for a in screen.anchors}
+            allowed = {norm_hyphens(a.selector): a.selector for a in screen.anchors}
             for step in slide.steps:
-                if step.spotlight not in allowed:
-                    add(slide.id, "bad_spotlight", f"{step.spotlight!r} is not one of {sorted(allowed)}")
+                exact = allowed.get(norm_hyphens(step.spotlight))
+                if exact is None:
+                    add(
+                        slide.id,
+                        "bad_spotlight",
+                        f"{step.spotlight!r} is not one of {sorted(allowed.values())}",
+                    )
+                else:
+                    step.spotlight = exact  # a Unicode dash in an otherwise right selector is fixed in place
     for play in plan.play_screens:
         screen = screens.get(play.id)
         if screen is None or not screen.play:
@@ -185,12 +250,43 @@ def _sources(req: Requirements, arch: Architecture) -> dict[str, Any]:
     return {"brief": req.model_dump(mode="json"), "architecture": arch.model_dump(mode="json")}
 
 
+def fallback_figures(plan: DeckPlan, sources: dict[str, Any]) -> list[str]:
+    """Last resort when only figure checks still fail after the repairs: keep the figures that check out,
+    take the source's number when the path resolves to exactly one, drop the rest, and top up from real
+    numeric paths so the close slide has MIN_FIGURES to MAX_FIGURES figures. Returns what changed."""
+    close = next((s for s in plan.slides if s.kind == "close"), None)
+    if close is None:
+        return []
+    notes: list[str] = []
+    kept: list[Figure] = []
+    for fig in close.figures:
+        values = resolve_source(fig.source, sources)
+        if values is not None and any(abs(fig.value - v) < 1e-6 for v in values):
+            kept.append(fig)
+        elif values is not None and len(values) == 1:
+            notes.append(f"{fig.label!r} value {fig.value:g} -> {values[0]:g}")
+            kept.append(fig.model_copy(update={"value": values[0]}))
+        else:
+            notes.append(f"dropped {fig.label!r} ({fig.source})")
+    kept = kept[:MAX_FIGURES]
+    used = {" ".join(f.source.split()).lower() for f in kept}
+    # Totals first, zeros last: "Monthly cost total 250" makes a better closing figure than one cost line.
+    leaves = sorted(_numeric_leaves(sources), key=lambda leaf: ("total" not in leaf[0], leaf[1] == 0))
+    for source, value, label in leaves:
+        if len(kept) >= MIN_FIGURES:
+            break
+        if source.lower() not in used:
+            kept.append(Figure(label=label, value=value, source=source))
+            used.add(source.lower())
+            notes.append(f"added {label!r} from {source}")
+    close.figures = kept
+    return notes
+
+
 # ---- prompts ---------------------------------------------------------------------------------------------
 
 
-def build_prompt(
-    pack: ScreenPack, req: Requirements, arch: Architecture, note: str | None = None
-) -> str:
+def build_prompt(pack: ScreenPack, req: Requirements, arch: Architecture, note: str | None = None) -> str:
     screens = [
         {"id": s.id, "label": s.label, "play": s.play, "anchors": [a.selector for a in s.anchors]}
         for s in pack.screens
@@ -212,15 +308,25 @@ def build_prompt(
         "Brief (JSON), allowed figure source `brief`:\n"
         + wrap_untrusted(json.dumps(brief, indent=1))
         + "\n\n"
-        f"Architecture (JSON), allowed figure source `architecture`:\n{json.dumps(arch_facts, indent=1)}"
+        f"Architecture (JSON), allowed figure source `architecture`:\n{json.dumps(arch_facts, indent=1)}\n\n"
+        f"Allowed figure sources (pick {MIN_FIGURES} to {MAX_FIGURES} of these exact paths; "
+        "each figure's value must equal the number shown):\n"
+        + format_figure_paths(_sources(req, arch))
         + note_block(note)
     )
 
 
-def repair_prompt(plan: DeckPlan, issues: list[Issue]) -> str:
+def repair_prompt(plan: DeckPlan, issues: list[Issue], sources: dict[str, Any] | None = None) -> str:
+    paths = ""
+    if sources is not None and any(i.code in FIGURE_CODES for i in issues):
+        paths = (
+            "\n\nAllowed figure sources (use only these exact paths; "
+            "each value must equal the number shown):\n" + format_figure_paths(sources)
+        )
     return (
         "Your previous deck plan failed these checks:\n"
         + "\n".join(f"- {i}" for i in issues)
+        + paths
         + f"\n\nPrevious plan JSON:\n{plan.model_dump_json(by_alias=True)}\n\n"
         "Return the complete corrected plan as one JSON object. Fix every issue, keep everything else."
     )
@@ -321,7 +427,12 @@ async def _run_pitch(state: RunState) -> dict[str, Any]:
                 if not issues:
                     break
                 emit(run_id, AGENT, "log", message=f"deck plan attempt {attempt + 1}: {len(issues)} issues")
-                user = repair_prompt(plan, issues)
+                user = repair_prompt(plan, issues, _sources(req, arch))
+            if plan is not None and issues and all(i.code in FIGURE_CODES for i in issues):
+                notes = fallback_figures(plan, _sources(req, arch))  # the rest of the deck is fine: keep it
+                issues = check_plan(plan, pack, req, arch)
+                if not issues:
+                    emit(run_id, AGENT, "log", message="figures taken from the sources: " + "; ".join(notes))
             if issues or plan is None:
                 raise DeckPlanInvalid(issues)
             plan.accent, plan.logo = pack.accent, ""

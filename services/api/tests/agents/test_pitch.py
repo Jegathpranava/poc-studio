@@ -99,9 +99,14 @@ def test_figure_value_is_compared_with_the_resolved_path() -> None:
 @pytest.mark.parametrize(
     "source",
     [
-        "architecture: monthly_cost.nope", "architecture: monthly_cost.lines[9].usd",
-        "architecture: components", "brief: budget", "architecture monthly_cost.total_usd",
-        "Brief (budget.amount_usd)", "architecture: monthly_cost..total_usd", "model: total",
+        "architecture: monthly_cost.nope",
+        "architecture: monthly_cost.lines[9].usd",
+        "architecture: components",
+        "brief: budget",
+        "architecture monthly_cost.total_usd",
+        "Brief (budget.amount_usd)",
+        "architecture: monthly_cost..total_usd",
+        "model: total",
     ],
 )
 def test_unresolvable_sources_are_issues(source: str) -> None:
@@ -235,3 +240,89 @@ def test_docs_name_the_client_and_the_cost() -> None:
     for play in p.play_screens:
         assert f"## {play.label}" in flows
     assert "Compare regions" in flows
+
+
+@pytest.mark.parametrize("dash", ["‐", "‑", "–", "—", "−"])
+def test_unicode_hyphens_in_a_spotlight_are_normalised(dash: str) -> None:
+    p = plan()
+    good = p.slides[2].steps[0].spotlight
+    p.slides[2].steps[0].spotlight = good.replace("-", dash)
+    assert codes(p) == set()
+    assert p.slides[2].steps[0].spotlight == good  # fixed in place to the exact anchor
+
+
+def test_figure_paths_are_listed_with_their_values_and_all_resolve() -> None:
+    from poc_studio.agents.pitch import _sources, available_figure_paths, resolve_source  # pyright: ignore[reportPrivateUsage]
+
+    src = _sources(REQ, ARCH)
+    paths = available_figure_paths(src)
+    assert paths and ("architecture: monthly_cost.total_usd", ARCH.monthly_cost.total_usd) in paths
+    assert all(resolve_source(s, src) == [v] for s, v in paths)
+    assert not any("confidence" in s for s, _ in paths)  # internal scores are not pitch figures
+
+
+def test_prompts_list_the_allowed_figure_paths() -> None:
+    from poc_studio.agents.pitch import _sources, build_prompt, repair_prompt  # pyright: ignore[reportPrivateUsage]
+    from poc_studio.screens.validate import Issue
+
+    prompt = build_prompt(PACK, REQ, ARCH)
+    assert "Allowed figure sources (pick 2 to 4" in prompt
+    assert f"- architecture: monthly_cost.total_usd = {ARCH.monthly_cost.total_usd:g}" in prompt
+    fig = Issue(screen_id="close", code="bad_figure_source", message="x")
+    spot = Issue(screen_id="a", code="bad_spotlight", message="x")
+    assert "monthly_cost.total_usd" in repair_prompt(plan(), [fig], _sources(REQ, ARCH))
+    assert "Allowed figure sources" not in repair_prompt(plan(), [spot], _sources(REQ, ARCH))
+
+
+def test_fallback_keeps_good_figures_corrects_values_and_tops_up() -> None:
+    from poc_studio.agents.pitch import _sources, fallback_figures  # pyright: ignore[reportPrivateUsage]
+    from poc_studio.schemas.deck import Figure
+
+    p = plan()
+    close = p.slides[-1]
+    good = close.figures[0]
+    close.figures = [
+        good,
+        Figure(label="Monthly", value=999, source="architecture: monthly_cost.total_usd"),
+        Figure(label="Storage", value=25, source="brief: storage.monthly_usd"),
+    ]
+    assert codes(p) == {"unsupported_figure", "bad_figure_source"}
+    notes = fallback_figures(p, _sources(REQ, ARCH))
+    assert codes(p) == set()
+    assert close.figures[0] == good
+    assert close.figures[1].value == ARCH.monthly_cost.total_usd
+    assert [f.label for f in close.figures] == [good.label, "Monthly"]
+    assert any("dropped 'Storage'" in n for n in notes)
+
+    close.figures = [Figure(label="Guess", value=1, source="brief: budget.monthly_usd")]
+    fallback_figures(p, _sources(REQ, ARCH))
+    assert codes(p) == set() and len(close.figures) == 2  # topped up from real paths
+
+
+class FigureOnlyBadPitch(Recorder):
+    """Every deck plan reply is valid except for a made-up figure source."""
+
+    async def chat(self, model, messages, max_tokens, timeout, agent=None, reasoning_effort=None):  # type: ignore[override]
+        reply = await super().chat(model, messages, max_tokens, timeout, agent, reasoning_effort)
+        if agent != "pitch":
+            return reply
+        data = json.loads(reply.text)
+        data["slides"][-1]["figures"][0]["source"] = "brief: storage.monthly_usd"
+        return type(reply)(json.dumps(data), reply.tokens_in, reply.tokens_out)
+
+
+def test_figure_only_failures_fall_back_instead_of_stopping_the_deck(client_for, env) -> None:
+    rec = FigureOnlyBadPitch()
+    run_id = _run(client_for, rec, "waiting_gate2")
+    assert len(rec.prompts["pitch"]) == 3  # first try plus two repairs, then the fallback
+    assert "Allowed figure sources (use only these exact paths" in rec.prompts["pitch"][1]
+    with open_session() as s:
+        step = s.scalars(
+            select(AgentStep).where(AgentStep.run_id == run_id, AgentStep.agent == "pitch")
+        ).one()
+        deck = s.scalars(select(Artifact).where(Artifact.run_id == run_id, Artifact.type == "deck")).first()
+    assert step.status == "done" and deck is not None
+    saved = DeckPlan.model_validate_json((env / "runs" / deck.path).read_text(encoding="utf-8"))
+    figures = saved.slides[-1].figures
+    assert 2 <= len(figures) <= 4 and all(f.verified for f in figures)
+    assert not any("storage.monthly_usd" in f.source for f in figures)
