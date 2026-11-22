@@ -1,0 +1,60 @@
+@import "tailwindcss";
+@import "@fontsource-variable/geist";
+@import "@fontsource-variable/geist-mono";
+@import "sileo/styles.css";
+@import "./tokens.css";
+@import "./shell.css";
+@import "./runs.css";
+
+/* Tailwind utilities for the frozen tokens. tokens.css keeps the original names;
+   the aliases below give utilities such as bg-panel, text-ink-muted, border-line. */
+@theme inline {
+  --color-canvas: var(--color-bg);
+  --color-panel: var(--color-surface);
+  --color-ink: var(--color-fg);
+  --color-ink-muted: var(--color-muted);
+  --color-line: var(--color-border);
+  --color-line-strong: var(--color-border-strong);
+  --color-brand: var(--color-primary);
+  --color-brand-hover: var(--color-primary-hover);
+  --color-brand-soft: var(--color-primary-soft);
+  --color-ok: var(--color-success);
+  --color-ok-soft: var(--color-success-soft);
+  --color-caution: var(--color-warning);
+  --color-caution-soft: var(--color-warning-soft);
+  --color-bad: var(--color-danger);
+  --color-bad-soft: var(--color-danger-soft);
+  --font-sans: "Geist Variable", var(--font-body);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --duration: 0.01ms; }
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font-family: "Geist Variable", var(--font-body);
+  font-size: var(--text-base);
+  line-height: var(--leading-body);
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3 { margin: 0; line-height: var(--leading-tight); font-weight: 600; letter-spacing: -0.01em; }
+h1 { font-size: var(--text-xl); }
+h2 { font-size: var(--text-lg); }
+h3 { font-size: var(--text-base); }
+p { margin: 0; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; border-radius: var(--radius-sm); }
+.mono { font-family: "Geist Mono Variable", var(--font-mono); font-size: 0.92em; }
+.num { font-variant-numeric: tabular-nums; }
+.muted { color: var(--color-muted); }
+.small { font-size: var(--text-sm); }
+.xs { font-size: var(--text-xs); }
+.icon { width: 16px; height: 16px; flex: none; }
+
+/* sileo overrides */
+html [data-sileo-title] { text-transform: none; }
+html [data-sileo-viewport] { z-index: 200; }
