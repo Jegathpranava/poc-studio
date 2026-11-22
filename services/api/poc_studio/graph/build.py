@@ -7,6 +7,8 @@ QA send-backs (at most MAX_SEND_BACKS executed, then the run goes on to Gate 2 w
   screens -> screens, then both branches and the join as usual
   pitch   -> pitch_retry -> assemble     (the port result stays in state; port is not re-run)
   port    -> port_retry  -> assemble     (pitch is not re-run)
+Gate 2 "changes" with `revise` (Task 19) goes to architect (then the normal path), screens (then both
+branches), or pitch_retry / port_retry (then assemble, QA, Gate 2 again).
 `pitch_retry` and `port_retry` reuse the pitch and port functions; they exist because the
 `["pitch", "port"] -> assemble` join would wait forever for the branch that did not run again.
 Step rows are still written as `pitch` and `port` (the agents name their own step).
@@ -19,6 +21,7 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 
 from poc_studio.graph.registry import STAGES, NodeSpec, collect_nodes
+from poc_studio.graph.revise import REVISE_TARGETS
 from poc_studio.graph.state import RunState
 
 MAX_SEND_BACKS = 2  # spec 7b: a run is sent back at most twice in total
@@ -38,9 +41,12 @@ def after_qa(state: RunState) -> str:
 
 
 def after_gate2(state: RunState) -> str:
-    # Revisions at Gate 2 are Task 19's; until then "changes" waits at the gate again.
+    """ "changes" with `revise` goes to the owning agent; without it the run waits at the gate again."""
     gate = state.get("gate2") or {}
-    return "gate2" if gate.get("decision") == "changes" else "video"
+    if gate.get("decision") != "changes":
+        return "video"
+    agent = (gate.get("edits") or {}).get("revise")
+    return REVISE_TARGETS.get(agent, "gate2") if isinstance(agent, str) else "gate2"
 
 
 def build_graph(
@@ -68,7 +74,11 @@ def build_graph(
         after_qa,
         {"gate2": "gate2", "screens": "screens", "pitch_retry": "pitch_retry", "port_retry": "port_retry"},
     )
-    g.add_conditional_edges("gate2", after_gate2, {"gate2": "gate2", "video": "video"})
+    g.add_conditional_edges(
+        "gate2",
+        after_gate2,
+        {"gate2": "gate2", "video": "video", **{t: t for t in set(REVISE_TARGETS.values())}},
+    )
     g.add_edge("video", "repo")
     g.add_edge("repo", END)
     return g.compile(checkpointer=checkpointer)

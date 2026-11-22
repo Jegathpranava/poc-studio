@@ -24,6 +24,7 @@ from poc_studio.db.models import AgentStep, Artifact, Run
 from poc_studio.db.session import open_session
 from poc_studio.events import emit
 from poc_studio.graph.registry import NodeSpec
+from poc_studio.graph.revise import clear_note, note_block, revise_note
 from poc_studio.graph.spend import node_budget
 from poc_studio.graph.state import RunState
 from poc_studio.graph.steps import step_scope
@@ -121,7 +122,7 @@ def write_app(app_dir: Path, pack: ScreenPack, icons_css: str, title: str) -> li
     return written
 
 
-def fix_prompt(error: BuildError, failing: str) -> str:
+def fix_prompt(error: BuildError, failing: str, note: str | None = None) -> str:
     return (
         "The production build failed.\n\n"
         f"File: {error.file or '(unknown)'}  line {error.line}, column {error.col}\n"
@@ -130,6 +131,7 @@ def fix_prompt(error: BuildError, failing: str) -> str:
         + wrap_untrusted(error.excerpt or "(none)")
         + "\n\nFull content of the failing file:\n"
         + wrap_untrusted(failing or "(file not found)")
+        + note_block(note)
         + "\n\nReturn the corrected files as JSON."
     )
 
@@ -183,11 +185,18 @@ def _set_step(step_id: int, **fields: Any) -> None:
 
 
 async def _fix(
-    run_id: str, app_dir: Path, error: BuildError, model: str, run: RunBudget, totals: dict[str, Any]
+    run_id: str,
+    app_dir: Path,
+    error: BuildError,
+    model: str,
+    run: RunBudget,
+    totals: dict[str, Any],
+    note: str | None = None,
 ) -> None:
     try:
         result = await complete_json(
-            agent=AGENT, model=model, system=SYSTEM, user=fix_prompt(error, _read_failing(app_dir, error)),
+            agent=AGENT, model=model, system=SYSTEM,
+            user=fix_prompt(error, _read_failing(app_dir, error), note),
             schema=PortFix, max_tokens=MAX_TOKENS, run=run,
         )  # fmt: skip
     except SchemaError as exc:
@@ -231,15 +240,17 @@ async def _port(state: RunState, step_id: int, model: str, budget: RunBudget) ->
 
     totals: dict[str, Any] = {"in": 0, "out": 0, "cost": 0.0}
     result = None
-    for attempt in range(1, MAX_ATTEMPTS + 1):
+    note = revise_note(state, AGENT)
+    max_attempts = min(max(state.get("port_attempts") or MAX_ATTEMPTS, 1), MAX_ATTEMPTS)  # fresh budget
+    for attempt in range(1, max_attempts + 1):
         _set_step(step_id, attempt=attempt)
         result = await runner.build(app_dir, attempt)
         outcome = "ok" if result.ok else "failed: " + (result.error.message if result.error else "")
         emit(run_id, AGENT, "log", attempt=attempt, message=f"build attempt {attempt} {outcome}")
-        if result.ok or attempt == MAX_ATTEMPTS:
+        if result.ok or attempt == max_attempts:
             break
         if result.error is not None:
-            await _fix(run_id, app_dir, result.error, model, budget, totals)
+            await _fix(run_id, app_dir, result.error, model, budget, totals, note)
     assert result is not None
     _set_step(step_id, tokens_in=totals["in"], tokens_out=totals["out"], cost_usd=totals["cost"], model=model)
     with open_session() as session:
@@ -256,9 +267,9 @@ async def _port(state: RunState, step_id: int, model: str, budget: RunBudget) ->
     persist_prototype(run_id, app_dir, info)
     if not result.ok:
         error = result.error or BuildError(file="", line=0, col=0, message="Build failed")
-        text = f"Attempt {MAX_ATTEMPTS} of {MAX_ATTEMPTS}"
+        text = f"Attempt {max_attempts} of {max_attempts}"
         emit(
-            run_id, AGENT, "error", status="failed", attempt=MAX_ATTEMPTS, message=text,
+            run_id, AGENT, "error", status="failed", attempt=max_attempts, message=text,
             error=error.model_dump(),
         )  # fmt: skip
         raise PortFailed(text, error)
@@ -269,14 +280,15 @@ async def run_port(state: RunState) -> dict[str, Any]:
     run_id = state["run_id"]
     model = get_settings().default_smart_model
     budget = node_budget(state)
+    done = {**clear_note(state, AGENT), **({"port_attempts": None} if state.get("port_attempts") else {})}
     try:
         async with step_scope(run_id, AGENT, model=model) as step_id:
             outcome = await _port(state, step_id, model, budget)
     except PortFailed as exc:  # the step is already `failed`; the run goes on to Gate 2
         err = exc.error.model_dump() if exc.error else {"message": str(exc)}
         failed = {"ok": False, "error": err}
-        return {RESULT_KEY: failed, "build_result": failed, "spent_delta": budget.charged_usd}
-    return {RESULT_KEY: outcome, "build_result": outcome, "spent_delta": budget.charged_usd}
+        return {RESULT_KEY: failed, "build_result": failed, "spent_delta": budget.charged_usd, **done}
+    return {RESULT_KEY: outcome, "build_result": outcome, "spent_delta": budget.charged_usd, **done}
 
 
 NODE = NodeSpec("port", run_port, "port")

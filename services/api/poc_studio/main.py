@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from poc_studio.graph.registry import NodeSpec
 from poc_studio.preview import set_preview_manager
 from poc_studio.preview.manager import PreviewManager
-from poc_studio.routes import artifacts, events, gates, health, preview, publish, runs
+from poc_studio.routes import artifacts, events, gates, health, preview, publish, revise, runs
 from poc_studio.runs.service import RunService
 
 
@@ -39,7 +39,7 @@ def create_app(nodes: dict[str, NodeSpec] | None = None) -> FastAPI:
         allow_headers=["*"],
     )
     api = APIRouter(prefix="/api")
-    for module in (health, runs, events, gates, artifacts, preview, publish):
+    for module in (health, runs, events, gates, artifacts, preview, publish, revise):
         api.include_router(module.router)
     app.include_router(api)
     return app

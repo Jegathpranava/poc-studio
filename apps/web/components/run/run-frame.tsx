@@ -3,6 +3,7 @@
 import { useParams } from "next/navigation";
 import type { ReactNode } from "react";
 
+import { RunBudgetBanner } from "./budget-banner";
 import { RunProvider } from "./run-context";
 import { RunSubnav } from "./run-subnav";
 
@@ -12,6 +13,7 @@ export function RunFrame({ children }: { children: ReactNode }) {
   return (
     <RunProvider key={id} runId={id}>
       <RunSubnav />
+      <RunBudgetBanner />
       {children}
     </RunProvider>
   );

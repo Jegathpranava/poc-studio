@@ -1,10 +1,10 @@
 "use client";
 
-import { CircleAlert, ExternalLink, Info, MessageSquare, RefreshCw } from "lucide-react";
+import { CircleAlert, ExternalLink, Info, RefreshCw } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import { ReviseButton } from "@/components/run/revise-button";
 import { useRun } from "@/components/run/run-context";
-import { notify } from "@/components/shell/notify";
 import { PageHead } from "@/components/shell/page-head";
 import { api, ApiError, type BuildInfo, type FileNode } from "@/lib/api";
 
@@ -80,10 +80,7 @@ export function PrototypeView() {
   const url = preview.state === "ready" ? preview.url : null;
   const actions = (
     <>
-      <button type="button" className="btn" onClick={() => notify.info("Request changes arrives in a later step")}>
-        <MessageSquare className="icon" aria-hidden="true" />
-        Request changes
-      </button>
+      <ReviseButton type="prototype" />
       {url ? (
         <a className="btn" href={url} target="_blank" rel="noopener">
           Open in new tab
@@ -168,7 +165,7 @@ export function PrototypeView() {
                 <CircleAlert className="icon" aria-hidden="true" />
                 <div className="grow">
                   <b>The build failed, so there is no preview.</b>
-                  <p className="muted">Retry arrives in a later step.</p>
+                  <p className="muted">Retry it from the timeline: more attempts, or a note about the error.</p>
                 </div>
               </div>
             </div>

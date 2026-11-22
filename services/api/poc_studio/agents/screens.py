@@ -12,6 +12,7 @@ from poc_studio.db.models import AgentStep, Artifact, Run
 from poc_studio.db.session import open_session
 from poc_studio.events import emit
 from poc_studio.graph.registry import NodeSpec
+from poc_studio.graph.revise import clear_note, note_block, revise_note
 from poc_studio.graph.spend import node_budget
 from poc_studio.graph.state import RunState
 from poc_studio.graph.steps import step_scope
@@ -66,7 +67,7 @@ def format_issues(issues: list[Issue]) -> str:
     return "\n".join(f"- {i}" for i in issues)
 
 
-def build_prompt(req: Requirements, arch: Architecture | None, kit: Kit) -> str:
+def build_prompt(req: Requirements, arch: Architecture | None, kit: Kit, note: str | None = None) -> str:
     features = sorted(req.features, key=lambda f: _ORDER[f.priority])
     brief = {
         "client": req.client,
@@ -95,7 +96,7 @@ def build_prompt(req: Requirements, arch: Architecture | None, kit: Kit) -> str:
         "Brief (JSON):\n\n" + wrap_untrusted(json.dumps(brief, indent=2)) + "\n\n"
         "Kit product.css (return it in `product_css`; you may extend it, keeping the scope):\n"
         f"```css\n{kit.product_css}\n```\n\n"
-        f"Kit selector guide:\n{kit.selectors_md}\n\n{examples}"
+        f"Kit selector guide:\n{kit.selectors_md}\n\n{examples}" + note_block(note)
     )
 
 
@@ -160,7 +161,7 @@ async def run_screens(state: RunState) -> dict[str, Any]:
         budget = node_budget(state)
         tokens_in = tokens_out = 0
         cost = 0.0
-        user = build_prompt(req, arch, kit)
+        user = build_prompt(req, arch, kit, revise_note(state, AGENT))
         pack: ScreenPack | None = None
         issues: list[Issue] = []
         for attempt in range(MAX_REPAIRS + 1):
@@ -192,7 +193,11 @@ async def run_screens(state: RunState) -> dict[str, Any]:
             raise ScreenPackInvalid(issues)
         version = persist_screenpack(run_id, pack)
         emit(run_id, AGENT, "log", message=f"screenpack v{version}: {len(pack.screens)} screens")
-        return {"screenpack": pack.model_dump(mode="json"), "spent_delta": budget.charged_usd}
+        return {
+            "screenpack": pack.model_dump(mode="json"),
+            "spent_delta": budget.charged_usd,
+            **clear_note(state, AGENT),
+        }
 
 
 NODE = NodeSpec("screens", run_screens, "screens")

@@ -1,8 +1,11 @@
 import { Check, Pause, X } from "lucide-react";
 
+import type { RunStatus } from "@/lib/api";
+
 import { formatClock, formatCost, formatElapsed, formatTokens, modelLabel } from "@/lib/run-labels";
 import type { StepRow } from "@/lib/run-steps";
 
+import { StepActions } from "./step-actions";
 import { StepError } from "./step-error";
 import { stepInfo, stepSummary } from "./step-info";
 
@@ -20,7 +23,16 @@ function elapsed(row: StepRow, now: number): string {
   return formatElapsed(end - Date.parse(row.startedAt));
 }
 
-export function PipelineStep({ agent, row, now }: { agent: string; row: StepRow; now: number }) {
+interface PipelineStepProps {
+  agent: string;
+  row: StepRow;
+  now: number;
+  /** With these two, a failed step can offer its retry or Resume buttons. */
+  runId?: string;
+  runStatus?: RunStatus | null;
+}
+
+export function PipelineStep({ agent, row, now, runId, runStatus = null }: PipelineStepProps) {
   const info = stepInfo(agent);
   const Icon = row.state === "done" ? Check : row.state === "failed" ? X : row.state === "paused" ? Pause : info.icon;
   const started = row.state !== "idle";
@@ -42,6 +54,7 @@ export function PipelineStep({ agent, row, now }: { agent: string; row: StepRow;
         </div>
         {row.state !== "failed" || !row.error ? <div className="step-sub">{sub}</div> : null}
         {row.error && row.state === "failed" ? <StepError error={row.error} /> : null}
+        {runId ? <StepActions agent={agent} failed={row.state === "failed"} runId={runId} status={runStatus} /> : null}
         {row.logs.length > 0 ? (
           <details className="steplog">
             <summary>Output log, {row.logs.length} lines</summary>

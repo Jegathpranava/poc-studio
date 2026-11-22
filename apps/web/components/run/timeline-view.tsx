@@ -120,7 +120,14 @@ export function TimelineView() {
                 stage === "gate1" || stage === "gate2" ? (
                   <GateRow key={stage} gate={stage} view={gateView(timeline, stage)} runId={runId} />
                 ) : (
-                  <PipelineStep key={stage} agent={stage} row={timeline.rows[stage] ?? emptyRow(stage)} now={now} />
+                  <PipelineStep
+                    key={stage}
+                    agent={stage}
+                    row={timeline.rows[stage] ?? emptyRow(stage)}
+                    now={now}
+                    runId={runId}
+                    runStatus={status}
+                  />
                 ),
               )}
             </div>

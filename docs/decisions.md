@@ -49,3 +49,17 @@ Task 18.
 - A name clash gets `-2`, `-3` and so on. A blocked publish (secret scan or QA `block_publish`) fails the repo step and the run ends `failed`; there is no `delivered` without a repo URL.
 - The secret scan no longer hashes `.env` values of non-credential settings (`*_MODEL`, `*_BASE_URL`, `*_MODE` and similar): a public model name in a generated README was a false positive.
 - Migration 0005 adds the `repo` artifact type.
+
+## Request changes, retry and budget
+
+Task 19. Routes in `services/api/poc_studio/routes/revise.py`; request and response models live there, not in `routes/schemas.py`.
+- Revisions are allowed only while the run waits at Gate 2 (the brief only at Gate 1, as a Gate 1 "changes"). Any other state is a 409.
+- `POST /api/runs/{id}/artifacts/{architecture|prototype|deck|brief}/revise {note}` records a Gate 2 decision "changes" with `edits = {"revise": <agent>}` and the note. Owners: architecture is `architect`, prototype is `screens`, deck is `pitch`. The Approval row keeps it, so it survives a restart.
+- The gate2 node writes `revise_note = {agent: note}` into the state, and `after_gate2` routes to the agent (`pitch` goes through `pitch_retry`). The normal edges then run what follows it, ending at Gate 2 again. "Changes" without `revise` still waits at the gate.
+- Each owning agent adds the note to its prompt and clears it in its own state update; only that agent writes the key, so the parallel pitch and port branches never write it together. A rerun makes version N+1 of its artifact. The `deck` type shares one version counter with the assembled html, so the second plan file can be `plan.v3.json`.
+- `POST /api/runs/{id}/retry {note?, attempts?: 1..3 = 3}`:
+  - a run at Gate 2 whose `build_result.ok` is false reruns `port_retry` with a fresh attempt budget (`port_attempts`), the note going into the PortFix prompt, then assemble, QA and Gate 2;
+  - a `failed` run resumes from its checkpoint (`RunService.resume(..., allow_failed=True)`; the note is ignored);
+  - anything else is a 409.
+- `POST /api/runs/{id}/budget {budget_usd?, use_free_model?}` for a `paused_budget` run. `budget_usd` must be above `paid_usd` and at most $1.00 (422 otherwise); sending neither field is a 422. A raise goes through `RunService.resume`, which also writes `limit_usd` to the checkpoint. `use_free_model` sets the state flag `free_polish`: the pitch step skips Haiku and keeps its drafted titles and captions (the flag stays for later deck revisions). The pause happens before the paid call, so the resumed run never makes a duplicate paid call.
+- UI: `RunBudgetBanner` is mounted once in the run frame, so it shows on every run page including the timeline. Request changes buttons are enabled only at Gate 2. The failed-step buttons show for a failed port at Gate 2 and Resume for a `failed` run.

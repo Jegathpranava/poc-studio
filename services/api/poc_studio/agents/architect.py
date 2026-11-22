@@ -11,6 +11,7 @@ from poc_studio.db.models import AgentStep, Artifact, Run
 from poc_studio.db.session import open_session
 from poc_studio.events import emit
 from poc_studio.graph.registry import NodeSpec
+from poc_studio.graph.revise import clear_note, note_block, revise_note
 from poc_studio.graph.spend import node_budget
 from poc_studio.graph.state import RunState
 from poc_studio.graph.steps import step_scope
@@ -38,11 +39,11 @@ SYSTEM = (
 )
 
 
-def build_prompt(req: Requirements) -> str:
+def build_prompt(req: Requirements, note: str | None = None) -> str:
     # The brief is not raw transcript, but it quotes transcript text, so it is passed as data.
     return "Approved requirements brief (JSON):\n\n" + wrap_untrusted(
         json.dumps(req.model_dump(mode="json"), indent=2)
-    )
+    ) + note_block(note)
 
 
 def render_markdown(title: str, arch: Architecture) -> str:
@@ -117,8 +118,8 @@ async def run_architect(state: RunState) -> dict[str, Any]:
         req = _latest_requirements(state)
         budget = node_budget(state)
         result = await complete_json(
-            agent=AGENT, model=model, system=SYSTEM, user=build_prompt(req), schema=Architecture,
-            max_tokens=MAX_TOKENS, run=budget,
+            agent=AGENT, model=model, system=SYSTEM, user=build_prompt(req, revise_note(state, AGENT)),
+            schema=Architecture, max_tokens=MAX_TOKENS, run=budget,
         )  # fmt: skip
         with open_session() as session:
             row = session.get(AgentStep, step_id)
@@ -136,7 +137,8 @@ async def run_architect(state: RunState) -> dict[str, Any]:
         version = persist_architecture(run_id, req.title, result.value)
         count = len(result.value.components)
         emit(run_id, AGENT, "log", message=f"architecture v{version}: {count} components")
-        return {"architecture": result.value.model_dump(mode="json"), "spent_delta": budget.charged_usd}
+        return {"architecture": result.value.model_dump(mode="json"), "spent_delta": budget.charged_usd,
+                **clear_note(state, AGENT)}
 
 
 NODE = NodeSpec("architect", run_architect, "architect")

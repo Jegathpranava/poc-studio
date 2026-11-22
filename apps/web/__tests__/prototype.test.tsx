@@ -5,6 +5,7 @@ import { DeviceFrame, DeviceToggle } from "@/components/prototype/device-frame";
 import { PrototypeView } from "@/components/prototype/prototype-view";
 import { useState } from "react";
 
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 vi.mock("@/components/run/run-context", () => ({ useRun: () => ({ runId: "r_aaaaaa", status: "waiting_gate2" }) }));
 vi.mock("@/components/shell/notify", () => ({ notify: { info: vi.fn(), error: vi.fn(), success: vi.fn() } }));
 
@@ -67,7 +68,7 @@ describe("Prototype page", () => {
       "/files": () => json([]),
     });
     render(<PrototypeView />);
-    expect(await screen.findByText("Retry arrives in a later step.")).toBeTruthy();
+    expect(await screen.findByText("Retry it from the timeline: more attempts, or a note about the error.")).toBeTruthy();
     expect(screen.getByText(/app\/page\.tsx:4:1/)).toBeTruthy();
     expect(screen.getByText("Build failed after 3 attempts")).toBeTruthy();
     expect(document.querySelector("iframe")).toBeNull();

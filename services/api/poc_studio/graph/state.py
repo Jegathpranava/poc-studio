@@ -24,6 +24,9 @@ class RunState(TypedDict, total=False):
     gate1: dict[str, Any] | None  # last resume payload: {"decision", "edits", "note"}
     gate2: dict[str, Any] | None
     intelligence_note: str | None  # note from a Gate 1 "changes" decision
+    revise_note: dict[str, str] | None  # Gate 2 "changes": {owning agent: note}; the agent clears it
+    port_attempts: int | None  # a port retry's fresh build attempt budget (1..3); the port clears it
+    free_polish: bool  # budget pause, "use the free model": the pitch keeps its titles unpolished
     qa_send_back: str | None  # "screens" | "pitch" | "port" | None; set by the QA agent
     sent_back_count: int
     block_publish: bool  # QA found a secret in the generated files: Gate 2 must not push

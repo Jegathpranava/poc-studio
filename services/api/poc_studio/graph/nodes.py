@@ -10,6 +10,7 @@ from poc_studio.db.models import Approval, now
 from poc_studio.db.session import open_session
 from poc_studio.events import RUN_AGENT, emit
 from poc_studio.graph.registry import NodeFn, NodeSpec
+from poc_studio.graph.revise import REVISE_KEY, REVISE_TARGETS
 from poc_studio.graph.state import RunState
 from poc_studio.graph.steps import step_scope
 from poc_studio.ingest import parse_files
@@ -41,6 +42,18 @@ def mark_consumed(run_id: str, gate: str) -> None:
             session.commit()
 
 
+def _revision(decision: dict[str, Any], verdict: str) -> dict[str, Any]:
+    """Gate 2 "changes" with `edits.revise`: hand the note (and a port's attempts) to the owning agent."""
+    edits = decision.get("edits") or {}
+    agent = edits.get("revise") if verdict == "changes" else None
+    if agent not in REVISE_TARGETS:
+        return {REVISE_KEY: None}
+    update: dict[str, Any] = {REVISE_KEY: {agent: decision.get("note") or ""}}
+    if agent == "port":
+        update["port_attempts"] = edits.get("attempts")
+    return update
+
+
 def _gate_node(name: str, gate: str, key: str) -> NodeFn:
     async def gate_node(state: RunState) -> dict[str, Any]:
         # interrupt() re-runs this node from the top on resume, so nothing before it may have side effects.
@@ -57,6 +70,8 @@ def _gate_node(name: str, gate: str, key: str) -> NodeFn:
                 ]  # later agents see the owner's brief, not the draft
             if name == "gate1":
                 update["intelligence_note"] = decision.get("note") if verdict == "changes" else None
+            if name == "gate2":
+                update.update(_revision(decision, verdict))
             return update
 
     return gate_node

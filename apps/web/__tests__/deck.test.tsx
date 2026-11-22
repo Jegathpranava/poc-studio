@@ -13,6 +13,7 @@ const run = vi.hoisted(() => ({
     detail: { steps: [], artifacts: [{ type: "deck", path: "r_aaaaaa/deck/x.v1.html" }] },
   } as Record<string, unknown>,
 }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 vi.mock("@/components/run/run-context", () => ({ useRun: () => run.value }));
 
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status });

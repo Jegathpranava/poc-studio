@@ -23,6 +23,7 @@ from poc_studio.db.models import AgentStep, Run
 from poc_studio.db.session import open_session
 from poc_studio.events import emit
 from poc_studio.graph.registry import NodeSpec
+from poc_studio.graph.revise import clear_note, note_block, revise_note
 from poc_studio.graph.spend import node_budget
 from poc_studio.graph.state import RunState
 from poc_studio.graph.steps import step_scope
@@ -187,7 +188,9 @@ def _sources(req: Requirements, arch: Architecture) -> dict[str, Any]:
 # ---- prompts ---------------------------------------------------------------------------------------------
 
 
-def build_prompt(pack: ScreenPack, req: Requirements, arch: Architecture) -> str:
+def build_prompt(
+    pack: ScreenPack, req: Requirements, arch: Architecture, note: str | None = None
+) -> str:
     screens = [
         {"id": s.id, "label": s.label, "play": s.play, "anchors": [a.selector for a in s.anchors]}
         for s in pack.screens
@@ -210,6 +213,7 @@ def build_prompt(pack: ScreenPack, req: Requirements, arch: Architecture) -> str
         + wrap_untrusted(json.dumps(brief, indent=1))
         + "\n\n"
         f"Architecture (JSON), allowed figure source `architecture`:\n{json.dumps(arch_facts, indent=1)}"
+        + note_block(note)
     )
 
 
@@ -302,7 +306,7 @@ async def _run_pitch(state: RunState) -> dict[str, Any]:
         budget = node_budget(state)
         tokens_in = tokens_out = 0
         try:
-            user = build_prompt(pack, req, arch)
+            user = build_prompt(pack, req, arch, revise_note(state, AGENT))
             plan: DeckPlan | None = None
             issues: list[Issue] = []
             for attempt in range(MAX_REPAIRS + 1):
@@ -324,12 +328,15 @@ async def _run_pitch(state: RunState) -> dict[str, Any]:
             sources = _sources(req, arch)
             for fig in (f for s in plan.slides for f in s.figures):
                 fig.verified = figure_problem(fig, sources) is None  # True only when its source resolved
-            polished = await complete_json(
-                agent=POLISH_AGENT, model=settings.polish_model, system=POLISH_SYSTEM,
-                user=polish_input(plan), schema=PolishPatch, max_tokens=POLISH_MAX_TOKENS, run=budget,
-            )  # fmt: skip
-            tokens_in, tokens_out = tokens_in + polished.tokens_in, tokens_out + polished.tokens_out
-            plan = apply_patch(plan, polished.value)
+            if state.get("free_polish"):  # the owner chose the free model at a budget pause
+                emit(run_id, AGENT, "log", message="polish skipped: titles and captions stay as drafted")
+            else:
+                polished = await complete_json(
+                    agent=POLISH_AGENT, model=settings.polish_model, system=POLISH_SYSTEM,
+                    user=polish_input(plan), schema=PolishPatch, max_tokens=POLISH_MAX_TOKENS, run=budget,
+                )  # fmt: skip
+                tokens_in, tokens_out = tokens_in + polished.tokens_in, tokens_out + polished.tokens_out
+                plan = apply_patch(plan, polished.value)
             plan.exec_summary_md = exec_summary(req, arch, plan)
             plan.user_flows_md = user_flows(pack, plan)
             version = _write_outputs(run_id, plan, pack, req)
@@ -351,6 +358,7 @@ async def _run_pitch(state: RunState) -> dict[str, Any]:
             "deck": plan.model_dump(mode="json", by_alias=True),
             "deck_result": {"ok": True},
             "spent_delta": budget.charged_usd,
+            **clear_note(state, AGENT),
         }
 
 

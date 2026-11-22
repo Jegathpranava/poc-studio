@@ -200,26 +200,40 @@ class RunService:
             )
             session.commit()
 
-    async def resume(self, run_id: str, budget_usd: float | None = None) -> None:
+    async def resume(
+        self,
+        run_id: str,
+        budget_usd: float | None = None,
+        *,
+        state_update: dict[str, Any] | None = None,
+        allow_failed: bool = False,
+    ) -> None:
         """Continue a run that stopped on `paused_budget` (or was left running) from its checkpoint.
 
-        `budget_usd` raises the limit first (in `runs.budget_usd` and in the checkpointed state).
+        `budget_usd` raises the limit first (in `runs.budget_usd` and in the checkpointed state);
+        `state_update` is written to the checkpoint too (e.g. `free_polish`). `allow_failed` also resumes
+        a `failed` run: the node that failed runs again, nothing before it does.
         """
         if budget_usd is not None and budget_usd <= 0:
             raise ValueError("budget_usd must be greater than 0")
+        allowed = ("paused_budget", "running") + (("failed",) if allow_failed else ())
         with open_session() as session:
             run = session.get(Run, run_id)
             if run is None:
                 raise GateError("not_found", f"run {run_id} not found")
-            if run.status not in ("paused_budget", "running"):
+            if run.status not in allowed:
                 raise GateError("conflict", f"run is {run.status}, nothing to resume")
             self._ensure_idle(run_id)
             if budget_usd is not None:
                 run.budget_usd = budget_usd
-                session.commit()
+            run.finished_at = None  # a failed run is live again
+            session.commit()
         config = {"configurable": {"thread_id": run_id}}
-        if budget_usd is not None and (await self.graph.aget_state(config)).created_at is not None:
-            await self.graph.aupdate_state(config, {"limit_usd": budget_usd})
+        update = dict(state_update or {})
+        if budget_usd is not None:
+            update["limit_usd"] = budget_usd
+        if update and (await self.graph.aget_state(config)).created_at is not None:
+            await self.graph.aupdate_state(config, update)
         payload = await self._next_input(run_id)
         self._ensure_idle(run_id)  # the awaits above let another resume or decision slip in
         self._spawn(run_id, self._drive(run_id, payload))

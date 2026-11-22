@@ -3,6 +3,7 @@
 import { CircleAlert, Download, Info, RefreshCw } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import { ReviseButton } from "@/components/run/revise-button";
 import { useRun } from "@/components/run/run-context";
 import { PageHead } from "@/components/shell/page-head";
 import { api, ApiError } from "@/lib/api";
@@ -44,10 +45,13 @@ export function ArchitectureView() {
       description={load.state === "ready" ? `Version ${load.version}, designed by the Solution Architect.` : undefined}
       actions={
         load.state === "ready" ? (
-          <a className="btn" href={api.runs.architectureMarkdownUrl(runId)} download>
-            <Download className="icon" aria-hidden="true" />
-            Download .md
-          </a>
+          <>
+            <ReviseButton type="architecture" />
+            <a className="btn" href={api.runs.architectureMarkdownUrl(runId)} download>
+              <Download className="icon" aria-hidden="true" />
+              Download .md
+            </a>
+          </>
         ) : undefined
       }
     />

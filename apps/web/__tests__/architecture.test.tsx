@@ -10,6 +10,7 @@ const renderMock = vi.fn(async (id: string, source: string) => ({ svg: `<svg dat
 vi.mock("mermaid", () => ({
   default: { initialize: vi.fn(), render: (id: string, src: string) => renderMock(id, src) },
 }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 vi.mock("@/components/run/run-context", () => ({ useRun: () => ({ runId: "r_aaaaaa", status: "waiting_gate2" }) }));
 
 const ARCH: Architecture = {

@@ -3,6 +3,7 @@
 import { CircleAlert, Info } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import { ReviseButton } from "@/components/run/revise-button";
 import { useRun } from "@/components/run/run-context";
 import { PageHead } from "@/components/shell/page-head";
 import { api, ApiError } from "@/lib/api";
@@ -83,7 +84,11 @@ export function DeckView() {
   }
   return (
     <section className="screen">
-      {head}
+      <PageHead
+        title="Deck, video and docs"
+        description="Interactive deck, walkthrough video and docs."
+        actions={<ReviseButton type="deck" />}
+      />
       <DeckPanel runId={runId} />
       <div className="grid-2">
         <VideoPanel runId={runId} video={shown} />

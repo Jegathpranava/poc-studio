@@ -48,6 +48,16 @@ export interface BuildInfo {
   log_tail?: string;
 }
 
+/** Answer of the revise, retry and budget routes (`routes/revise.py`). */
+export interface ReviseResponse {
+  run_id: string;
+  status: string;
+  agent?: string | null;
+}
+
+/** The artifact pages that can ask for changes at Gate 2 (the brief has its own Gate 1 flow). */
+export type RevisableType = "architecture" | "prototype" | "deck";
+
 export const BASE_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000").replace(/\/$/, "");
 
 export interface FieldError {
@@ -134,6 +144,15 @@ export const api = {
     publish: (id: string) => request<PublishStatus>(`/api/runs/${id}/publish`),
     decidePublish: (id: string, options: PublishOptions) =>
       request<GateDecisionResponse>(`/api/runs/${id}/gates/publish`, json({ decision: "approve", options })),
+    /** Request changes: only the artifact's owning agent reruns. Allowed while the run waits at Gate 2. */
+    revise: (id: string, type: RevisableType, note: string) =>
+      request<ReviseResponse>(`/api/runs/${id}/artifacts/${type}/revise`, json({ note })),
+    /** Retry a failed port build (at Gate 2) or resume a failed run. */
+    retry: (id: string, body: { note?: string; attempts?: number } = {}) =>
+      request<ReviseResponse>(`/api/runs/${id}/retry`, json(body)),
+    /** Resume a run paused on its budget: raise the limit and/or finish the deck with the free model. */
+    budget: (id: string, body: { budget_usd?: number; use_free_model?: boolean }) =>
+      request<ReviseResponse>(`/api/runs/${id}/budget`, json(body)),
     decideScope: (id: string, body: { decision: "approve" | "changes"; edits?: Requirements; note?: string }) =>
       request<GateDecisionResponse>(`/api/runs/${id}/gates/scope`, json(body)),
   },
