@@ -1,0 +1,3 @@
+﻿[00:00:05] Alice Smith: We need a dashboard for weekly sales.
+[00:00:12] Bob Jones: Budget is ten thousand dollars.
+Line without a speaker continues the thought.

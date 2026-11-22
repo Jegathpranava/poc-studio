@@ -1,0 +1,200 @@
+WEBVTT
+
+NOTE
+Fictional discovery call used as an evaluation fixture. All people and companies are invented.
+
+1
+00:00:03.000 --> 00:00:14.154
+<v Henrik Aldous>Good morning. This is the kickoff discovery call between Cobalt Mesh Consulting and Quillfeather Payments. I am Henrik, a consultant at Cobalt Mesh. Let us go around the room.</v>
+
+2
+00:00:15.354 --> 00:00:26.892
+<v Saoirse Delacroix-Imani>I am the head of risk operations at Quillfeather. We are a payments company that processes card and bank transfers for small online merchants. About two million transactions a month.</v>
+
+3
+00:00:28.092 --> 00:00:34.631
+<v Bartholomew Ng>I am the fraud analyst lead. I manage a team of six analysts who review flagged transactions.</v>
+
+4
+00:00:35.831 --> 00:00:39.292
+<v Wilhelmina Staal>I am the engineering manager for the payments platform.</v>
+
+5
+00:00:40.492 --> 00:00:43.185
+<v Henrik Aldous>Thank you. Saoirse, what is the problem?</v>
+
+6
+00:00:44.385 --> 00:00:58.615
+<v Saoirse Delacroix-Imani>Our rule-based fraud system flags too many legitimate transactions. About fourteen percent of the flagged transactions are actually fraud. The rest are false positives, and every one costs us an analyst review and often an annoyed merchant.</v>
+
+7
+00:00:59.815 --> 00:01:13.277
+<v Bartholomew Ng>My team reviews around three thousand cases a week. We can handle about two thousand, so there is a growing backlog, and cases sometimes wait for three days. By then the merchant has already complained.</v>
+
+8
+00:01:14.477 --> 00:01:19.477
+<v Henrik Aldous>So what is the goal? A better score, or a better review process?</v>
+
+9
+00:01:20.677 --> 00:01:38.369
+<v Saoirse Delacroix-Imani>Both. We want to cut false positives by at least thirty percent without missing more fraud, and reduce review time per case by half. I should say that I am not asking to automate decisions. A human stays in the loop for every block or release.</v>
+
+10
+00:01:39.569 --> 00:01:50.723
+<v Wilhelmina Staal>There are also regulatory reasons. We have to explain any decision to block a merchant payout. So every automated suggestion must have a reason that an auditor can read.</v>
+
+11
+00:01:51.923 --> 00:02:04.615
+<v Henrik Aldous>Then the first must-have is a case triage score with plain-language reasons. For each flagged transaction, a priority and a short explanation, using the signals your rules already produce plus some new ones.</v>
+
+12
+00:02:05.815 --> 00:02:07.815
+<v Bartholomew Ng>What kind of new signals?</v>
+
+13
+00:02:09.015 --> 00:02:19.785
+<v Henrik Aldous>Things such as merchant history, velocity patterns, device and location mismatch, and unusual basket values. We would need to test which of those help on your own data.</v>
+
+14
+00:02:20.985 --> 00:02:29.831
+<v Wilhelmina Staal>We keep twelve months of labelled transactions in our warehouse. Labelled meaning confirmed fraud, or chargeback, or confirmed good. Around twenty million rows.</v>
+
+15
+00:02:31.031 --> 00:02:43.723
+<v Henrik Aldous>That is plenty. Now, the second must-have I would propose is an analyst workbench. One screen per case with the transaction, the merchant history, similar past cases, and the suggested decision with reasons.</v>
+
+16
+00:02:44.923 --> 00:02:51.462
+<v Bartholomew Ng>Similar past cases would be really helpful. Right now, analysts search by hand in three different tools.</v>
+
+17
+00:02:52.662 --> 00:03:06.892
+<v Saoirse Delacroix-Imani>Third thing. A case summary generator. Analysts write a short note for every decision, and it takes five minutes. If the system can draft the note and the analyst edits it, that saves a lot of time.</v>
+
+18
+00:03:08.092 --> 00:03:16.938
+<v Henrik Aldous>A drafted decision note, edited by the analyst, and stored with the case for the audit trail. That is a solid third feature.</v>
+
+19
+00:03:18.138 --> 00:03:28.138
+<v Wilhelmina Staal>Fourth, if possible, is a monitoring view for model drift. If fraud patterns shift, I want to know before the false positive rate creeps up again.</v>
+
+20
+00:03:29.338 --> 00:03:36.646
+<v Henrik Aldous>A quality and drift dashboard. Good. For the proof of concept, would you want that, or can it wait?</v>
+
+21
+00:03:37.846 --> 00:03:45.538
+<v Wilhelmina Staal>A simple version is enough for the proof of concept. Weekly precision and recall, and a chart of score distribution.</v>
+
+22
+00:03:46.738 --> 00:03:59.815
+<v Saoirse Delacroix-Imani>Now, constraints. Card data. We are bound by the card industry data security standard, so no full card numbers can ever leave our environment. The proof of concept must use tokenised or masked data.</v>
+
+23
+00:04:01.015 --> 00:04:14.477
+<v Wilhelmina Staal>And we cannot send transaction data to an external model provider. Any language model for the case notes has to run inside our cloud account, or we only send redacted text with no merchant identifiers.</v>
+
+24
+00:04:15.677 --> 00:04:27.215
+<v Henrik Aldous>Understood. We can design it so the scoring model is trained and runs inside your environment, and the language model only sees a redacted summary. I will note both constraints.</v>
+
+25
+00:04:28.415 --> 00:04:35.338
+<v Bartholomew Ng>And latency. The score does not need to be real time. A few seconds per case is fine.</v>
+
+26
+00:04:36.538 --> 00:04:43.077
+<v Henrik Aldous>Good, that simplifies things. Let us talk money. What is the budget for a proof of concept?</v>
+
+27
+00:04:44.277 --> 00:04:55.431
+<v Saoirse Delacroix-Imani>We have one hundred and twenty thousand euros approved for the first phase, which should cover the prototype and a shadow-mode evaluation on live flagged cases for six weeks.</v>
+
+28
+00:04:56.631 --> 00:05:03.169
+<v Henrik Aldous>Shadow mode meaning the system scores cases in the background, and nobody acts on its output yet?</v>
+
+29
+00:05:04.369 --> 00:05:08.215
+<v Saoirse Delacroix-Imani>Correct. We compare its suggestions to what the analysts decided.</v>
+
+30
+00:05:09.415 --> 00:05:12.492
+<v Henrik Aldous>Excellent. That gives you real evidence. And timeline?</v>
+
+31
+00:05:13.692 --> 00:05:22.538
+<v Saoirse Delacroix-Imani>The risk committee reviews in the third week of June. So a working prototype by early June, with first shadow results if possible.</v>
+
+32
+00:05:23.738 --> 00:05:31.815
+<v Henrik Aldous>Then we need data access very soon. Wilhelmina, what would it take to get a masked extract of the labelled transactions?</v>
+
+33
+00:05:33.015 --> 00:05:44.938
+<v Wilhelmina Staal>Our data protection officer has to approve. I think I can have approval and a masked extract of two million rows within three weeks. I will take that as my action.</v>
+
+34
+00:05:46.138 --> 00:05:56.908
+<v Henrik Aldous>Thank you. Bartholomew, can you give us a sample of fifty cases with the analyst notes, so we can see the writing style and how reasons are phrased?</v>
+
+35
+00:05:58.108 --> 00:06:02.723
+<v Bartholomew Ng>Yes, I can send fifty redacted cases, with notes, by next Wednesday.</v>
+
+36
+00:06:03.923 --> 00:06:14.308
+<v Henrik Aldous>And Saoirse, would you be able to nominate a decision-maker for the audit and regulatory side, someone who can tell us what an acceptable explanation looks like?</v>
+
+37
+00:06:15.508 --> 00:06:21.277
+<v Saoirse Delacroix-Imani>That will be our compliance officer, Teodora Valmont. I will introduce you by email today.</v>
+
+38
+00:06:22.477 --> 00:06:29.785
+<v Henrik Aldous>Perfect. Let me also ask about metrics. How will we judge success at the end of the shadow period?</v>
+
+39
+00:06:30.985 --> 00:06:45.600
+<v Saoirse Delacroix-Imani>Three numbers. Reduction in false positives of thirty percent or more at the same fraud catch rate. Median review time per case below four minutes. And at least eighty percent of analysts rating the suggested reasons as useful.</v>
+
+40
+00:06:46.800 --> 00:06:50.262
+<v Bartholomew Ng>I can survey the team for that last one.</v>
+
+41
+00:06:51.462 --> 00:06:59.538
+<v Henrik Aldous>Good. I would suggest we keep the reasoning list short, three reasons maximum per case, so analysts can read them quickly.</v>
+
+42
+00:07:00.738 --> 00:07:02.738
+<v Bartholomew Ng>Three is right.</v>
+
+43
+00:07:03.938 --> 00:07:15.092
+<v Wilhelmina Staal>I should mention integration. In the proof of concept the workbench is standalone, reading from the extract. In the pilot, it must embed in our existing case management tool.</v>
+
+44
+00:07:16.292 --> 00:07:23.985
+<v Henrik Aldous>Understood. We will design the API so that embedding is possible later, but we will not build the integration now.</v>
+
+45
+00:07:25.185 --> 00:07:27.185
+<v Saoirse Delacroix-Imani>Fine.</v>
+
+46
+00:07:28.385 --> 00:07:55.692
+<v Henrik Aldous>Summary. Sector is fintech, payments and fraud operations. Must-haves: a triage score with readable reasons, an analyst workbench with similar past cases, and an assisted decision note. Nice to have: a drift dashboard. Constraints: card data standards, masked data only, no external model sees raw transactions, and a human always decides. Budget is one hundred and twenty thousand euros for phase one. Prototype by early June, committee in the third week.</v>
+
+47
+00:07:56.892 --> 00:07:58.892
+<v Saoirse Delacroix-Imani>Yes, accurate.</v>
+
+48
+00:08:00.092 --> 00:08:13.169
+<v Henrik Aldous>Actions. Wilhelmina arranges approval and the masked extract in three weeks. Bartholomew sends fifty redacted cases by next Wednesday. Saoirse introduces Teodora today. I will send notes and a draft project plan by Friday.</v>
+
+49
+00:08:14.369 --> 00:08:16.369
+<v Bartholomew Ng>Thanks, Henrik. Talk soon.</v>

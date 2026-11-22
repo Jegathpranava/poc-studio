@@ -1,0 +1,44 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [6 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+5 0 obj
+<< /Length 320 >>
+stream
+BT
+/F2 18 Tf 1 0 0 1 56 780 Tm (Sample) Tj
+/F1 6 Tf 1 0 0 1 56 756 Tm () Tj
+/F2 13 Tf 1 0 0 1 56 744 Tm (Brief) Tj
+/F1 10 Tf 1 0 0 1 56 725 Tm (Sales dashboard for the weekly review.) Tj
+/F1 6 Tf 1 0 0 1 56 709 Tm () Tj
+/F1 10 Tf 1 0 0 1 56 697 Tm (Budget is ten thousand dollars.) Tj
+/F1 6 Tf 1 0 0 1 56 681 Tm () Tj
+ET
+endstream
+endobj
+6 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 5 0 R /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> >>
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000185 00000 n 
+0000000260 00000 n 
+0000000631 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+767
+%%EOF

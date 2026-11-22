@@ -1,0 +1,228 @@
+WEBVTT
+
+NOTE
+Fictional discovery call used as an evaluation fixture. All people and companies are invented.
+
+1
+00:00:03.000 --> 00:00:12.615
+Marcus Veldt: Thanks everyone for joining. This is the discovery call between Pallas Studio and Northgate Freight Partners. I will keep notes and send them out after.
+
+2
+00:00:13.815 --> 00:00:26.892
+Imogen Tarrant: Great. I run operations at Northgate. We move about four hundred truckload shipments a week across the Midlands and the north, mostly for food and drinks customers, and a smaller share for building materials.
+
+3
+00:00:28.092 --> 00:00:33.092
+Marcus Veldt: Tell us what is hurting right now. What made you book this call?
+
+4
+00:00:34.292 --> 00:00:53.523
+Imogen Tarrant: Honestly, it is exceptions. When a truck is late, or a driver reports damage, or a dock is closed, the information lands in six different places. Phone calls, a shared inbox, driver WhatsApp messages, and our transport system. My planners spend most of the day chasing status instead of planning.
+
+5
+00:00:54.723 --> 00:01:08.569
+Dev Okonkwo-Reid: And I am the IT lead. To add to that, our transport management system is about eleven years old. It has an export, but no real API. We get a nightly CSV and that is it.
+
+6
+00:01:09.769 --> 00:01:17.077
+Marcus Veldt: So the goal is to reduce the time planners spend on chasing and give them one view of exceptions?
+
+7
+00:01:18.277 --> 00:01:30.200
+Imogen Tarrant: Exactly. If I could cut the time spent on exception handling by half I would be thrilled. Right now I estimate each planner spends about three hours a day on it.
+
+8
+00:01:31.400 --> 00:01:40.246
+Priya Anand: I am the solutions architect on the Pallas side. Can I ask what a typical exception message looks like? Is it free text?
+
+9
+00:01:41.446 --> 00:01:53.369
+Dev Okonkwo-Reid: Mostly free text. Drivers send things like "stuck at gate 4, no one here till 2pm". Customers email things like "pallets arrived wet, please advise". There is no structure at all.
+
+10
+00:01:54.569 --> 00:02:06.492
+Priya Anand: Then the first must-have is probably classification. Every incoming message gets tagged with a type, such as delay, damage, access problem or documentation, and a severity, and linked to the shipment.
+
+11
+00:02:07.692 --> 00:02:17.308
+Imogen Tarrant: Yes. That is number one. If it can tell me which shipments are at risk of missing their delivery window, that would be the dream.
+
+12
+00:02:18.508 --> 00:02:25.815
+Marcus Veldt: So number two is a risk view for delivery windows. Do you have estimated arrival data from the trucks?
+
+13
+00:02:27.015 --> 00:02:38.938
+Dev Okonkwo-Reid: About seventy percent of our fleet has telematics that report position every two minutes. The rest are subcontractors with no tracking. For those we only have what the driver tells us.
+
+14
+00:02:40.138 --> 00:02:52.831
+Priya Anand: That is fine for a first version. We can compute a predicted arrival from position and remaining stops, and for untracked trucks we fall back on the last message and the planned schedule.
+
+15
+00:02:54.031 --> 00:03:11.338
+Imogen Tarrant: Third thing, and this is where I get a lot of pain, is customer updates. Customers phone us asking where their goods are. We have two people who basically only answer that call. I would love automatic proactive updates, drafted for a planner to approve.
+
+16
+00:03:12.538 --> 00:03:16.000
+Marcus Veldt: Drafted and approved by a human, not sent automatically?
+
+17
+00:03:17.200 --> 00:03:27.969
+Imogen Tarrant: Correct. At least at the start. Some of our customers are very sensitive, and I do not want a bad message going out at six in the morning.
+
+18
+00:03:29.169 --> 00:03:35.323
+Priya Anand: Sensible. So we keep a human approval step for any customer-facing text. That also simplifies compliance.
+
+19
+00:03:36.523 --> 00:03:48.062
+Dev Okonkwo-Reid: On compliance, we do have to be careful about driver personal data. Names, phone numbers and so on. I would want that masked before anything goes to an external model.
+
+20
+00:03:49.262 --> 00:03:58.108
+Priya Anand: We can mask names, phones and emails before the language model call and restore them in the output. That is a standard step.
+
+21
+00:03:59.308 --> 00:04:06.615
+Marcus Veldt: Let us talk about budget and timing. Imogen, what have you got in mind for the proof of concept?
+
+22
+00:04:07.815 --> 00:04:20.123
+Imogen Tarrant: The board approved forty-five thousand pounds for a proof of concept, and that includes any licences. If it works, there is a separate budget for rollout next year, probably three times that.
+
+23
+00:04:21.323 --> 00:04:23.323
+Marcus Veldt: And timing?
+
+24
+00:04:24.523 --> 00:04:36.062
+Imogen Tarrant: I need something to show the board at the end of March. So I need a working prototype by early March, ideally with real data from a couple of lanes.
+
+25
+00:04:37.262 --> 00:04:49.954
+Dev Okonkwo-Reid: I can get you a sample export covering the Leeds to Birmingham and Manchester to Bristol lanes. About three months of shipments, anonymised. I can have that by the fifteenth of next month.
+
+26
+00:04:51.154 --> 00:04:57.308
+Marcus Veldt: Great, that is an action for you, Dev. Sample export of two lanes by the fifteenth.
+
+27
+00:04:58.508 --> 00:05:00.508
+Dev Okonkwo-Reid: Noted.
+
+28
+00:05:01.708 --> 00:05:12.092
+Priya Anand: A question on the user interface. Would the planners prefer a board view, like columns for on time, at risk and late, or a list with filters?
+
+29
+00:05:13.292 --> 00:05:26.369
+Imogen Tarrant: A board. They live in spreadsheets today, so anything that feels like a kanban would be welcome. But with the ability to open a shipment and see the whole message history in one timeline.
+
+30
+00:05:27.569 --> 00:05:36.031
+Priya Anand: So the prototype would have an exceptions board, a shipment timeline, and a drafted customer update panel. Does that cover the must-haves?
+
+31
+00:05:37.231 --> 00:05:46.846
+Imogen Tarrant: It does. One more: a daily summary email for me. Every morning at seven, a short digest of what is at risk today, by customer.
+
+32
+00:05:48.046 --> 00:05:53.815
+Marcus Veldt: Good, so a morning digest as a fourth feature. That one is easy to add.
+
+33
+00:05:55.015 --> 00:05:59.631
+Imogen Tarrant: What about integration? Will you need to connect to our transport system?
+
+34
+00:06:00.831 --> 00:06:13.908
+Priya Anand: For the proof of concept, no. We would read the nightly CSV and a folder of mock messages, and show the product working end to end with that. Real integration is a rollout topic.
+
+35
+00:06:15.108 --> 00:06:20.492
+Dev Okonkwo-Reid: That suits me. Our vendor takes weeks to approve anything that touches the system.
+
+36
+00:06:21.692 --> 00:06:29.769
+Imogen Tarrant: One concern. How do we know the classification is accurate? I do not want a tool that quietly gets it wrong.
+
+37
+00:06:30.969 --> 00:06:44.815
+Priya Anand: We would measure it. You give us about two hundred real messages that your planners have labelled by hand, and we report precision per category. Anything under ninety percent on delay and damage, we keep iterating.
+
+38
+00:06:46.015 --> 00:06:54.862
+Imogen Tarrant: I can arrange that. I will ask two of the senior planners, Fiona and Callum, to label a batch. That is my action.
+
+39
+00:06:56.062 --> 00:07:01.831
+Marcus Veldt: Good. So Imogen to arrange two hundred labelled messages by the end of next month.
+
+40
+00:07:03.031 --> 00:07:05.031
+Imogen Tarrant: Yes, by the thirtieth.
+
+41
+00:07:06.231 --> 00:07:08.538
+Marcus Veldt: Any constraints on hosting? Cloud, on-premise?
+
+42
+00:07:09.738 --> 00:07:21.277
+Dev Okonkwo-Reid: Cloud is fine as long as it is in the UK or the EU region. We have a customer, a big brewer, whose contract requires that data stays in Europe.
+
+43
+00:07:22.477 --> 00:07:27.092
+Priya Anand: Understood. We will note UK or EU data residency as a constraint.
+
+44
+00:07:28.292 --> 00:07:41.754
+Imogen Tarrant: And one more thing. Our drivers are often on bad signal. Anything driver-facing should be very light. I am not asking for a driver app now, but if we ever do, it must work offline.
+
+45
+00:07:42.954 --> 00:07:47.185
+Marcus Veldt: Noted as a future item, not in the proof of concept.
+
+46
+00:07:48.385 --> 00:08:08.000
+Priya Anand: Let me summarise what I have so far. Sector is logistics and freight. Must-haves are exception classification, a delivery risk board, drafted customer updates with human approval, and a morning digest. Budget is forty-five thousand pounds, demo by end of March. Constraints are UK or EU hosting and personal data masking.
+
+47
+00:08:09.200 --> 00:08:11.200
+Imogen Tarrant: That is exactly right.
+
+48
+00:08:12.400 --> 00:08:16.246
+Marcus Veldt: Dev, who on your side signs off on security questions?
+
+49
+00:08:17.446 --> 00:08:25.908
+Dev Okonkwo-Reid: That would be Harriet Lindqvist, our compliance manager. I will introduce her by email this week. That is another action for me.
+
+50
+00:08:27.108 --> 00:08:34.031
+Marcus Veldt: And Priya will send over a short architecture outline and a questionnaire for the data within a week.
+
+51
+00:08:35.231 --> 00:08:39.077
+Priya Anand: Yes, I will send both by Friday of next week.
+
+52
+00:08:40.277 --> 00:08:47.585
+Imogen Tarrant: Last question. If this goes well, can the same approach handle our warehouse partners, who also send incident reports?
+
+53
+00:08:48.785 --> 00:08:57.246
+Priya Anand: Very likely, since it is the same classification problem with a different set of categories. We would keep the category list configurable.
+
+54
+00:08:58.446 --> 00:09:03.062
+Imogen Tarrant: Wonderful. Then I think we have what we need from our side.
+
+55
+00:09:04.262 --> 00:09:23.492
+Marcus Veldt: Thanks all. Recap of actions. Dev sends the two-lane export by the fifteenth and introduces Harriet this week. Imogen gets two hundred labelled messages by the thirtieth. Priya sends the architecture outline and data questionnaire by Friday next week. I will send the notes and a draft statement of work.
+
+56
+00:09:24.692 --> 00:09:26.692
+Imogen Tarrant: Perfect. Speak soon.

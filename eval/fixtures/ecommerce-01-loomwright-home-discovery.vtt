@@ -1,0 +1,196 @@
+WEBVTT
+
+NOTE
+Fictional discovery call used as an evaluation fixture. All people and companies are invented.
+
+1
+00:00:03.000 --> 00:00:14.923
+Calla Whitford: Hi all, thanks for making time. I am Calla from Vantage Forge, and we are meeting Loomwright Home, a direct-to-consumer homeware brand. Maybe we start with who is on the call.
+
+2
+00:00:16.123 --> 00:00:27.277
+Beatrix Oyelaran: I am the head of e-commerce at Loomwright. We sell rugs, throws and cushions online, mostly through our own site, and we have about eighteen thousand orders a month.
+
+3
+00:00:28.477 --> 00:00:33.862
+Jonas Kettleby: I am the customer experience manager. I run a team of nine support agents.
+
+4
+00:00:35.062 --> 00:00:45.831
+Anselm Rhodes: And I am the lead developer. Our storefront is a hosted platform with a few custom apps, and we have a data warehouse that the marketing team uses.
+
+5
+00:00:47.031 --> 00:00:50.108
+Calla Whitford: Thanks. Beatrix, what are we here to solve?
+
+6
+00:00:51.308 --> 00:01:12.077
+Beatrix Oyelaran: Two things really, and they are related. Our conversion rate has been flat at one point eight percent for a year, and our support team is drowning in questions that the product pages should answer. Is this rug washable, will this colour match my sofa, what size fits a four by six metre room.
+
+7
+00:01:13.277 --> 00:01:22.508
+Jonas Kettleby: About sixty percent of our tickets are pre-purchase questions or order status. My agents spend most of their time on the same twenty questions.
+
+8
+00:01:23.708 --> 00:01:31.015
+Calla Whitford: So a shopping assistant on the site, one that answers product questions and helps customers choose, would address both?
+
+9
+00:01:32.215 --> 00:01:49.138
+Beatrix Oyelaran: Yes. A conversational assistant that knows our catalogue, and that can recommend items. The goal is to lift conversion by at least ten percent relative, so from one point eight to two percent, and to deflect at least forty percent of the pre-purchase tickets.
+
+10
+00:01:50.338 --> 00:02:06.492
+Anselm Rhodes: I want to flag that it must not make things up. If a customer asks if a rug is safe for pets and our data does not say, it should say it does not know and offer to connect to a person.
+
+11
+00:02:07.692 --> 00:02:19.231
+Calla Whitford: Agreed. We would ground every answer in the product data, the care instructions, and your policy pages, and show where the answer came from. If nothing matches, it hands off.
+
+12
+00:02:20.431 --> 00:02:28.892
+Jonas Kettleby: Handoff to a human agent is a must-have for me. With the conversation history attached, so the customer does not repeat themselves.
+
+13
+00:02:30.092 --> 00:02:36.631
+Calla Whitford: So the first must-have is a grounded product assistant with a handoff to a human. What else?
+
+14
+00:02:37.831 --> 00:02:50.908
+Beatrix Oyelaran: Second, personalised recommendations. A customer looks at a sage green throw, and the assistant suggests cushions and a matching rug. We have a bundle strategy, and today the bundles are hand-picked by a merchandiser.
+
+15
+00:02:52.108 --> 00:03:00.185
+Anselm Rhodes: The catalogue is about twelve hundred products, with attributes like colour, material, size, and style. The attributes are not perfectly clean.
+
+16
+00:03:01.385 --> 00:03:12.154
+Calla Whitford: That is a typical situation. We would include an enrichment step, where a model reads the product descriptions and fills in missing attributes, which your merchandiser then approves.
+
+17
+00:03:13.354 --> 00:03:19.892
+Beatrix Oyelaran: Yes, that would be valuable by itself. That is a third feature, catalogue attribute enrichment with approval.
+
+18
+00:03:21.092 --> 00:03:28.400
+Jonas Kettleby: For order status, can the assistant look up an order if the customer gives an order number and email?
+
+19
+00:03:29.600 --> 00:03:41.523
+Anselm Rhodes: Our platform has an order API. It needs a token, and I would prefer the assistant only gets read access to a narrow set of fields. Status, carrier and tracking link.
+
+20
+00:03:42.723 --> 00:03:53.492
+Calla Whitford: That fits. For the proof of concept, we would use a mock order service with the same shape, and then connect to the real API in the pilot.
+
+21
+00:03:54.692 --> 00:04:07.000
+Beatrix Oyelaran: A fourth thing, and this is nice to have rather than must-have, is a dashboard showing what customers ask. Top questions, unanswered questions, which products cause confusion. That would help our merchandising.
+
+22
+00:04:08.200 --> 00:04:15.892
+Calla Whitford: We would capture each conversation with tags, and show the top themes. I would call it a conversation insights board.
+
+23
+00:04:17.092 --> 00:04:22.092
+Jonas Kettleby: Yes please. That would also tell me where to improve the help pages.
+
+24
+00:04:23.292 --> 00:04:25.600
+Calla Whitford: Let us discuss constraints. Languages? Tone?
+
+25
+00:04:26.800 --> 00:04:38.723
+Beatrix Oyelaran: English only for now, though we sell into Ireland and Australia. The tone should match our brand: warm, plain and a little witty, never pushy. I will send our tone guide.
+
+26
+00:04:39.923 --> 00:04:48.769
+Anselm Rhodes: Performance matters too. The chat widget must not hurt page speed. Our Lighthouse score is high and the marketing team watches it closely.
+
+27
+00:04:49.969 --> 00:05:03.046
+Calla Whitford: We would load the widget lazily and keep it under a small script size budget. I will note that as a constraint, with a target of no measurable change in the largest contentful paint.
+
+28
+00:05:04.246 --> 00:05:10.015
+Beatrix Oyelaran: And privacy. We should not store personal information in chat logs longer than ninety days.
+
+29
+00:05:11.215 --> 00:05:16.600
+Calla Whitford: Noted. Ninety day retention for chat logs, with personal details masked in the insights.
+
+30
+00:05:17.800 --> 00:05:22.031
+Calla Whitford: Let us talk about money. Beatrix, what budget do you have?
+
+31
+00:05:23.231 --> 00:05:38.615
+Beatrix Oyelaran: For the proof of concept and a four week live test on ten percent of traffic, we can spend sixty thousand dollars. After that, if the numbers hold, we would sign a yearly contract, but that is a separate conversation.
+
+32
+00:05:39.815 --> 00:05:43.662
+Calla Whitford: Does that include the model costs during the live test?
+
+33
+00:05:44.862 --> 00:05:47.938
+Beatrix Oyelaran: Yes, everything. So please keep running costs low.
+
+34
+00:05:49.138 --> 00:05:53.754
+Anselm Rhodes: I would estimate a model cost per conversation, because finance will ask.
+
+35
+00:05:54.954 --> 00:06:04.569
+Calla Whitford: We will include a cost table per conversation in the architecture, with cheap models for classification and a stronger one only for the final answer.
+
+36
+00:06:05.769 --> 00:06:15.385
+Beatrix Oyelaran: Timing. Our peak season starts in October. I would like the live test to start in early September, so we need the prototype in July.
+
+37
+00:06:16.585 --> 00:06:25.046
+Calla Whitford: So a clickable prototype by the middle of July, and a live test in September. Anselm, what do we need from you?
+
+38
+00:06:26.246 --> 00:06:39.708
+Anselm Rhodes: I can export the product catalogue as a file within a week. And I can set up a sandbox store for you with test orders. I will do both by the end of next week.
+
+39
+00:06:40.908 --> 00:06:46.677
+Calla Whitford: Perfect. Action for Anselm, catalogue export and sandbox store by the end of next week.
+
+40
+00:06:47.877 --> 00:07:02.108
+Jonas Kettleby: I can give you anonymised copies of about five hundred past tickets, with the answer that the agent gave. That would give you a real list of questions. Can I have until the first of next month?
+
+41
+00:07:03.308 --> 00:07:07.538
+Calla Whitford: Yes, five hundred anonymised tickets by the first. Thank you, Jonas.
+
+42
+00:07:08.738 --> 00:07:23.738
+Beatrix Oyelaran: I will send the tone guide and the list of our top ten bundles by Friday. And I need to confirm with our finance director that the sixty thousand covers the live test, I will do that this week.
+
+43
+00:07:24.938 --> 00:07:30.708
+Calla Whitford: Great. And what about success metrics for the live test? Beyond conversion and ticket deflection?
+
+44
+00:07:31.908 --> 00:07:41.138
+Jonas Kettleby: Customer satisfaction on chats at or above four out of five, and fewer than five percent of conversations handed off for the wrong reason.
+
+45
+00:07:42.338 --> 00:08:09.646
+Calla Whitford: I will include those in the plan. Let me recap what I have. Sector is e-commerce, direct-to-consumer homeware. Must-haves: grounded product assistant with human handoff, personalised recommendations and bundles, and catalogue attribute enrichment with approval. A fourth, nice to have, is a conversation insights board. Constraints: brand tone, lazy loading for page speed, ninety day log retention, read-only order access. Budget is sixty thousand dollars all in. Prototype by mid July.
+
+46
+00:08:10.846 --> 00:08:12.846
+Beatrix Oyelaran: Yes, that is spot on.
+
+47
+00:08:14.046 --> 00:08:32.508
+Calla Whitford: Actions again. Anselm sends the catalogue and sandbox store by the end of next week. Jonas sends the five hundred tickets by the first. Beatrix sends the tone guide, the bundles, and confirms the budget this week. I will send notes and a proposed plan within three days.
+
+48
+00:08:33.708 --> 00:08:35.708
+Jonas Kettleby: Thanks. Looking forward to it.

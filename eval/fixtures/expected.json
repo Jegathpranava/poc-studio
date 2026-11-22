@@ -1,0 +1,102 @@
+[
+  {
+    "file": "logistics-01-northgate-freight-discovery.vtt",
+    "sector": "logistics",
+    "must_have_features": [
+      "Exception message classification with severity, linked to shipments",
+      "Delivery window risk board with predicted arrival",
+      "Drafted proactive customer updates with human approval"
+    ],
+    "budget_mentioned": true
+  },
+  {
+    "file": "logistics-02-harbourline-warehouse-brd.md",
+    "sector": "logistics",
+    "must_have_features": [
+      "Booking intake from carrier emails into draft bookings",
+      "Dock door allocation board with conflict checks",
+      "Arrival prediction and re-planning with carrier messages for approval"
+    ],
+    "budget_mentioned": true
+  },
+  {
+    "file": "logistics-03-quickroute-lastmile-trd.md",
+    "sector": "logistics",
+    "must_have_features": [
+      "Live route health per van",
+      "Re-optimisation suggestions with dispatcher approval and reasons",
+      "Customer delay notices drafted for approval"
+    ],
+    "budget_mentioned": true
+  },
+  {
+    "file": "healthcare-01-meridian-clinics-discovery.vtt",
+    "sector": "healthcare",
+    "must_have_features": [
+      "Follow-up dropout risk score with plain-language reasons",
+      "Daily ranked outreach worklist with outcome logging",
+      "Bilingual drafted patient messages reviewed by staff"
+    ],
+    "budget_mentioned": true
+  },
+  {
+    "file": "healthcare-02-brightpath-intake-brd.md",
+    "sector": "healthcare",
+    "must_have_features": [
+      "Referral packet extraction with field confidence",
+      "Insurer requirement checklist and missing document check",
+      "Authorisation letter drafting with human sign-off"
+    ],
+    "budget_mentioned": true
+  },
+  {
+    "file": "healthcare-03-lumen-radiology-brief.pdf",
+    "sector": "healthcare",
+    "must_have_features": [
+      "Follow-up recommendation detection in radiology reports",
+      "Follow-up worklist for care coordinators",
+      "Outreach drafting to patients and referring doctors"
+    ],
+    "budget_mentioned": true
+  },
+  {
+    "file": "ecommerce-01-loomwright-home-discovery.vtt",
+    "sector": "e-commerce",
+    "must_have_features": [
+      "Grounded product assistant with human handoff",
+      "Personalised recommendations and bundles",
+      "Catalogue attribute enrichment with approval"
+    ],
+    "budget_mentioned": true
+  },
+  {
+    "file": "ecommerce-02-greenpantry-returns-trd.md",
+    "sector": "e-commerce",
+    "must_have_features": [
+      "Smart substitution ranking with dietary safety rules",
+      "Refund claim triage against policy",
+      "Agent review console with drafted customer reply"
+    ],
+    "budget_mentioned": true
+  },
+  {
+    "file": "fintech-01-quillfeather-payments-discovery.vtt",
+    "sector": "fintech",
+    "must_have_features": [
+      "Fraud case triage score with readable reasons",
+      "Analyst workbench with similar past cases",
+      "Assisted decision note drafting"
+    ],
+    "budget_mentioned": true
+  },
+  {
+    "file": "fintech-02-ledgerleaf-onboarding-brd.docx",
+    "sector": "fintech",
+    "must_have_features": [
+      "Instant document check on upload",
+      "Bank statement analysis with cash flow summary",
+      "Cross-document consistency check and underwriter review screen"
+    ],
+    "budget_mentioned": true
+  }
+]

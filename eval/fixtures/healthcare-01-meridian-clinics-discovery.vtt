@@ -1,0 +1,228 @@
+WEBVTT
+
+NOTE
+Fictional discovery call used as an evaluation fixture. All people and companies are invented.
+
+1
+00:00:03.000 --> 00:00:13.385
+<v Odalys Brennan>Welcome, everyone. This is the discovery session between Tessellate Labs and Meridian Valley Clinics. Let me start with introductions. I am Odalys, the engagement lead at Tessellate.</v>
+
+2
+00:00:14.585 --> 00:00:25.354
+<v Dr. Rahul Sethi-Marlowe>I am the medical director at Meridian Valley. We run nine outpatient clinics across two counties, mostly primary care and some chronic disease programmes, around diabetes and hypertension.</v>
+
+3
+00:00:26.554 --> 00:00:32.323
+<v Noor Haddad>I am the practice operations manager. I look after scheduling, front desk, and billing follow-up.</v>
+
+4
+00:00:33.523 --> 00:00:42.754
+<v Tomasz Wrenfield>And I am the clinical informatics analyst. I work with our electronic health record, which is a hosted product, and I manage the reports.</v>
+
+5
+00:00:43.954 --> 00:00:48.954
+<v Odalys Brennan>Thank you. Dr. Sethi-Marlowe, please start with the problem as you see it.</v>
+
+6
+00:00:50.154 --> 00:01:09.769
+<v Dr. Rahul Sethi-Marlowe>The core issue is missed follow-ups. A patient with uncontrolled blood pressure is told to come back in four weeks, and a good share of them simply never come back. We estimate about thirty percent of those follow-ups never happen, and some of those patients end up in the emergency department.</v>
+
+7
+00:01:10.969 --> 00:01:26.738
+<v Noor Haddad>From the front desk side, we make reminder calls but only when someone has time. There is no priority. A patient who is stable gets the same call as a patient who is high risk, if they get one at all.</v>
+
+8
+00:01:27.938 --> 00:01:42.938
+<v Tomasz Wrenfield>And the data exists. Last blood pressure reading, last lab result, appointment history, missed visits. But nobody looks at it together. I build a monthly report in a spreadsheet and by the time it is done, it is stale.</v>
+
+9
+00:01:44.138 --> 00:01:53.369
+<v Odalys Brennan>So the goal is to identify patients at risk of dropping out of care, prioritise outreach, and make it easy for staff to act?</v>
+
+10
+00:01:54.569 --> 00:02:04.185
+<v Dr. Rahul Sethi-Marlowe>Yes. And to reduce missed follow-ups from thirty percent to under fifteen percent within a year. That is the number I will give the board.</v>
+
+11
+00:02:05.385 --> 00:02:13.077
+<v Odalys Brennan>Let us think about what the prototype should do. Tomasz, what data can you get out of the record system?</v>
+
+12
+00:02:14.277 --> 00:02:30.815
+<v Tomasz Wrenfield>A nightly extract of appointments, vitals, diagnoses and lab results, as flat files. No patient names in the extract if I strip them, just a patient number. There is a way to get contact details separately, but that would be a second step.</v>
+
+13
+00:02:32.015 --> 00:02:45.862
+<v Odalys Brennan>Good. For a proof of concept we would only use de-identified data, so that is perfect. First must-have, then, is a risk score per patient for missing the next follow-up, with a short explanation of why.</v>
+
+14
+00:02:47.062 --> 00:03:01.677
+<v Dr. Rahul Sethi-Marlowe>The explanation matters a lot. My clinicians will not trust a number without a reason. Something like "missed two of last three visits, blood pressure above target at last two readings, lives more than twenty miles from clinic".</v>
+
+15
+00:03:02.877 --> 00:03:07.877
+<v Odalys Brennan>Understood. Reasons shown in plain language, drawn from the actual fields. Second must-have?</v>
+
+16
+00:03:09.077 --> 00:03:24.846
+<v Noor Haddad>A worklist for my team. Each morning, a ranked list of patients to call, with the reason, the number of attempts so far, and a place to record the outcome. It must be simple. My front desk staff are not technical.</v>
+
+17
+00:03:26.046 --> 00:03:29.123
+<v Odalys Brennan>A daily outreach worklist with outcome logging. Third?</v>
+
+18
+00:03:30.323 --> 00:03:43.400
+<v Dr. Rahul Sethi-Marlowe>A drafted message. Text or phone script, in plain language, that the staff can send or read. Reading level around sixth grade. And in Spanish, because about a quarter of our patients prefer Spanish.</v>
+
+19
+00:03:44.600 --> 00:03:49.215
+<v Noor Haddad>Yes, bilingual messages. We currently use a translation service that takes days.</v>
+
+20
+00:03:50.415 --> 00:03:58.108
+<v Odalys Brennan>So a message drafter in English and Spanish, always reviewed by staff before sending. We would not send anything automatically.</v>
+
+21
+00:03:59.308 --> 00:04:03.538
+<v Dr. Rahul Sethi-Marlowe>Right. And nothing that gives clinical advice. Only reminders and scheduling.</v>
+
+22
+00:04:04.738 --> 00:04:13.969
+<v Tomasz Wrenfield>I want a dashboard for myself and for the medical director. Follow-up completion rate by clinic and by condition, before and after the programme.</v>
+
+23
+00:04:15.169 --> 00:04:24.015
+<v Odalys Brennan>A fourth feature then, an outcomes dashboard. Let me ask about privacy. Is there anything about health information rules that shapes the design?</v>
+
+24
+00:04:25.215 --> 00:04:42.138
+<v Tomasz Wrenfield>Yes. Everything is covered by our compliance rules for protected health information. For the proof of concept, we will only use de-identified data and no real patient will be contacted. Production would need a business associate agreement with every vendor, including the model provider.</v>
+
+25
+00:04:43.338 --> 00:04:54.108
+<v Odalys Brennan>We will note that as a constraint. The prototype uses synthetic or de-identified records only, and the architecture must allow a private or contracted model endpoint in production.</v>
+
+26
+00:04:55.308 --> 00:04:59.923
+<v Dr. Rahul Sethi-Marlowe>Also an audit trail. Who saw which patient, and who changed what.</v>
+
+27
+00:05:01.123 --> 00:05:04.200
+<v Odalys Brennan>Noted. An audit log for access and changes.</v>
+
+28
+00:05:05.400 --> 00:05:11.938
+<v Noor Haddad>Can I ask about scale? Nine clinics, around twenty-two thousand active patients. Would that be a problem?</v>
+
+29
+00:05:13.138 --> 00:05:18.908
+<v Odalys Brennan>No. The scoring is a batch process each night, and twenty-two thousand records is small.</v>
+
+30
+00:05:20.108 --> 00:05:36.262
+<v Dr. Rahul Sethi-Marlowe>Let me be honest about money. We have eighty thousand dollars set aside for this pilot. That covers the proof of concept and a three-month pilot at two clinics. If the pilot works, we would fund the rest from a quality grant.</v>
+
+31
+00:05:37.462 --> 00:05:42.077
+<v Odalys Brennan>That is clear. Is eighty thousand the total including any hosting costs?</v>
+
+32
+00:05:43.277 --> 00:05:45.277
+<v Dr. Rahul Sethi-Marlowe>Yes, all in.</v>
+
+33
+00:05:46.477 --> 00:05:49.938
+<v Odalys Brennan>And timeline? When do you want to see something?</v>
+
+34
+00:05:51.138 --> 00:06:02.677
+<v Dr. Rahul Sethi-Marlowe>Our quality committee meets in the second week of May. I would like a clickable prototype with synthetic data by the end of April, and the pilot starting in July.</v>
+
+35
+00:06:03.877 --> 00:06:11.954
+<v Odalys Brennan>So prototype by April thirtieth. Tomasz, could you prepare a de-identified sample? A few thousand patients, with the fields we discussed?</v>
+
+36
+00:06:13.154 --> 00:06:21.231
+<v Tomasz Wrenfield>I can do that. Give me until the twentieth of next month, since I need approval from the privacy officer first.</v>
+
+37
+00:06:22.431 --> 00:06:27.046
+<v Odalys Brennan>Action for Tomasz, de-identified sample by the twentieth, privacy officer approval first.</v>
+
+38
+00:06:28.246 --> 00:06:30.246
+<v Tomasz Wrenfield>Yes.</v>
+
+39
+00:06:31.446 --> 00:06:44.908
+<v Noor Haddad>I will ask three of my front desk leads to sit with you for an hour and show how they do outreach today. I can set that up for the first week of next month.</v>
+
+40
+00:06:46.108 --> 00:06:53.415
+<v Odalys Brennan>Thank you, Noor. That is a very useful action, an observation session in the first week of next month.</v>
+
+41
+00:06:54.615 --> 00:07:04.615
+<v Dr. Rahul Sethi-Marlowe>And I will find two clinicians who are willing to review the explanation wording and the messages. I will have names for you in two weeks.</v>
+
+42
+00:07:05.815 --> 00:07:12.738
+<v Odalys Brennan>Wonderful. Let me ask something on the clinical side. Which conditions are in scope for the first version?</v>
+
+43
+00:07:13.938 --> 00:07:20.477
+<v Dr. Rahul Sethi-Marlowe>Hypertension and type two diabetes only. That is where the biggest gap is. Other conditions can wait.</v>
+
+44
+00:07:21.677 --> 00:07:37.446
+<v Odalys Brennan>Good, that keeps the scope small. We would define risk features for those two conditions, such as time since last visit, last reading versus target, number of missed appointments, distance to clinic, and whether the patient has a phone on file.</v>
+
+45
+00:07:38.646 --> 00:07:47.108
+<v Tomasz Wrenfield>Distance is a good one. We know the home postcode, though I would only give you a coarse region for the sample.</v>
+
+46
+00:07:48.308 --> 00:07:50.308
+<v Odalys Brennan>Coarse region is fine.</v>
+
+47
+00:07:51.508 --> 00:07:59.200
+<v Noor Haddad>One more worry. The staff are busy. If the worklist has two hundred patients every day, nobody will use it.</v>
+
+48
+00:08:00.400 --> 00:08:12.708
+<v Odalys Brennan>Agreed. We would cap the list to match capacity. You tell us how many calls a clinic can make in a day, and the list is the top N for that clinic.</v>
+
+49
+00:08:13.908 --> 00:08:17.369
+<v Noor Haddad>About twenty-five calls per clinic per day, at most.</v>
+
+50
+00:08:18.569 --> 00:08:22.031
+<v Odalys Brennan>Then twenty-five is the default cap, configurable per clinic.</v>
+
+51
+00:08:23.231 --> 00:08:31.308
+<v Dr. Rahul Sethi-Marlowe>I like that. Can we also see why a patient dropped off the list, for example, because they booked an appointment?</v>
+
+52
+00:08:32.508 --> 00:08:35.200
+<v Odalys Brennan>Yes, a status history for each patient.</v>
+
+53
+00:08:36.400 --> 00:09:01.400
+<v Odalys Brennan>Let me recap. Sector is healthcare, outpatient primary care. Must-haves: risk score with reasons, a daily outreach worklist with outcome logging, bilingual drafted messages for staff review, and an outcomes dashboard. Constraints are de-identified data only for the proof of concept, an audit trail, and a path to a contracted model endpoint. Budget is eighty thousand dollars all in, prototype by the end of April.</v>
+
+54
+00:09:02.600 --> 00:09:04.600
+<v Dr. Rahul Sethi-Marlowe>That matches my understanding.</v>
+
+55
+00:09:05.800 --> 00:09:20.031
+<v Odalys Brennan>Actions. Tomasz delivers the de-identified sample by the twentieth. Noor arranges the front desk observation session. Dr. Sethi-Marlowe names two clinical reviewers in two weeks. I will send the notes and a proposed scope document by Wednesday.</v>
+
+56
+00:09:21.231 --> 00:09:23.538
+<v Noor Haddad>Thank you all. This was helpful.</v>

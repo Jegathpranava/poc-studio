@@ -1,0 +1,161 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [6 0 R 8 0 R 10 0 R] /Count 3 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+5 0 obj
+<< /Length 3470 >>
+stream
+BT
+/F2 18 Tf 1 0 0 1 56 780 Tm (Project Brief: Radiology Report Follow-up Tracker) Tj
+/F1 6 Tf 1 0 0 1 56 756 Tm () Tj
+/F2 13 Tf 1 0 0 1 56 744 Tm (0. Background) Tj
+/F1 10 Tf 1 0 0 1 56 725 Tm (Lumen completes about 41,000 studies a month across CT, MRI, ultrasound and X-ray.) Tj
+/F1 10 Tf 1 0 0 1 56 709 Tm (Reports are dictated by 22 radiologists and finalised in the radiology information) Tj
+/F1 10 Tf 1 0 0 1 56 693 Tm (system. Referring doctors receive the report through a portal or by fax, and the care) Tj
+/F1 10 Tf 1 0 0 1 56 677 Tm (coordination team of seven people handles scheduling questions by phone.) Tj
+/F1 6 Tf 1 0 0 1 56 661 Tm () Tj
+/F1 10 Tf 1 0 0 1 56 649 Tm (The medical advisory board has asked for evidence that automated support can make) Tj
+/F1 10 Tf 1 0 0 1 56 633 Tm (follow-up tracking safer without adding work for radiologists, who are already under) Tj
+/F1 10 Tf 1 0 0 1 56 617 Tm (time pressure.) Tj
+/F1 6 Tf 1 0 0 1 56 601 Tm () Tj
+/F2 13 Tf 1 0 0 1 56 589 Tm (1. Summary) Tj
+/F1 10 Tf 1 0 0 1 56 570 Tm (Lumen Imaging Partners \(fictional\) operates six outpatient imaging centres. Radiologists) Tj
+/F1 10 Tf 1 0 0 1 56 554 Tm (sometimes recommend follow-up imaging in a report, for example a repeat scan of a small) Tj
+/F1 10 Tf 1 0 0 1 56 538 Tm (lung nodule in six months. These recommendations are buried in free text and are often) Tj
+/F1 10 Tf 1 0 0 1 56 522 Tm (not acted on. This healthcare brief asks for a proof of concept that finds these) Tj
+/F1 10 Tf 1 0 0 1 56 506 Tm (recommendations and tracks them to completion. Contact: informatics@lumen-) Tj
+/F1 10 Tf 1 0 0 1 56 490 Tm (imaging.example.com.) Tj
+/F1 6 Tf 1 0 0 1 56 474 Tm () Tj
+/F2 13 Tf 1 0 0 1 56 462 Tm (2. Problem) Tj
+/F1 10 Tf 1 0 0 1 56 443 Tm (About 11 percent of reports contain a follow-up recommendation. An internal audit of 400) Tj
+/F1 10 Tf 1 0 0 1 56 427 Tm (reports found that 27 percent of recommended follow-ups had no scheduled appointment) Tj
+/F1 10 Tf 1 0 0 1 56 411 Tm (after 90 days.) Tj
+/F1 6 Tf 1 0 0 1 56 395 Tm () Tj
+/F1 10 Tf 1 0 0 1 56 383 Tm (Missed follow-ups create clinical risk and liability exposure. Today the quality team) Tj
+/F1 10 Tf 1 0 0 1 56 367 Tm (reviews a random sample of 3 percent of reports by hand.) Tj
+/F1 6 Tf 1 0 0 1 56 351 Tm () Tj
+/F1 10 Tf 1 0 0 1 56 339 Tm (Reports are written in free text with no structured field for follow-up, and referring) Tj
+/F1 10 Tf 1 0 0 1 56 323 Tm (doctors are notified only by the report itself.) Tj
+/F1 6 Tf 1 0 0 1 56 307 Tm () Tj
+/F2 13 Tf 1 0 0 1 56 295 Tm (3. Objectives) Tj
+/F1 10 Tf 1 0 0 1 56 276 Tm (Identify at least 95 percent of follow-up recommendations in reports, with a precision) Tj
+/F1 10 Tf 1 0 0 1 56 260 Tm (of at least 85 percent.) Tj
+/F1 6 Tf 1 0 0 1 56 244 Tm () Tj
+/F1 10 Tf 1 0 0 1 56 232 Tm (Reduce recommended follow-ups with no appointment after 90 days from 27 percent to under) Tj
+/F1 10 Tf 1 0 0 1 56 216 Tm (10 percent.) Tj
+/F1 6 Tf 1 0 0 1 56 200 Tm () Tj
+/F1 10 Tf 1 0 0 1 56 188 Tm (Reduce quality team review effort by 60 percent.) Tj
+/F1 6 Tf 1 0 0 1 56 172 Tm () Tj
+/F2 13 Tf 1 0 0 1 56 160 Tm (4. Must-have features) Tj
+/F1 10 Tf 1 0 0 1 56 141 Tm (Recommendation detection: read each finalised report and extract the finding, the) Tj
+/F1 10 Tf 1 0 0 1 56 125 Tm (recommended action, the modality and the recommended time frame, citing the sentence it) Tj
+/F1 10 Tf 1 0 0 1 56 109 Tm (came from.) Tj
+/F1 6 Tf 1 0 0 1 56 93 Tm () Tj
+ET
+endstream
+endobj
+6 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 5 0 R /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> >>
+endobj
+7 0 obj
+<< /Length 3530 >>
+stream
+BT
+/F1 10 Tf 1 0 0 1 56 780 Tm (Follow-up worklist: a ranked list for the care coordination team showing overdue and) Tj
+/F1 10 Tf 1 0 0 1 56 764 Tm (upcoming follow-ups, with the patient contact preference and the referring doctor.) Tj
+/F1 6 Tf 1 0 0 1 56 748 Tm () Tj
+/F1 10 Tf 1 0 0 1 56 736 Tm (Outreach drafting: draft a letter or message to the patient and a notification to the) Tj
+/F1 10 Tf 1 0 0 1 56 720 Tm (referring doctor, which a coordinator reviews and sends.) Tj
+/F1 6 Tf 1 0 0 1 56 704 Tm () Tj
+/F1 10 Tf 1 0 0 1 56 692 Tm (Closure tracking: mark a follow-up as complete when a matching exam is found, or record) Tj
+/F1 10 Tf 1 0 0 1 56 676 Tm (a reason such as patient declined or no longer clinically needed.) Tj
+/F1 6 Tf 1 0 0 1 56 660 Tm () Tj
+/F2 13 Tf 1 0 0 1 56 648 Tm (5. Constraints) Tj
+/F1 10 Tf 1 0 0 1 56 629 Tm (The proof of concept may use only synthetic or fully de-identified reports.) Tj
+/F1 6 Tf 1 0 0 1 56 613 Tm () Tj
+/F1 10 Tf 1 0 0 1 56 601 Tm (A radiologist or coordinator reviews every extracted recommendation before any message) Tj
+/F1 10 Tf 1 0 0 1 56 585 Tm (is sent. The system gives no clinical advice.) Tj
+/F1 6 Tf 1 0 0 1 56 569 Tm () Tj
+/F1 10 Tf 1 0 0 1 56 557 Tm (Reports must not leave the Lumen cloud account. Any language model must be reachable) Tj
+/F1 10 Tf 1 0 0 1 56 541 Tm (through a private endpoint in production.) Tj
+/F1 6 Tf 1 0 0 1 56 525 Tm () Tj
+/F1 10 Tf 1 0 0 1 56 513 Tm (A full audit trail of extractions, edits and messages is required.) Tj
+/F1 6 Tf 1 0 0 1 56 497 Tm () Tj
+/F2 13 Tf 1 0 0 1 56 485 Tm (5a. Data and access) Tj
+/F1 10 Tf 1 0 0 1 56 466 Tm (Lumen will provide reports as plain text exports with patient identifiers removed,) Tj
+/F1 10 Tf 1 0 0 1 56 450 Tm (together with the modality, exam date and referring practice. Appointment data will be) Tj
+/F1 10 Tf 1 0 0 1 56 434 Tm (provided as a separate file keyed by a pseudonymous patient number so that closure) Tj
+/F1 10 Tf 1 0 0 1 56 418 Tm (tracking can be demonstrated.) Tj
+/F1 6 Tf 1 0 0 1 56 402 Tm () Tj
+/F1 10 Tf 1 0 0 1 56 390 Tm (Radiologists will label a sample of reports to mark where a follow-up recommendation) Tj
+/F1 10 Tf 1 0 0 1 56 374 Tm (appears and what it asks for. Two radiologists will label the same 100 reports so that) Tj
+/F1 10 Tf 1 0 0 1 56 358 Tm (agreement between them can be measured and used as the ceiling for system accuracy.) Tj
+/F1 6 Tf 1 0 0 1 56 342 Tm () Tj
+/F2 13 Tf 1 0 0 1 56 330 Tm (6. Budget and schedule) Tj
+/F1 10 Tf 1 0 0 1 56 311 Tm (Budget for the proof of concept: 58,000 dollars, all in.) Tj
+/F1 6 Tf 1 0 0 1 56 295 Tm () Tj
+/F1 10 Tf 1 0 0 1 56 283 Tm (The prototype must be ready for the medical advisory board on 12 March. Pilot at two) Tj
+/F1 10 Tf 1 0 0 1 56 267 Tm (centres is planned for the second quarter.) Tj
+/F1 6 Tf 1 0 0 1 56 251 Tm () Tj
+/F2 13 Tf 1 0 0 1 56 239 Tm (7. Success measures) Tj
+/F1 10 Tf 1 0 0 1 56 220 Tm (Recall of at least 95 percent on 300 de-identified reports labelled by two radiologists.) Tj
+/F1 6 Tf 1 0 0 1 56 204 Tm () Tj
+/F1 10 Tf 1 0 0 1 56 192 Tm (Coordinators can process a worklist item in under 2 minutes.) Tj
+/F1 6 Tf 1 0 0 1 56 176 Tm () Tj
+/F1 10 Tf 1 0 0 1 56 164 Tm (Zero messages sent without human approval during the pilot.) Tj
+/F1 6 Tf 1 0 0 1 56 148 Tm () Tj
+/F2 13 Tf 1 0 0 1 56 136 Tm (8. Action items) Tj
+/F1 10 Tf 1 0 0 1 56 117 Tm (Dr. Anneliese Ravensworth \(chief radiologist\) to provide 300 de-identified reports and) Tj
+/F1 10 Tf 1 0 0 1 56 101 Tm (labels by 15 January.) Tj
+ET
+endstream
+endobj
+8 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 7 0 R /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> >>
+endobj
+9 0 obj
+<< /Length 609 >>
+stream
+BT
+/F1 6 Tf 1 0 0 1 56 780 Tm () Tj
+/F1 10 Tf 1 0 0 1 56 768 Tm (Bertrand Okonjo \(care coordination manager\) to document the current follow-up process) Tj
+/F1 10 Tf 1 0 0 1 56 752 Tm (and one week of worklist examples by 22 January.) Tj
+/F1 6 Tf 1 0 0 1 56 736 Tm () Tj
+/F1 10 Tf 1 0 0 1 56 724 Tm (Yusra Delaney-Cole \(privacy officer\) to confirm the de-identification method by 29) Tj
+/F1 10 Tf 1 0 0 1 56 708 Tm (January.) Tj
+/F1 6 Tf 1 0 0 1 56 692 Tm () Tj
+/F1 10 Tf 1 0 0 1 56 680 Tm (The supplier to share an architecture outline and cost table by 5 February.) Tj
+/F1 6 Tf 1 0 0 1 56 664 Tm () Tj
+ET
+endstream
+endobj
+10 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 9 0 R /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> >>
+endobj
+xref
+0 11
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000128 00000 n 
+0000000198 00000 n 
+0000000273 00000 n 
+0000003795 00000 n 
+0000003931 00000 n 
+0000007513 00000 n 
+0000007649 00000 n 
+0000008309 00000 n 
+trailer
+<< /Size 11 /Root 1 0 R >>
+startxref
+8446
+%%EOF
