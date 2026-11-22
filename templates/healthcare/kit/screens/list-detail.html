@@ -1,0 +1,55 @@
+<div class="hlx">
+  <div class="shell">
+    <aside class="rail">
+      <div class="rail-brand"><span class="brand-mark"><span class="ic ic-heart-pulse"></span></span><span>Larchmont Clinic</span></div>
+        <a class="rail-link"><span class="ic ic-layout-dashboard"></span><span>Overview</span></a>
+        <a class="rail-link is-active" data-anchor="nav-active"><span class="ic ic-calendar"></span><span>Appointments</span></a>
+        <a class="rail-link"><span class="ic ic-user"></span><span>Patients</span></a>
+        <a class="rail-link"><span class="ic ic-stethoscope"></span><span>Care plans</span></a>
+        <a class="rail-link"><span class="ic ic-pill"></span><span>Prescriptions</span></a>
+      <div class="rail-foot">Sample data, illustrative</div>
+    </aside>
+    <div class="main">
+      <header class="topbar">
+        <span class="topbar-title">Appointments</span>
+        <div class="topbar-search"><span class="ic ic-search"></span><span>Search</span></div>
+        <div class="topbar-actions"><span class="icon-btn"><span class="ic ic-bell"></span></span><span class="avatar">JM</span></div>
+      </header>
+      <main class="page">
+        <div class="page-head">
+          <div><h1 class="page-title">Patients</h1><p class="page-sub">Registered patients in this practice</p></div>
+          <div class="row"><button class="btn">Export</button><button class="btn btn-primary"><span class="ic ic-plus"></span><span>New</span></button></div>
+        </div>
+        <div class="row" data-anchor="filters"><span class="chip is-on">All</span><span class="chip">Active care plan</span><span class="chip">Follow-up due</span><span class="chip">New</span></div>
+        <div class="grid split">
+          <section class="card">
+            <div class="table-wrap" data-anchor="list-table">
+            <table class="table">
+              <thead><tr><th>Patient</th><th>Age</th><th>Clinician</th><th>Care plan</th><th>Last visit</th></tr></thead>
+              <tbody>
+              <tr><td class="strong">Amara Whitfield</td><td>47</td><td>Dr. Ibarra</td><td><span class="pill pill-ok">Active</span></td><td>3 Mar</td></tr>
+              <tr class="is-selected"><td class="strong">Tomas Reyes</td><td>9</td><td>Nurse Palmer</td><td><span class="pill pill-warn">Follow-up due</span></td><td>12 Feb</td></tr>
+              <tr><td class="strong">Priya Nandakumar</td><td>62</td><td>Dr. Ibarra</td><td><span class="pill pill-ok">Active</span></td><td>28 Feb</td></tr>
+              <tr><td class="strong">Oliver Strand</td><td>31</td><td>Dr. Okafor</td><td><span class="pill pill-info">New</span></td><td>None</td></tr>
+              </tbody>
+            </table>
+          </div>
+          </section>
+          <aside class="card" data-anchor="detail">
+            <div class="card-head"><h2 class="card-title">Tomas Reyes</h2><span class="pill pill-warn">Follow-up due</span></div>
+            <div class="card-body stack">
+              <dl class="kv">
+              <dt>Age</dt><dd>9 years</dd>
+              <dt>Clinician</dt><dd>Nurse Palmer</dd>
+              <dt>Condition</dt><dd>Mild asthma</dd>
+              <dt>Next review</dt><dd>Overdue 6 days</dd>
+              <dt>Guardian</dt><dd>R. Reyes</dd>
+              </dl>
+              <button class="btn btn-primary" data-anchor="detail-action">Send reminder</button>
+            </div>
+          </aside>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>

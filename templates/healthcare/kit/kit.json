@@ -1,0 +1,44 @@
+{
+  "sector": "healthcare",
+  "app_class": "hlx",
+  "accent": "#0f766e",
+  "screens": [
+    {
+      "id": "dashboard",
+      "file": "screens/dashboard.html",
+      "label": "Dashboard",
+      "anchors": [
+        "alerts",
+        "kpis",
+        "nav-active",
+        "primary-action",
+        "recent-table"
+      ]
+    },
+    {
+      "id": "list-detail",
+      "file": "screens/list-detail.html",
+      "label": "Patients list and detail",
+      "anchors": [
+        "detail",
+        "detail-action",
+        "filters",
+        "list-table",
+        "nav-active"
+      ]
+    },
+    {
+      "id": "form",
+      "file": "screens/form.html",
+      "label": "Book appointment",
+      "anchors": [
+        "form",
+        "key-field",
+        "nav-active",
+        "steps",
+        "submit",
+        "toast"
+      ]
+    }
+  ]
+}

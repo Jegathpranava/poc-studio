@@ -1,0 +1,44 @@
+{
+  "sector": "fintech",
+  "app_class": "fnx",
+  "accent": "#4338ca",
+  "screens": [
+    {
+      "id": "dashboard",
+      "file": "screens/dashboard.html",
+      "label": "Dashboard",
+      "anchors": [
+        "alerts",
+        "kpis",
+        "nav-active",
+        "primary-action",
+        "recent-table"
+      ]
+    },
+    {
+      "id": "list-detail",
+      "file": "screens/list-detail.html",
+      "label": "Transfers list and detail",
+      "anchors": [
+        "detail",
+        "detail-action",
+        "filters",
+        "list-table",
+        "nav-active"
+      ]
+    },
+    {
+      "id": "form",
+      "file": "screens/form.html",
+      "label": "New transfer",
+      "anchors": [
+        "form",
+        "key-field",
+        "nav-active",
+        "steps",
+        "submit",
+        "toast"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "sector": "ecommerce",
+  "app_class": "ecx",
+  "accent": "#be185d",
+  "screens": [
+    {
+      "id": "dashboard",
+      "file": "screens/dashboard.html",
+      "label": "Dashboard",
+      "anchors": [
+        "alerts",
+        "kpis",
+        "nav-active",
+        "primary-action",
+        "recent-table"
+      ]
+    },
+    {
+      "id": "list-detail",
+      "file": "screens/list-detail.html",
+      "label": "Products list and detail",
+      "anchors": [
+        "detail",
+        "detail-action",
+        "filters",
+        "list-table",
+        "nav-active"
+      ]
+    },
+    {
+      "id": "form",
+      "file": "screens/form.html",
+      "label": "Add product",
+      "anchors": [
+        "form",
+        "key-field",
+        "nav-active",
+        "steps",
+        "submit",
+        "toast"
+      ]
+    }
+  ]
+}

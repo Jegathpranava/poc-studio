@@ -1,0 +1,55 @@
+<div class="lgx">
+  <div class="shell">
+    <aside class="rail">
+      <div class="rail-brand"><span class="brand-mark"><span class="ic ic-truck"></span></span><span>Northline Freight</span></div>
+        <a class="rail-link"><span class="ic ic-layout-dashboard"></span><span>Overview</span></a>
+        <a class="rail-link is-active" data-anchor="nav-active"><span class="ic ic-package"></span><span>Shipments</span></a>
+        <a class="rail-link"><span class="ic ic-truck"></span><span>Fleet</span></a>
+        <a class="rail-link"><span class="ic ic-route"></span><span>Routes</span></a>
+        <a class="rail-link"><span class="ic ic-file-text"></span><span>Reports</span></a>
+      <div class="rail-foot">Sample data, illustrative</div>
+    </aside>
+    <div class="main">
+      <header class="topbar">
+        <span class="topbar-title">Shipments</span>
+        <div class="topbar-search"><span class="ic ic-search"></span><span>Search</span></div>
+        <div class="topbar-actions"><span class="icon-btn"><span class="ic ic-bell"></span></span><span class="avatar">JM</span></div>
+      </header>
+      <main class="page">
+        <div class="page-head">
+          <div><h1 class="page-title">Shipments</h1><p class="page-sub">All shipments for the North region</p></div>
+          <div class="row"><button class="btn">Export</button><button class="btn btn-primary"><span class="ic ic-plus"></span><span>New</span></button></div>
+        </div>
+        <div class="row" data-anchor="filters"><span class="chip is-on">All</span><span class="chip">In transit</span><span class="chip">Delayed</span><span class="chip">Delivered</span></div>
+        <div class="grid split">
+          <section class="card">
+            <div class="table-wrap" data-anchor="list-table">
+            <table class="table">
+              <thead><tr><th>Shipment</th><th>Customer</th><th>Origin</th><th>Status</th><th class="num">Weight</th></tr></thead>
+              <tbody>
+              <tr><td class="strong">SH-20481</td><td>Alder Foods</td><td>Leeds</td><td><span class="pill pill-ok">In transit</span></td><td class="num">4,200 kg</td></tr>
+              <tr class="is-selected"><td class="strong">SH-20482</td><td>Quill Textiles</td><td>Hull</td><td><span class="pill pill-warn">Delayed</span></td><td class="num">1,850 kg</td></tr>
+              <tr><td class="strong">SH-20476</td><td>Fenwick Pumps</td><td>York</td><td><span class="pill pill-muted">Delivered</span></td><td class="num">960 kg</td></tr>
+              <tr><td class="strong">SH-20485</td><td>Alder Foods</td><td>York</td><td><span class="pill pill-info">Loading</span></td><td class="num">3,100 kg</td></tr>
+              </tbody>
+            </table>
+          </div>
+          </section>
+          <aside class="card" data-anchor="detail">
+            <div class="card-head"><h2 class="card-title">SH-20482</h2><span class="pill pill-warn">Delayed 35 min</span></div>
+            <div class="card-body stack">
+              <dl class="kv">
+              <dt>Customer</dt><dd>Quill Textiles</dd>
+              <dt>Carrier</dt><dd>Baltic Lines</dd>
+              <dt>Route</dt><dd>Hull to Gdansk</dd>
+              <dt>Next stop</dt><dd>Customs hold, Hull</dd>
+              <dt>Driver</dt><dd>M. Osei</dd>
+              </dl>
+              <button class="btn btn-primary" data-anchor="detail-action">Contact carrier</button>
+            </div>
+          </aside>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>

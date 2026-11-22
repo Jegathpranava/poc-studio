@@ -1,0 +1,56 @@
+<div class="lgx">
+  <div class="shell">
+    <aside class="rail">
+      <div class="rail-brand"><span class="brand-mark"><span class="ic ic-truck"></span></span><span>Northline Freight</span></div>
+        <a class="rail-link is-active" data-anchor="nav-active"><span class="ic ic-layout-dashboard"></span><span>Overview</span></a>
+        <a class="rail-link"><span class="ic ic-package"></span><span>Shipments</span></a>
+        <a class="rail-link"><span class="ic ic-truck"></span><span>Fleet</span></a>
+        <a class="rail-link"><span class="ic ic-route"></span><span>Routes</span></a>
+        <a class="rail-link"><span class="ic ic-file-text"></span><span>Reports</span></a>
+      <div class="rail-foot">Sample data, illustrative</div>
+    </aside>
+    <div class="main">
+      <header class="topbar">
+        <span class="topbar-title">Overview</span>
+        <div class="topbar-search"><span class="ic ic-search"></span><span>Search</span></div>
+        <div class="topbar-actions"><span class="icon-btn"><span class="ic ic-bell"></span></span><span class="avatar">JM</span></div>
+      </header>
+      <main class="page">
+        <div class="page-head">
+          <div><h1 class="page-title">Operations overview</h1><p class="page-sub">Tuesday depot summary, North region</p></div>
+          <button class="btn btn-primary" data-anchor="primary-action"><span class="ic ic-plus"></span><span>Create shipment</span></button>
+        </div>
+        <div class="grid cols-4" data-anchor="kpis">
+          <div class="stat"><span class="stat-label">On-time rate</span><span class="stat-value">94.2%</span><span class="stat-delta up">+1.8 pts vs last week</span></div>
+          <div class="stat"><span class="stat-label">Active shipments</span><span class="stat-value">128</span><span class="stat-delta up">+12 since Monday</span></div>
+          <div class="stat"><span class="stat-label">Vehicles in service</span><span class="stat-value">41 of 46</span><span class="stat-delta down">5 in maintenance</span></div>
+          <div class="stat"><span class="stat-label">Open exceptions</span><span class="stat-value">6</span><span class="stat-delta down">2 need a carrier call</span></div>
+        </div>
+        <div class="grid split">
+          <section class="card">
+            <div class="card-head"><h2 class="card-title">Shipments departing today</h2><a class="btn btn-ghost btn-sm">View all<span class="ic ic-chevron-right"></span></a></div>
+            <div class="table-wrap" data-anchor="recent-table">
+            <table class="table">
+              <thead><tr><th>Shipment</th><th>Route</th><th>Carrier</th><th>Status</th><th>ETA</th></tr></thead>
+              <tbody>
+              <tr><td class="strong">SH-20481</td><td>Leeds to Rotterdam</td><td>Harbor Haul</td><td><span class="pill pill-ok">On time</span></td><td>16:40</td></tr>
+              <tr><td class="strong">SH-20482</td><td>Hull to Gdansk</td><td>Baltic Lines</td><td><span class="pill pill-warn">Delayed 35 min</span></td><td>19:15</td></tr>
+              <tr><td class="strong">SH-20485</td><td>York to Antwerp</td><td>Marrow Freight</td><td><span class="pill pill-info">Loading</span></td><td>21:05</td></tr>
+              <tr><td class="strong">SH-20487</td><td>Leeds to Calais</td><td>Harbor Haul</td><td><span class="pill pill-ok">On time</span></td><td>22:30</td></tr>
+              </tbody>
+            </table>
+          </div>
+          </section>
+          <section class="card" data-anchor="alerts">
+            <div class="card-head"><h2 class="card-title">Exceptions</h2><span class="pill pill-bad">3 open</span></div>
+            <div class="list">
+              <div class="list-item"><span class="list-icon"><span class="ic ic-triangle-alert"></span></span><div class="list-main"><div class="list-title">SH-20482 held at customs</div><div class="muted">Documents requested from Baltic Lines, 12 min ago</div></div></div>
+              <div class="list-item"><span class="list-icon"><span class="ic ic-clock"></span></span><div class="list-main"><div class="list-title">Dock 3 over capacity</div><div class="muted">Two inbound trucks queued after 14:00</div></div></div>
+              <div class="list-item"><span class="list-icon"><span class="ic ic-truck"></span></span><div class="list-main"><div class="list-title">Vehicle LX-07 due for service</div><div class="muted">Brake inspection overdue by 2 days</div></div></div>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
