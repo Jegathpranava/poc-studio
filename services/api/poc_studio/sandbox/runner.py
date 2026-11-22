@@ -1,11 +1,14 @@
 """Run `npm ci` and `npm run build` for a copy of a sector starter.
 
 Folder mode (default): a child process in `runs/<id>/app` with an allow-listed environment, a timeout and a
-process-tree kill. Docker mode is used when `docker info` exits 0; it is NOT exercised by the tests (Docker
-is not installed on the dev machine).
+process-tree kill. Home directories point at `runs/<id>/.home`, so an install script cannot read the real
+profile; the npm cache stays shared. Docker mode is used ONLY when SANDBOX_MODE=docker is set and
+`docker info` exits 0; it is NOT exercised by the tests (Docker is not installed on the dev machine).
 """
 
 import asyncio
+import functools
+import itertools
 import os
 import shutil
 import subprocess
@@ -28,6 +31,9 @@ ENV_ALLOW = (
     "PATH", "SYSTEMROOT", "COMSPEC", "PATHEXT", "TEMP", "TMP", "HOME", "USERPROFILE", "APPDATA",
     "LOCALAPPDATA", "npm_config_cache",
 )  # fmt: skip
+# Lifecycle scripts of dependencies never run (supply chain). If a package needs its postinstall, rebuild that
+# one package explicitly (`npm rebuild <pkg>`); the sector starters build without any.
+INSTALL_ARGS = ["ci", "--ignore-scripts", "--prefer-offline", "--no-audit", "--no-fund"]
 _COPY_IGNORE = shutil.ignore_patterns("node_modules", ".next")
 
 
@@ -43,17 +49,41 @@ class BuildResult(StepResult):
     error: BuildError | None = None
 
 
-def child_env() -> dict[str, str]:
+_HOME_VARS = ("HOME", "USERPROFILE", "APPDATA", "LOCALAPPDATA")
+
+
+def shared_npm_cache() -> str | None:
+    """The real npm cache, so installs stay fast although HOME moves."""
+    if os.environ.get("npm_config_cache"):
+        return os.environ["npm_config_cache"]
+    if os.name == "nt":
+        base = os.environ.get("LOCALAPPDATA")
+        return str(Path(base) / "npm-cache") if base else None
+    return str(Path.home() / ".npm")
+
+
+def child_env(home: Path | None = None) -> dict[str, str]:
+    """Allow-listed environment. With `home`, HOME/USERPROFILE/APPDATA/LOCALAPPDATA point at that folder."""
     env = {k: os.environ[k] for k in ENV_ALLOW if k in os.environ}
+    cache = shared_npm_cache()
+    if home is not None:
+        home.mkdir(parents=True, exist_ok=True)
+        for var in _HOME_VARS:
+            env[var] = str(home)
+    if cache:
+        env["npm_config_cache"] = cache
     env["NEXT_TELEMETRY_DISABLED"] = "1"
     return env
 
 
+@functools.lru_cache(maxsize=1)
 def sandbox_mode() -> str:
-    """`docker` when `docker info` exits 0, else `folder`. SANDBOX_MODE=folder|docker overrides."""
-    forced = os.environ.get("SANDBOX_MODE", "").lower()
-    if forced in ("folder", "docker"):
-        return forced
+    """`docker` only when SANDBOX_MODE=docker is set explicitly and `docker info` exits 0, else `folder`.
+
+    Cached for the process; call it through `asyncio.to_thread` (it may run `docker info`).
+    """
+    if os.environ.get("SANDBOX_MODE", "").lower() != "docker":
+        return "folder"
     docker = shutil.which("docker")
     if docker is None:
         return "folder"
@@ -62,6 +92,13 @@ def sandbox_mode() -> str:
     except (OSError, subprocess.SubprocessError):
         return "folder"
     return "docker" if done.returncode == 0 else "folder"
+
+
+_container_seq = itertools.count(1)
+
+
+def container_name(app_dir: Path) -> str:
+    return f"poc-{app_dir.resolve().parent.name}-{next(_container_seq)}"
 
 
 async def prepare(run_dir: Path, sector: str) -> Path:
@@ -80,10 +117,10 @@ async def prepare(run_dir: Path, sector: str) -> Path:
     return dest
 
 
-def _command(args: list[str], app_dir: Path) -> list[str]:
-    if sandbox_mode() == "docker":  # UNTESTED: Docker is not available on the dev machine
+def _command(args: list[str], app_dir: Path, name: str | None = None) -> list[str]:
+    if name is not None:  # docker mode. UNTESTED: Docker is not available on the dev machine
         return [
-            "docker", "run", "--rm", "-v", f"{app_dir.resolve()}:/app", "-w", "/app",
+            "docker", "run", "--rm", "--name", name, "-v", f"{app_dir.resolve()}:/app", "-w", "/app",
             "-e", "NEXT_TELEMETRY_DISABLED=1", "node:22", "npm", *args,
         ]  # fmt: skip
     npm = shutil.which("npm", path=os.environ.get("PATH")) or "npm"  # npm.cmd on Windows
@@ -100,13 +137,21 @@ def _kill_tree(proc: asyncio.subprocess.Process) -> None:
         pass
 
 
+def _docker_kill(name: str) -> None:
+    try:
+        subprocess.run(["docker", "kill", name], capture_output=True, timeout=15, check=False)
+    except (OSError, subprocess.SubprocessError):
+        pass
+
+
 async def _run(args: list[str], app_dir: Path, timeout_s: float) -> tuple[bool, bool, float, str]:
     """(ok, timed_out, duration, redacted output). stderr is merged into stdout."""
     started = time.monotonic()
+    name = container_name(app_dir) if await asyncio.to_thread(sandbox_mode) == "docker" else None
     proc = await asyncio.create_subprocess_exec(
-        *_command(args, app_dir),
+        *(_command(args, app_dir, name) if name else _command(args, app_dir)),
         cwd=app_dir,
-        env=child_env(),
+        env=child_env(app_dir.resolve().parent / ".home"),
         stdin=asyncio.subprocess.DEVNULL,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.STDOUT,
@@ -118,12 +163,16 @@ async def _run(args: list[str], app_dir: Path, timeout_s: float) -> tuple[bool, 
     except TimeoutError:
         timed_out = True
         _kill_tree(proc)
+        if name:
+            await asyncio.to_thread(_docker_kill, name)
         try:
             out, _ = await asyncio.wait_for(proc.communicate(), 10)
         except TimeoutError:
             out = b""
     except asyncio.CancelledError:
         _kill_tree(proc)
+        if name:
+            await asyncio.to_thread(_docker_kill, name)
         raise
     text = strip_ansi(out.decode("utf-8", errors="replace"))
     if timed_out:
@@ -136,9 +185,7 @@ def _tail(text: str) -> str:
 
 
 async def install(app_dir: Path) -> StepResult:
-    ok, timed_out, dur, text = await _run(
-        ["ci", "--prefer-offline", "--no-audit", "--no-fund"], app_dir, INSTALL_TIMEOUT_S
-    )
+    ok, timed_out, dur, text = await _run(INSTALL_ARGS, app_dir, INSTALL_TIMEOUT_S)
     return StepResult(ok=ok, duration_s=round(dur, 2), timed_out=timed_out, log_tail=_tail(text))
 
 

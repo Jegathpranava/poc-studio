@@ -28,6 +28,7 @@ from poc_studio.graph.spend import node_budget
 from poc_studio.graph.state import RunState
 from poc_studio.graph.steps import step_scope
 from poc_studio.llm import RunBudget, SchemaError, complete_json, wrap_untrusted
+from poc_studio.preview import get_preview_manager
 from poc_studio.sandbox import runner
 from poc_studio.sandbox.errors import BuildError
 from poc_studio.sandbox.fix import PortFix, UnsafePath, apply_fix, safe_path
@@ -199,6 +200,14 @@ async def _fix(
     emit(run_id, AGENT, "log", message=f"fix wrote {len(written)} file(s), rejected {len(rejected)}")
 
 
+async def reset_previous_build(run_id: str) -> None:
+    """A rebuild must not run under a live preview server, nor keep the last attempt's `build.json`."""
+    manager = get_preview_manager()
+    if manager is not None:
+        await manager.stop(run_id)
+    (get_settings().runs_dir / run_id / "build.json").unlink(missing_ok=True)
+
+
 async def _port(state: RunState, step_id: int, model: str, budget: RunBudget) -> dict[str, Any]:
     run_id = state["run_id"]
     pack = _latest(state, "screenpack", ScreenPack)
@@ -207,6 +216,7 @@ async def _port(state: RunState, step_id: int, model: str, budget: RunBudget) ->
     req = _latest(state, "requirements", Requirements)
     sector = sector_dir(req.sector if req else "other", " ".join(s.label for s in pack.screens))
     kit = load_kit(sector)
+    await reset_previous_build(run_id)
     app_dir = await runner.prepare(get_settings().runs_dir / run_id, sector)
     title = f"{req.client} prototype" if req else "Prototype"
     written = await asyncio.to_thread(write_app, app_dir, pack, kit.icons_css, title)

@@ -33,10 +33,13 @@ def strip_ansi(text: str) -> str:
 
 def excerpt_from_file(app_dir: Path, file: str, line: int) -> str:
     """`line` plus 2 lines either side from the file on disk; the error line is marked with `>`."""
-    path = app_dir / file
     try:
+        root = app_dir.resolve()
+        path = (root / file).resolve()
+        if chr(0) in file or not path.is_relative_to(root) or path == root:
+            return ""  # a path from build output must stay inside the app folder
         lines = path.read_text(encoding="utf-8").splitlines()
-    except (OSError, UnicodeDecodeError):
+    except (OSError, ValueError, UnicodeDecodeError):
         return ""
     if not 1 <= line <= len(lines):
         return ""

@@ -21,7 +21,13 @@ from sqlalchemy import select
 from poc_studio.config import get_settings
 from poc_studio.db.models import Run
 from poc_studio.db.session import open_session
-from poc_studio.sandbox.procs import IS_WINDOWS, kill_pid_tree, pid_alive
+from poc_studio.sandbox.procs import (
+    IS_WINDOWS,
+    kill_pid_tree,
+    looks_like_preview_image,
+    pid_alive,
+    process_image,
+)
 from poc_studio.sandbox.runner import child_env
 
 PORT_RANGE = range(4300, 4400)
@@ -59,7 +65,7 @@ async def launch_next(app_dir: Path, port: int) -> int:
     npm = shutil.which("npm", path=child_env().get("PATH")) or "npm"
     proc = await asyncio.create_subprocess_exec(
         npm, "run", "start", "--", "-p", str(port), "-H", HOST,
-        cwd=app_dir, env=child_env(),
+        cwd=app_dir, env=child_env(app_dir.resolve().parent / ".home"),
         stdin=asyncio.subprocess.DEVNULL, stdout=asyncio.subprocess.DEVNULL,
         stderr=asyncio.subprocess.DEVNULL,
         start_new_session=not IS_WINDOWS,
@@ -92,12 +98,15 @@ class PreviewManager:
         kill: Callable[[int], None] = kill_pid_tree,
         alive: Callable[[int], bool] = pid_alive,
         port_free: Callable[[int], bool] = port_is_free,
+        image: Callable[[int], str] = process_image,
         clock: Callable[[], float] = time.monotonic,
         idle_s: float = IDLE_S,
         start_timeout_s: float = START_TIMEOUT_S,
     ) -> None:
         self._launcher, self._ready, self._kill, self._alive = launcher, ready, kill, alive
-        self._port_free, self._clock = port_free, clock
+        self._port_free, self._clock, self._image = port_free, clock, image
+        self._alloc_lock = asyncio.Lock()  # one port is picked at a time ...
+        self._reserved: set[int] = set()  # ... and held here from the pick until the server is live or failed
         self.idle_s, self.start_timeout_s = idle_s, start_timeout_s
         self._live: dict[str, Entry] = {}
         self._locks: dict[str, asyncio.Lock] = {}
@@ -112,11 +121,14 @@ class PreviewManager:
                 run.preview_pid, run.preview_port = pid, port
                 session.commit()
 
-    def _pick_port(self) -> int:
-        taken = {e.port for e in self._live.values()}
-        for port in PORT_RANGE:
-            if port not in taken and self._port_free(port):
-                return port
+    async def _pick_port(self) -> int:
+        """Pick a free port and reserve it under the manager-wide lock, so concurrent runs never share one."""
+        async with self._alloc_lock:
+            taken = {e.port for e in self._live.values()} | self._reserved
+            for port in PORT_RANGE:
+                if port not in taken and self._port_free(port):
+                    self._reserved.add(port)
+                    return port
         raise PreviewError("No free preview port in 4300 to 4399")
 
     # -- public API ------------------------------------------------------------------------------
@@ -142,17 +154,26 @@ class PreviewManager:
             app_dir = get_settings().runs_dir / run_id / "app"
             if not app_dir.is_dir():
                 raise PreviewError("The prototype app folder is missing")
-            port = self._pick_port()
+            port = await self._pick_port()
             try:
-                pid = await self._launcher(app_dir, port)
-            except OSError as exc:
-                raise PreviewError(f"Could not start the preview server: {exc}") from exc
-            if not await self._ready(port, pid, self.start_timeout_s):
-                await asyncio.to_thread(self._kill, pid)
-                raise PreviewError("The preview server did not answer within 30 seconds")
-            self._live[run_id] = Entry(pid, port, self._clock())
-            self._record(run_id, pid, port)
-            return port
+                return await self._start(run_id, app_dir, port)
+            finally:
+                self._reserved.discard(port)  # live now (tracked in _live) or failed
+
+    async def _start(self, run_id: str, app_dir: Path, port: int) -> int:
+        try:
+            pid = await self._launcher(app_dir, port)
+        except OSError as exc:
+            raise PreviewError(f"Could not start the preview server: {exc}") from exc
+        if not await self._ready(port, pid, self.start_timeout_s):
+            await asyncio.to_thread(self._kill, pid)
+            raise PreviewError("The preview server did not answer within 30 seconds")
+        if not await asyncio.to_thread(self._alive, pid):  # something else may have answered on the port
+            await asyncio.to_thread(self._kill, pid)
+            raise PreviewError("The preview server exited right after it started")
+        self._live[run_id] = Entry(pid, port, self._clock())
+        self._record(run_id, pid, port)
+        return port
 
     def _forget(self, run_id: str) -> None:
         self._live.pop(run_id, None)
@@ -160,6 +181,9 @@ class PreviewManager:
 
     async def stop(self, run_id: str) -> None:
         entry = self._live.get(run_id)
+        lock = self._locks.get(run_id)
+        if lock is not None and not lock.locked():
+            del self._locks[run_id]  # keep the lock table bounded
         if entry is None:
             return
         await asyncio.to_thread(self._kill, entry.pid)
@@ -192,13 +216,24 @@ class PreviewManager:
             self._reaper = asyncio.create_task(loop())
 
     async def kill_orphans(self) -> list[int]:
-        """On API start: kill the process tree of every recorded preview pid, then clear pid and port."""
+        """On API start: kill recorded preview servers, then clear pid and port.
+
+        A pid is killed only when it is alive, its image is node or cmd (next) AND the recorded port still
+        listens; otherwise the pid was reused by an unrelated process and only the record is cleared.
+        """
         with open_session() as session:
-            rows = session.execute(select(Run.id, Run.preview_pid).where(Run.preview_pid.is_not(None))).all()
+            rows = session.execute(
+                select(Run.id, Run.preview_pid, Run.preview_port).where(Run.preview_pid.is_not(None))
+            ).all()
         killed: list[int] = []
-        for run_id, pid in ((r, p) for r, p in rows if p is not None):
-            if await asyncio.to_thread(self._alive, pid):
+        for run_id, pid, port in rows:
+            if pid is not None and await asyncio.to_thread(self._is_ours, pid, port):
                 await asyncio.to_thread(self._kill, pid)
                 killed.append(pid)
             self._record(run_id, None, None)
         return killed
+
+    def _is_ours(self, pid: int, port: int | None) -> bool:
+        if not self._alive(pid) or not looks_like_preview_image(self._image(pid)):
+            return False
+        return port is not None and not self._port_free(port)  # a listening port cannot be bound again

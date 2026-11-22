@@ -6,45 +6,27 @@ import re
 from lxml import html as lxml_html
 from pydantic import BaseModel
 
+from poc_studio.safety import (
+    BARE_URL,
+    CSS_DATA_URL,
+    CSS_IMAGE_SET,
+    CSS_URL_EXTERNAL,
+    FORBIDDEN_TAGS,
+    SCRIPT_BANNED,
+    STRIP,
+    TEMPLATE_TAG,
+    URL_ATTRS,
+    url_problem,
+)
 from poc_studio.schemas.screenpack import Screen, ScreenPack
 from poc_studio.screens.kits import Kit
 
 ROUTE = re.compile(r"^/(?:[a-z0-9]+(?:-[a-z0-9]+)*)?$")
 MIN_PLAY = 3
 
-_FORBIDDEN_TAGS = re.compile(
-    r"<\s*/?\s*(script|iframe|object|embed|meta|base|form|link|style)\b", re.IGNORECASE
-)
-_TEMPLATE_TAG = re.compile(r"<\s*/?\s*template\b", re.IGNORECASE)
-_URL_ATTRS = (
-    "src", "href", "xlink:href", "srcset", "poster", "data", "action", "formaction", "background"
-)  # fmt: skip
-_STRIP = re.compile(r"[\s\x00-\x1f]+")
-_SCHEME = re.compile(r"^(?:[a-z][a-z0-9+.\-]*:|//)", re.IGNORECASE)
-_SRCSET_EXTERNAL = re.compile(r"(?:^|,)(?:https?:|//)", re.IGNORECASE)
-_SCRIPT_BANNED: tuple[tuple[str, re.Pattern[str]], ...] = tuple(
-    (name, re.compile(pattern))
-    for name, pattern in (
-        ("fetch(", r"\bfetch\s*\("),
-        ("XMLHttpRequest", r"\bXMLHttpRequest\b"),
-        ("WebSocket", r"\bWebSocket\b"),
-        ("EventSource", r"\bEventSource\b"),
-        ("import(", r"\bimport\s*\("),
-        ("importScripts", r"\bimportScripts\b"),
-        ("sendBeacon", r"\bsendBeacon\b"),
-        ("location assignment", r"\blocation\s*(?:=(?!=)|\.\s*\w+\s*=(?!=)|\.\s*(?:assign|replace)\s*\()"),
-        ("eval(", r"\beval\s*\("),
-        ("Function(", r"\bFunction\s*\("),
-        ("cookie", r"\bcookie\b"),
-        ("localStorage", r"\blocalStorage\b"),
-        ("an http(s) URL", r"https?:\s*//"),
-    )
-)  # fmt: skip
-_CSS_URL_EXTERNAL = re.compile(r"url\(\s*['\"]?\s*(?:https?:|//|javascript:)", re.IGNORECASE)
-_CSS_DATA_URL = re.compile(
-    r"url\(\s*(['\"])\s*data:.*?\1\s*\)|url\(\s*data:[^)]*\)", re.IGNORECASE | re.DOTALL
-)
-_BARE_URL = re.compile(r"https?:\s*//", re.IGNORECASE)
+# Not shared with the assembler: screens carry no inline <style> (their CSS is product_css and step_css),
+# but the assembler writes its own <style> element.
+_STYLE_TAG = re.compile(r"<\s*/?\s*style\b", re.IGNORECASE)
 _COMMENT = re.compile(r"/\*.*?\*/", re.DOTALL)
 _ANY_URL = re.compile(r"url\([^)]*\)")
 _CLASS = re.compile(r"\.([A-Za-z_][\w-]*)")
@@ -95,13 +77,15 @@ def _selectors(prelude: str) -> list[str]:
 
 def _css_url_issues(where: str, css: str, screen_id: str | None) -> list[Issue]:
     found: list[str] = []
-    if _CSS_URL_EXTERNAL.search(css):
+    if CSS_URL_EXTERNAL.search(css):
         found.append("a url() that loads an external or javascript: target")
+    if CSS_IMAGE_SET.search(css):
+        found.append("an image-set() that loads an external target")
     if re.search(r"@import\b", css, re.IGNORECASE):
         found.append("@import")
     if re.search(r"@font-face\b", css, re.IGNORECASE):
         found.append("@font-face")
-    if _BARE_URL.search(_CSS_DATA_URL.sub("url()", css)):
+    if BARE_URL.search(CSS_DATA_URL.sub("url()", css)):
         found.append("an http(s) URL")
     return [_issue(screen_id, "css_external", f"{where} holds {f}") for f in found]
 
@@ -152,29 +136,14 @@ def _step_css_issues(screen: Screen) -> list[Issue]:
     return issues
 
 
-def _url_problem(attr: str, value: str) -> str | None:
-    squashed = _STRIP.sub("", value)
-    if attr == "srcset":
-        return (
-            "an external srcset"
-            if _SRCSET_EXTERNAL.search(squashed) or "javascript:" in squashed.lower()
-            else None
-        )
-    if squashed.lower().startswith("data:"):
-        return None
-    if squashed.lower().startswith("javascript:"):
-        return "a javascript: URL"
-    if _SCHEME.match(squashed):
-        return "an external URL"
-    return None
-
-
 def _html_issues(screen: Screen, app_class: str, defined: set[str]) -> list[Issue]:
     sid = screen.id
     issues: list[Issue] = []
-    if (tag := _FORBIDDEN_TAGS.search(screen.html)) is not None:
+    if (tag := FORBIDDEN_TAGS.search(screen.html)) is not None:
         issues.append(_issue(sid, "forbidden_element", f"<{tag.group(1).lower()}> elements are not allowed"))
-    if _TEMPLATE_TAG.search(screen.html):
+    if _STYLE_TAG.search(screen.html):
+        issues.append(_issue(sid, "forbidden_element", "<style> elements are not allowed"))
+    if TEMPLATE_TAG.search(screen.html):
         issues.append(_issue(sid, "forbidden_element", "<template> tags are not allowed"))
     try:
         root = lxml_html.fromstring(f"<div>{screen.html}</div>")
@@ -197,10 +166,10 @@ def _html_issues(screen: Screen, app_class: str, defined: set[str]) -> list[Issu
                 issues.append(_issue(sid, "forbidden_attribute", f"event handler {lname}= on <{el.tag}>"))
             elif lname == "srcdoc":
                 issues.append(_issue(sid, "forbidden_attribute", f"<{el.tag} srcdoc=...> embeds a document"))
-            elif lname in _URL_ATTRS:
-                if (problem := _url_problem(lname, value)) is not None:
+            elif lname in URL_ATTRS:
+                if (problem := url_problem(lname, value)) is not None:
                     issues.append(_issue(sid, "external_url", f"<{el.tag} {lname}=...> is {problem}"))
-            elif "javascript:" in _STRIP.sub("", value).lower():
+            elif "javascript:" in STRIP.sub("", value).lower():
                 issues.append(_issue(sid, "external_url", f"<{el.tag} {lname}=...> holds a javascript: URL"))
     if undefined := sorted(used - defined):
         issues.append(
@@ -214,7 +183,7 @@ def _script_issues(screen: Screen) -> list[Issue]:
         return []
     return [
         _issue(screen.id, "script_network", f"script uses {name}, which is not allowed")
-        for name, pattern in _SCRIPT_BANNED
+        for name, pattern in SCRIPT_BANNED
         if pattern.search(screen.script)
     ]
 

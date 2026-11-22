@@ -5,6 +5,7 @@ from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from poc_studio.graph.registry import NodeSpec
+from poc_studio.preview import set_preview_manager
 from poc_studio.preview.manager import PreviewManager
 from poc_studio.routes import artifacts, events, gates, health, preview, runs
 from poc_studio.runs.service import RunService
@@ -22,9 +23,11 @@ def create_app(nodes: dict[str, NodeSpec] | None = None) -> FastAPI:
         await previews.kill_orphans()  # preview servers left behind by a crashed API
         previews.start_reaper()
         app.state.preview = previews
+        set_preview_manager(previews)
         try:
             yield
         finally:
+            set_preview_manager(None)
             await previews.stop_all()
             await service.stop()
 

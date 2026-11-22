@@ -19,6 +19,7 @@ async def test_port_build_break_and_fix(tmp_path: Path, capsys: pytest.CaptureFi
     pack = ScreenPack.model_validate(
         json.loads((FIXTURE_DIR / "screens.json").read_text(encoding="utf-8"))[-1]
     )
+    pack.screens[0].html += '<p class="braces">a {b} c {{x}} }} &#123;</p>'  # JSX must survive braces
     app = await runner.prepare(tmp_path, "logistics")
     assert not (app / "node_modules").exists() and not (app / ".next").exists()
     write_app(app, pack, load_kit("logistics").icons_css, "Acme prototype")

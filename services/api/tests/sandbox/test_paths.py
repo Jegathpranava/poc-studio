@@ -22,6 +22,8 @@ UNSAFE = [
     "components",
     "",
     "~/x.ts",
+    "app/a:b.ts",
+    "app/x/C:/y.ts",
 ]
 
 

@@ -9,13 +9,14 @@ Gates are auto-approved here (eval mode only).
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
 import os
 import statistics
 import sys
 import tempfile
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -102,7 +103,7 @@ def _clear_caches() -> None:
 
 
 def _patch_sandbox() -> None:
-    """Same fakes as tests/conftest.py, applied inside this process."""
+    """Same fakes as tests/conftest.py, applied inside this process (undone by `_isolated`)."""
     from poc_studio.sandbox import runner
 
     async def fake_install(app_dir):  # noqa: ANN001, ANN202
@@ -113,6 +114,31 @@ def _patch_sandbox() -> None:
 
     runner.install = fake_install
     runner.build = fake_build
+
+
+@contextlib.contextmanager
+def _isolated(dry: bool) -> Iterator[None]:
+    """Env changes and the dry sandbox fakes last for one eval and are undone afterwards, also on errors."""
+    saved_env = dict(os.environ)
+    saved_fns: tuple[Any, Any] | None = None
+    if dry:
+        from poc_studio.sandbox import runner
+
+        saved_fns = (runner.install, runner.build)
+    try:
+        configure_env(dry)
+        if dry:
+            _patch_sandbox()
+        yield
+    finally:
+        if saved_fns is not None:
+            from poc_studio.sandbox import runner
+
+            runner.install, runner.build = saved_fns
+        os.environ.clear()
+        os.environ.update(saved_env)
+        if "poc_studio.config" in sys.modules:
+            _clear_caches()  # settings were read from the eval's env: drop them
 
 
 def run_fixture(entry: dict[str, Any], dry: bool) -> Row:
@@ -249,6 +275,10 @@ def run_build_stage(entries: list[dict[str, Any]], dry: bool) -> list[Row]:
 STAGES: dict[str, Callable[[list[dict[str, Any]], bool], list[Row]]] = {"build": run_build_stage}
 
 
+class LiveRefused(RuntimeError):
+    """A live (paid) eval was asked for without EVAL_LIVE=1."""
+
+
 def configure_env(dry: bool) -> None:
     """Must run before poc_studio settings are first read."""
     if dry:
@@ -261,13 +291,13 @@ def configure_env(dry: bool) -> None:
 def run_eval(
     stage: str, dry: bool, only: list[str] | None = None, out: Path | None = None
 ) -> tuple[str, int]:
-    """Returns (report, exit_code)."""
+    """Returns (report, exit_code). Raises LiveRefused for a live run without EVAL_LIVE=1."""
     if stage not in STAGES:
         raise SystemExit(f"unknown stage {stage!r}; available: {', '.join(STAGES)}")
-    configure_env(dry)
-    if dry:
-        _patch_sandbox()
-    rows = STAGES[stage](load_expected(only), dry)
+    if not dry and os.environ.get("EVAL_LIVE") != "1":
+        raise LiveRefused("Refusing to run live: set EVAL_LIVE=1 (or use --dry).")
+    with _isolated(dry):
+        rows = STAGES[stage](load_expected(only), dry)
     report = render_report(rows, dry, stage)
     if out is not None:
         out.parent.mkdir(parents=True, exist_ok=True)
@@ -283,13 +313,14 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--only", action="append", help="fixture file name (repeatable)")
     p.add_argument("--out", type=Path, default=None, help="report path (default eval/report-<stage>.md)")
     args = p.parse_args(argv)
-    if not args.dry:
-        if os.environ.get("EVAL_LIVE") != "1":
-            print("Refusing to run live: set EVAL_LIVE=1 (or use --dry).", file=sys.stderr)
-            return 2
+    if not args.dry and os.environ.get("EVAL_LIVE") == "1":
         print(f"WARNING: {LIVE_WARNING}.", file=sys.stderr)
     out = args.out or (EVAL_DIR / f"report-{args.stage}.md")
-    report, code = run_eval(args.stage, args.dry, args.only, out)
+    try:
+        report, code = run_eval(args.stage, args.dry, args.only, out)
+    except LiveRefused as exc:
+        print(str(exc), file=sys.stderr)
+        return 2
     print(report)
     return code
 

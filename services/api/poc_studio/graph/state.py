@@ -12,6 +12,7 @@ class RunState(TypedDict, total=False):
     screenpack: dict[str, Any] | None
     code_manifest: dict[str, Any] | None
     build_result: dict[str, Any] | None
+    deck_result: dict[str, Any] | None  # {"ok": False, "error": ...} when pitch or assemble failed
     deck: dict[str, Any] | None
     video: dict[str, Any] | None
     qa_report: dict[str, Any] | None

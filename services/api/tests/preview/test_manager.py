@@ -1,3 +1,4 @@
+import asyncio
 from pathlib import Path
 
 import pytest
@@ -6,6 +7,7 @@ from poc_studio.config import get_settings
 from poc_studio.db.models import Project, Run
 from poc_studio.db.session import open_session
 from poc_studio.preview.manager import PORT_RANGE, PreviewError, PreviewManager
+from poc_studio.sandbox.procs import IS_WINDOWS
 
 
 class Fake:
@@ -17,13 +19,18 @@ class Fake:
         self.alive_pids: set[int] = set()
         self.now = 0.0
         self.ready_ok = True
+        self.images: dict[int, str] = {}
+        self.launch_delay = 0.0
         self._pid = 1000
 
     async def launcher(self, app_dir: Path, port: int) -> int:
         self._pid += 1
+        pid = self._pid
+        if self.launch_delay:
+            await asyncio.sleep(self.launch_delay)
         self.launched.append((app_dir, port))
-        self.alive_pids.add(self._pid)
-        return self._pid
+        self.alive_pids.add(pid)
+        return pid
 
     async def ready(self, port: int, pid: int, timeout_s: float) -> bool:
         return self.ready_ok
@@ -39,6 +46,7 @@ class Fake:
             kill=self.kill,
             alive=lambda p: p in self.alive_pids,
             port_free=lambda p: p not in (busy or set()),
+            image=lambda p: self.images.get(p, ""),
             clock=lambda: self.now,
         )
 
@@ -131,17 +139,78 @@ async def test_stop_all_kills_everything(env: Path) -> None:
     assert recorded("r_bbbbbb") == (None, None)
 
 
-async def test_kill_orphans_kills_recorded_pids_and_clears_them(env: Path) -> None:
-    make_runs(env, "r_aaaaaa", "r_bbbbbb", "r_cccccc")
+NODE = "node.exe" if IS_WINDOWS else "node /app/node_modules/.bin/next start"
+
+
+def record_previews(*rows: tuple[str, int, int]) -> None:
     with open_session() as session:
-        for rid, pid, port in (("r_aaaaaa", 555, 4300), ("r_bbbbbb", 556, 4301)):
+        for rid, pid, port in rows:
             run = session.get(Run, rid)
             assert run is not None
             run.preview_pid, run.preview_port = pid, port
         session.commit()
+
+
+async def test_kill_orphans_kills_node_servers_with_a_listening_port(env: Path) -> None:
+    make_runs(env, "r_aaaaaa", "r_bbbbbb", "r_cccccc")
+    record_previews(("r_aaaaaa", 555, 4300), ("r_bbbbbb", 556, 4301))
     fake = Fake()
     fake.alive_pids = {555}  # 556 already died: nothing to kill, but the record is cleared
-    killed = await fake.manager().kill_orphans()
+    fake.images = {555: NODE}
+    killed = await fake.manager(busy={4300, 4301}).kill_orphans()
     assert killed == [555] and fake.killed == [555]
     for rid in ("r_aaaaaa", "r_bbbbbb", "r_cccccc"):
         assert recorded(rid) == (None, None)
+
+
+async def test_kill_orphans_spares_a_reused_pid(env: Path) -> None:
+    make_runs(env, "r_aaaaaa", "r_bbbbbb")
+    record_previews(("r_aaaaaa", 555, 4300), ("r_bbbbbb", 556, 4301))
+    fake = Fake()
+    fake.alive_pids = {555, 556}
+    fake.images = {555: "chrome.exe" if IS_WINDOWS else "/usr/bin/vim", 556: NODE}
+    # 555: pid reused by another program. 556: node, but nothing listens on 4301 any more.
+    killed = await fake.manager(busy={4300}).kill_orphans()
+    assert killed == [] and fake.killed == []
+    assert recorded("r_aaaaaa") == (None, None) and recorded("r_bbbbbb") == (None, None)
+
+
+async def test_concurrent_ensure_gets_distinct_ports(env: Path) -> None:
+    make_runs(env, "r_aaaaaa", "r_bbbbbb")
+    fake = Fake()
+    fake.launch_delay = 0.05  # both picks happen before either server is live
+    mgr = fake.manager()
+    a, b = await asyncio.gather(mgr.ensure("r_aaaaaa"), mgr.ensure("r_bbbbbb"))
+    assert a != b and {a, b} <= set(PORT_RANGE)
+    assert not mgr._reserved  # pyright: ignore[reportPrivateUsage]
+
+
+async def test_failed_start_releases_the_reservation_and_stop_drops_the_lock(env: Path) -> None:
+    make_runs(env, "r_aaaaaa")
+    fake = Fake()
+    fake.ready_ok = False
+    mgr = fake.manager()
+    with pytest.raises(PreviewError):
+        await mgr.ensure("r_aaaaaa")
+    assert not mgr._reserved  # pyright: ignore[reportPrivateUsage]
+    fake.ready_ok = True
+    port = await mgr.ensure("r_aaaaaa")
+    assert port == PORT_RANGE[0]
+    assert "r_aaaaaa" in mgr._locks  # pyright: ignore[reportPrivateUsage]
+    await mgr.stop("r_aaaaaa")
+    assert "r_aaaaaa" not in mgr._locks  # pyright: ignore[reportPrivateUsage]
+
+
+async def test_a_process_that_died_after_the_http_check_is_not_served(env: Path) -> None:
+    make_runs(env, "r_aaaaaa")
+    fake = Fake()
+
+    async def ready_then_die(port: int, pid: int, timeout_s: float) -> bool:
+        fake.alive_pids.discard(pid)  # an unrelated server answered, ours is gone
+        return True
+
+    fake.ready = ready_then_die  # type: ignore[method-assign]
+    mgr = fake.manager()
+    with pytest.raises(PreviewError):
+        await mgr.ensure("r_aaaaaa")
+    assert mgr.port_of("r_aaaaaa") is None

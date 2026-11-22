@@ -32,7 +32,7 @@ def safe_path(app_dir: Path, rel: str) -> Path:
     ):
         raise UnsafePath(f"not a relative path: {rel!r}")
     parts = PurePosixPath(rel).parts
-    if ":" in parts[0] or ".." in parts or "." in parts:
+    if any(":" in part for part in parts) or ".." in parts or "." in parts:
         raise UnsafePath(f"path escapes the app: {rel!r}")
     if parts[0] not in ALLOWED_ROOTS or len(parts) < 2:
         raise UnsafePath(f"only app/ and components/ may be written: {rel!r}")

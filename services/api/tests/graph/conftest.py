@@ -29,6 +29,7 @@ def env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[Path]:
 
     monkeypatch.setenv("POC_DATABASE_URL", f"sqlite:///{(tmp_path / 'app.sqlite').as_posix()}")
     monkeypatch.setenv("RUNS_DIR", str(tmp_path / "runs"))
+    monkeypatch.setenv("POC_ALLOW_STUB_SKIP", "1")  # stub-node graphs may skip; real runs fail instead
     _clear_caches()
     Base.metadata.create_all(db_session.get_engine())
     yield tmp_path

@@ -49,3 +49,25 @@ def test_dry_eval_two_fixtures(tmp_path: Path, restore_env: None) -> None:
     assert all("| yes |" in r for r in rows)
     assert "**Summary:**" in report and "builds total 2/2" in report
     assert "n/a (mock)" in report
+
+
+def test_dry_eval_restores_the_env_and_the_runner(tmp_path: Path, restore_env: None) -> None:
+    import os
+
+    from poc_studio.sandbox import runner
+
+    mod = _load()
+    before_env = dict(os.environ)
+    before_fns = (runner.install, runner.build)
+    only = ["logistics-01-northgate-freight-discovery.vtt"]
+    mod.run_eval("build", dry=True, only=only, out=tmp_path / "r.md")
+    assert dict(os.environ) == before_env
+    assert (runner.install, runner.build) == before_fns
+
+
+def test_live_is_refused_inside_run_eval_without_the_flag(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("EVAL_LIVE", raising=False)
+    mod = _load()
+    with pytest.raises(mod.LiveRefused):
+        mod.run_eval("build", dry=False)
+    assert mod.main(["--stage", "build"]) == 2

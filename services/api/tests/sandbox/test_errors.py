@@ -129,3 +129,17 @@ def test_excerpt_from_disk_marks_the_error_line(tmp_path: Path) -> None:
 
 def test_clean_output_is_not_an_error() -> None:
     assert parse_build_error(" \u2713 Compiled successfully\nRoute (app)\n") is None
+
+
+def test_excerpt_is_confined_to_the_app_dir(tmp_path: Path) -> None:
+    from poc_studio.sandbox.errors import excerpt_from_file
+
+    app = tmp_path / "app_dir"
+    (app / "lib").mkdir(parents=True)
+    (app / "lib" / "a.ts").write_text("one\ntwo\nthree\n", encoding="utf-8")
+    (tmp_path / "x.json").write_text('{"secret": 1}\n', encoding="utf-8")
+    assert "> 2 | two" in excerpt_from_file(app, "lib/a.ts", 2)  # any subpath of app_dir is allowed
+    bs = chr(92)
+    assert excerpt_from_file(app, f"..{bs}..{bs}x.json", 1) == ""
+    assert excerpt_from_file(app, "../x.json", 1) == ""
+    assert excerpt_from_file(app, str(tmp_path / "x.json"), 1) == ""

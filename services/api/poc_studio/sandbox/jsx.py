@@ -41,11 +41,14 @@ def jsx_attr_name(name: str, tag: str = "") -> str | None:
     return low
 
 
+_BRACES = re.compile(r"[{}]")
+_TAG_OK = re.compile(r"^[a-z][a-z0-9-]*$")
+
+
 def _text(s: str) -> str:
-    return (
-        s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-        .replace("{", "{'{'}").replace("}", "{'}'}")
-    )  # fmt: skip
+    """Escape text for a JSX child. Braces go last and in ONE pass, so the escapes are never re-escaped."""
+    s = s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    return _BRACES.sub(lambda m: "{'" + m.group() + "'}", s)
 
 
 def _attr_value(s: str) -> str:
@@ -77,8 +80,8 @@ class _Converter(HTMLParser):
         if tag in _SKIP_CONTENT:
             self.skip += 1
             return
-        if self.skip:
-            return
+        if self.skip or not _TAG_OK.match(tag):
+            return  # an invalid tag is dropped; its text children are kept
         if tag in VOID:
             self._open(tag, attrs, True)
             return
@@ -89,7 +92,7 @@ class _Converter(HTMLParser):
         self.stack.append(tag)
 
     def handle_startendtag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
-        if self.skip:
+        if self.skip or not _TAG_OK.match(tag):
             return
         if tag in VOID or tag in _SKIP_CONTENT:
             if tag not in _SKIP_CONTENT:

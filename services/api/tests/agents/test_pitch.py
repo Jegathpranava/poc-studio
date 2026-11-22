@@ -74,14 +74,57 @@ def test_each_issue_type() -> None:
     p.slides[-1].figures[1].source = "my guess"
     assert codes(p) == {"bad_figure_source"}
     p.slides[-1].figures[1].source = "architecture: vibes"
-    assert "bad_figure_source" in codes(p)
+    assert codes(p) == {"bad_figure_source"}
 
 
-def test_figure_number_matches_numerically_and_source_text_loosely() -> None:
+def test_figure_value_is_compared_with_the_resolved_path() -> None:
     p = plan()
-    p.slides[-1].figures[0].value = 10000.0
-    p.slides[-1].figures[0].source = "Brief (budget.amount_usd)"  # the brief budget is 10000
+    fig = p.slides[-1].figures[0]
+    fig.value, fig.source = 10000.0, "brief: budget.amount_usd"
     assert codes(p) == set()
+    fig.value = 9999.0  # a mismatched value
+    assert codes(p) == {"unsupported_figure"}
+    fig.value, fig.source = 25.0, "architecture: monthly_cost.lines[0].usd"
+    assert codes(p) == set()
+    fig.value = 15.0  # lines[0] is 25 even though another line is 15
+    assert codes(p) == {"unsupported_figure"}
+    fig.value, fig.source = 15.0, "architecture: monthly_cost.lines.usd"  # any element
+    assert codes(p) == set()
+    fig.value, fig.source = 2.0, "architecture: phases.weeks"
+    assert codes(p) == set()
+    fig.value = 5.0  # no phase lasts 5 weeks
+    assert codes(p) == {"unsupported_figure"}
+
+
+@pytest.mark.parametrize(
+    "source",
+    [
+        "architecture: monthly_cost.nope", "architecture: monthly_cost.lines[9].usd",
+        "architecture: components", "brief: budget", "architecture monthly_cost.total_usd",
+        "Brief (budget.amount_usd)", "architecture: monthly_cost..total_usd", "model: total",
+    ],
+)
+def test_unresolvable_sources_are_issues(source: str) -> None:
+    p = plan()
+    p.slides[-1].figures[1].source = source
+    assert codes(p) == {"bad_figure_source"}
+
+
+def test_close_slide_needs_two_to_four_figures() -> None:
+    p = plan()
+    p.slides[-1].figures = p.slides[-1].figures[:1]
+    assert codes(p) == {"figure_count"}
+    p.slides[-1].figures = plan().slides[-1].figures * 2
+    assert codes(p) == {"figure_count"}
+
+
+def test_only_resolved_figures_are_marked_verified() -> None:
+    from poc_studio.agents.pitch import _sources, figure_problem  # pyright: ignore[reportPrivateUsage]
+
+    p = plan()
+    p.slides[-1].figures[2].source = "architecture: nope"
+    flags = [figure_problem(f, _sources(REQ, ARCH)) is None for f in p.slides[-1].figures]
+    assert flags == [True, True, False]
 
 
 def test_polish_patch_applies_by_id_and_ignores_unknown() -> None:

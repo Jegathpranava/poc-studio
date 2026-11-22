@@ -60,3 +60,28 @@ def test_route_files() -> None:
     assert route_file("/fleet-map") == "app/fleet-map/page.tsx"
     with pytest.raises(ValueError):
         route_file("/../x")
+
+
+def _balanced(jsx: str) -> bool:
+    """Every brace in text is one of the two escape tokens; nothing stray is left after removing them."""
+    rest = JSX_ONLY.sub("", jsx)
+    return "{" not in rest and "}" not in rest
+
+
+@pytest.mark.parametrize(
+    "src",
+    [
+        "a {b} c", "{{x}}", "}}", "&#123;", "&#125;&#125;", "x{", "}{", "<p>{a}</p><b>}</b>",
+        "&lbrace;x&rbrace;",
+    ],
+)
+def test_braces_are_balanced_jsx_expressions(src: str) -> None:
+    out = html_to_jsx(src)
+    assert _balanced(out), out
+    assert out.count("{'{'}") == src.count("{") + src.count("&#123;") + src.count("&lbrace;")
+
+
+def test_invalid_tag_names_are_dropped_but_text_kept() -> None:
+    out = html_to_jsx("<p>a</p><x{y}>kept {b}</x{y}><1a>t</1a>")
+    assert "x{y}" not in out and "<1a" not in out
+    assert "kept" in out and _balanced(out) and "<p>a</p>" in out

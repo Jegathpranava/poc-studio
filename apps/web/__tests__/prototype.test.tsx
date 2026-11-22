@@ -81,6 +81,9 @@ describe("Prototype page", () => {
     });
     render(<PrototypeView />);
     await waitFor(() => expect(document.querySelector("iframe")?.getAttribute("src")).toBe("http://127.0.0.1:4300/"));
+    const frame = document.querySelector("iframe") as HTMLIFrameElement;
+    expect(frame.getAttribute("sandbox")).toBe("allow-scripts"); // no same-origin, top-navigation or popups
+    expect(frame.getAttribute("referrerpolicy")).toBe("no-referrer");
     expect(screen.getByRole("link", { name: /Open in new tab/ }).getAttribute("href")).toBe("http://127.0.0.1:4300/");
     expect(await screen.findByText("page.tsx")).toBeTruthy();
   });

@@ -10,7 +10,14 @@ from typing import Any
 
 from pydantic import BaseModel
 
-from poc_studio.agents.store import latest_json, next_version, record, slugify
+from poc_studio.agents.store import (
+    MissingInput,
+    latest_json,
+    next_version,
+    record,
+    slugify,
+    stub_skip_allowed,
+)
 from poc_studio.config import get_settings
 from poc_studio.db.models import AgentStep, Run
 from poc_studio.db.session import open_session
@@ -23,7 +30,7 @@ from poc_studio.llm import complete_json, wrap_untrusted
 from poc_studio.media.docs import exec_summary, user_flows
 from poc_studio.media.pptx import build_pptx
 from poc_studio.schemas.architecture import Architecture
-from poc_studio.schemas.deck import DeckPlan
+from poc_studio.schemas.deck import DeckPlan, Figure
 from poc_studio.schemas.requirements import Requirements
 from poc_studio.schemas.screenpack import ScreenPack
 from poc_studio.screens.validate import Issue
@@ -47,9 +54,11 @@ SYSTEM = (
     "- Each `area` slide has 3 to 5 steps; the `overview` slide is a tour of its screen. Every step "
     "`spotlight` is copied exactly from that screen's anchor selectors.\n"
     "- `playScreens` lists screens marked play=true, with their id and label.\n"
-    "- The `close` slide has 2 to 4 `figures`. Each figure's `value` is a number that appears in the brief "
-    "or the architecture, and `source` names where: `brief: <field>` or `architecture: <field>` "
-    "(for example `architecture: monthly_cost.total_usd`). Never invent a figure.\n"
+    "- The `close` slide has 2 to 4 `figures`. Each figure's `value` is a number read from the brief or the "
+    "architecture, and `source` is the exact dotted path to it: `brief: <path>` or `architecture: <path>`, "
+    "for example `architecture: monthly_cost.total_usd`, `architecture: monthly_cost.lines[0].usd`, "
+    "`architecture: phases.weeks` (any phase) or `brief: budget.amount_usd`. The value must equal the number "
+    "at that path. Never invent a figure.\n"
     "- Titles are short; captions are one plain sentence. Do not claim anything the brief does not support."
 )
 
@@ -86,26 +95,55 @@ class DeckPlanInvalid(RuntimeError):
 # ---- deterministic checks ------------------------------------------------------------------------------
 
 
-def _numbers(data: Any) -> list[float]:
-    if isinstance(data, bool):
-        return []
-    if isinstance(data, int | float):
-        return [float(data)]
-    if isinstance(data, str):
-        return [float(m.replace(",", "")) for m in re.findall(r"\d[\d,]*(?:\.\d+)?", data)]
-    if isinstance(data, dict):
-        return [n for v in data.values() for n in _numbers(v)]
-    if isinstance(data, list):
-        return [n for v in data for n in _numbers(v)]
-    return []
+_SOURCE = re.compile(r"^\s*(brief|architecture)\s*:\s*(\S+)\s*$", re.IGNORECASE)
+_SEGMENT = re.compile(r"^([A-Za-z_][A-Za-z0-9_]*)(?:\[(\d+)\])?$")
+MIN_FIGURES, MAX_FIGURES = 2, 4
 
 
-def _keys(data: Any) -> set[str]:
-    if isinstance(data, dict):
-        return {str(k).lower() for k in data} | {k for v in data.values() for k in _keys(v)}
-    if isinstance(data, list):
-        return {k for v in data for k in _keys(v)}
-    return set()
+def resolve_source(source: str, sources: dict[str, Any]) -> list[float] | None:
+    """Numbers at a figure source such as `architecture: monthly_cost.lines[0].usd`.
+
+    A list without an index (`phases.weeks`) fans out over every element. None when the source is not a
+    `brief: path` or `architecture: path`, the path misses, or it ends on something that is not a number.
+    """
+    m = _SOURCE.match(source)
+    if m is None or m.group(1).lower() not in sources:
+        return None
+    nodes: list[Any] = [sources[m.group(1).lower()]]
+    for segment in m.group(2).split("."):
+        part = _SEGMENT.match(segment)
+        if part is None:
+            return None
+        key, index = part.group(1), part.group(2)
+        nxt: list[Any] = []
+        for node in nodes:
+            for item in node if isinstance(node, list) else [node]:  # a list fans out to its elements
+                if isinstance(item, dict) and key in item:
+                    value = item[key]
+                    if index is None:
+                        nxt.append(value)
+                    elif isinstance(value, list) and int(index) < len(value):
+                        nxt.append(value[int(index)])
+        nodes = nxt
+    flat = [x for n in nodes for x in (n if isinstance(n, list) else [n])]
+    numbers = [float(x) for x in flat if isinstance(x, int | float) and not isinstance(x, bool)]
+    return numbers or None
+
+
+def figure_problem(fig: Figure, sources: dict[str, Any]) -> tuple[str, str] | None:
+    """(issue code, message) when the figure does not check out against its source, else None."""
+    values = resolve_source(fig.source, sources)
+    if values is None:
+        return "bad_figure_source", (
+            f"figure {fig.label!r}: source {fig.source!r} does not resolve; use "
+            "`brief: <dotted.path>` or `architecture: <dotted.path>` that ends on a number"
+        )
+    if not any(abs(fig.value - v) < 1e-6 for v in values):
+        return "unsupported_figure", (
+            f"figure {fig.label!r} value {fig.value:g} differs from {fig.source!r} = "
+            + ", ".join(f"{v:g}" for v in values)
+        )
+    return None
 
 
 def check_plan(plan: DeckPlan, pack: ScreenPack, req: Requirements, arch: Architecture) -> list[Issue]:
@@ -131,19 +169,19 @@ def check_plan(plan: DeckPlan, pack: ScreenPack, req: Requirements, arch: Archit
         screen = screens.get(play.id)
         if screen is None or not screen.play:
             add(play.id, "bad_play_screen", f"playScreens entry {play.id!r} is not a screen with play=true")
-    sources = {"brief": req.model_dump(mode="json"), "architecture": arch.model_dump(mode="json")}
-    for fig in (f for s in plan.slides for f in s.figures):
-        text = fig.source.lower()
-        named = [name for name in sources if name in text]
-        if not named:
-            add("close", "bad_figure_source", f"figure {fig.label!r}: source must name brief or architecture")
-            continue
-        tokens = set(re.findall(r"[a-z_0-9]+", text)) - set(sources)
-        if not any(tokens & _keys(sources[n]) for n in named):
-            add("close", "bad_figure_source", f"figure {fig.label!r}: source names no field of {named}")
-        if not any(abs(fig.value - n) < 1e-6 for name in named for n in _numbers(sources[name])):
-            add("close", "unsupported_figure", f"figure {fig.label!r} value {fig.value:g} not in {named}")
+    sources = _sources(req, arch)
+    figures = [f for s in plan.slides if s.kind == "close" for f in s.figures]
+    if not MIN_FIGURES <= len(figures) <= MAX_FIGURES:
+        add("close", "figure_count", f"the close slide needs {MIN_FIGURES} to {MAX_FIGURES} figures")
+    for fig in figures:
+        problem = figure_problem(fig, sources)
+        if problem is not None:
+            add("close", *problem)
     return issues
+
+
+def _sources(req: Requirements, arch: Architecture) -> dict[str, Any]:
+    return {"brief": req.model_dump(mode="json"), "architecture": arch.model_dump(mode="json")}
 
 
 # ---- prompts ---------------------------------------------------------------------------------------------
@@ -239,6 +277,14 @@ def _write_outputs(run_id: str, plan: DeckPlan, pack: ScreenPack, req: Requireme
 
 
 async def run_pitch(state: RunState) -> dict[str, Any]:
+    """Degrades like port: a failed plan or missing input fails the step (error event), not the run."""
+    try:
+        return await _run_pitch(state)
+    except (DeckPlanInvalid, MissingInput) as exc:  # step_scope already recorded the failure
+        return {"deck_result": {"ok": False, "error": str(exc)[:500]}}
+
+
+async def _run_pitch(state: RunState) -> dict[str, Any]:
     run_id = state["run_id"]
     settings = get_settings()
     async with step_scope(run_id, AGENT, model=settings.default_fast_model) as step_id:
@@ -248,7 +294,9 @@ async def run_pitch(state: RunState) -> dict[str, Any]:
         missing = [
             n for n, v in (("requirements", req), ("architecture", arch), ("screenpack", pack)) if v is None
         ]
-        if req is None or arch is None or pack is None:  # upstream stubbed or not run: nothing to pitch
+        if req is None or arch is None or pack is None:
+            if not stub_skip_allowed():  # a real run: fail the step, the run still reaches Gate 2
+                raise MissingInput(f"pitch needs the {', '.join(missing)} artifact")
             emit(run_id, AGENT, "log", message=f"pitch skipped, no {', '.join(missing)} artifact")
             return {}
         budget = node_budget(state)
@@ -273,8 +321,9 @@ async def run_pitch(state: RunState) -> dict[str, Any]:
                 raise DeckPlanInvalid(issues)
             plan.accent, plan.logo = pack.accent, ""
             plan.byline = plan.byline or "Prepared by PoC Studio"
+            sources = _sources(req, arch)
             for fig in (f for s in plan.slides for f in s.figures):
-                fig.verified = True  # check_plan found its value in the named source
+                fig.verified = figure_problem(fig, sources) is None  # True only when its source resolved
             polished = await complete_json(
                 agent=POLISH_AGENT, model=settings.polish_model, system=POLISH_SYSTEM,
                 user=polish_input(plan), schema=PolishPatch, max_tokens=POLISH_MAX_TOKENS, run=budget,
@@ -298,7 +347,11 @@ async def run_pitch(state: RunState) -> dict[str, Any]:
             tokens_out=tokens_out, cost_usd=budget.charged_usd,
         )  # fmt: skip
         emit(run_id, AGENT, "log", message=f"deck plan v{version}: {len(plan.slides)} slides")
-        return {"deck": plan.model_dump(mode="json", by_alias=True), "spent_delta": budget.charged_usd}
+        return {
+            "deck": plan.model_dump(mode="json", by_alias=True),
+            "deck_result": {"ok": True},
+            "spent_delta": budget.charged_usd,
+        }
 
 
 NODE = NodeSpec("pitch", run_pitch, "pitch")

@@ -193,7 +193,7 @@
      {
       "label": "Hosting per month (USD)",
       "value": 25,
-      "source": "architecture: monthly_cost.lines.usd",
+      "source": "architecture: monthly_cost.lines[0].usd",
       "verified": true
      },
      {
@@ -406,7 +406,7 @@
      {
       "label": "Hosting per month (USD)",
       "value": 25,
-      "source": "architecture: monthly_cost.lines.usd",
+      "source": "architecture: monthly_cost.lines[0].usd",
       "verified": true
      },
      {

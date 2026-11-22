@@ -225,7 +225,14 @@ function PreviewPane({ preview, device, onRetry }: { preview: Preview; device: D
   }
   return (
     <DeviceFrame device={device} url={preview.url}>
-      <iframe className="proto-frame" title="Prototype preview" src={preview.url} />
+      <iframe
+        className="proto-frame"
+        title="Prototype preview"
+        src={preview.url}
+        // Generated code is untrusted: scripts may run, but with an opaque origin (no same-origin, top navigation or popups).
+        sandbox="allow-scripts"
+        referrerPolicy="no-referrer"
+      />
     </DeviceFrame>
   );
 }

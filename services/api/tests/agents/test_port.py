@@ -120,3 +120,54 @@ def test_three_failures_fail_the_step_and_still_reach_gate2(client_for, env, mon
     assert (err.file, err.line, err.col) == ("app/broken/page.tsx", 1, 1)
     assert err.message.startswith("Module not found") and err.excerpt
     assert structured[0].message == "Attempt 3 of 3"
+
+
+class FakePreviews:
+    def __init__(self) -> None:
+        self.stopped: list[str] = []
+
+    async def stop(self, run_id: str) -> None:
+        self.stopped.append(run_id)
+
+
+async def test_reset_stops_the_preview_and_deletes_a_stale_build_json(env) -> None:
+    from poc_studio.agents.port import reset_previous_build
+    from poc_studio.preview import set_preview_manager
+
+    run_dir = env / "runs" / "r_abc123"
+    run_dir.mkdir(parents=True)
+    (run_dir / "build.json").write_text('{"ok": true}', encoding="utf-8")
+    fake = FakePreviews()
+    set_preview_manager(fake)  # type: ignore[arg-type]
+    try:
+        await reset_previous_build("r_abc123")
+    finally:
+        set_preview_manager(None)
+    assert fake.stopped == ["r_abc123"] and not (run_dir / "build.json").exists()
+    await reset_previous_build("r_abc123")  # nothing registered, nothing to delete: no error
+
+
+def test_a_port_run_stops_that_runs_preview_first(client_for, env, monkeypatch) -> None:
+    from poc_studio.preview import set_preview_manager
+
+    fake = FakePreviews()
+    orig = FakeBuild([True])
+    seen: dict[str, bool] = {}
+    base_install = orig.install
+
+    async def install(app_dir: Path) -> runner.StepResult:
+        seen["stopped_before_install"] = bool(fake.stopped)
+        return await base_install(app_dir)
+
+    orig.install = install  # type: ignore[method-assign]
+    # the app lifespan registers its own manager; swap in the fake once the run is created
+    import poc_studio.agents.port as port_mod
+
+    real = port_mod.get_preview_manager
+    monkeypatch.setattr(port_mod, "get_preview_manager", lambda: fake)
+    try:
+        run_id, _ = _drive(client_for, orig, monkeypatch)
+    finally:
+        monkeypatch.setattr(port_mod, "get_preview_manager", real)
+        set_preview_manager(None)
+    assert fake.stopped == [run_id] and seen["stopped_before_install"]

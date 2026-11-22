@@ -1,6 +1,7 @@
 """Artifact helpers shared by the pitch and assemble nodes."""
 
 import hashlib
+import os
 import re
 from pathlib import Path
 
@@ -11,6 +12,18 @@ from poc_studio.config import get_settings
 from poc_studio.db.models import Artifact
 from poc_studio.db.session import open_session
 from poc_studio.graph.state import RunState
+
+
+class MissingInput(RuntimeError):
+    """A step needs an upstream artifact that is not there."""
+
+
+def stub_skip_allowed() -> bool:
+    """True only in tests that run the graph with stub nodes (POC_ALLOW_STUB_SKIP=1).
+
+    In a real run a missing input fails the step instead of being skipped silently.
+    """
+    return os.environ.get("POC_ALLOW_STUB_SKIP") == "1"
 
 
 def latest_json[T: BaseModel](state: RunState, kind: str, schema: type[T]) -> T | None:
