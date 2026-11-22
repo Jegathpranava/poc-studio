@@ -1,0 +1,18 @@
+{
+  "commits": "per-increment",
+  "coAuthorTrailer": true,
+  "branchPolicy": "feature-branch",
+  "cloudHandoff": "maybe",
+  "productionDeploys": "ask",
+  "graphify": true,
+  "watchPackages": ["next", "langgraph", "fastapi", "pydantic", "playwright"],
+  "deploymentTier": "dev",
+  "cloud": "",
+  "cicd": "none",
+  "iac": "",
+  "iacTool": "",
+  "iacSync": false,
+  "repoOwner": "Jegathpranava",
+  "repoVisibility": "public",
+  "notes": "Answers from /workbench:new intake on 2026-11-22 (docs/intake/answers.json)."
+}

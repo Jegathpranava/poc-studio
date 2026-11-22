@@ -1,0 +1,377 @@
+Meeting-to-PoC Agent Platform -- Technical Solution Proposal
+
+Meeting-to-PoC Agent Platform -- Technical
+Solution Proposal
+
+ Nov 22, 2026 · @Skyform AI
+
+Executive summary
+
+PoC Studio is a website where a developer drops in a discovery-meeting transcript (or
+audio) and, in under 5 minutes, gets back five deliverables: a requirements brief with
+action items, an AI architecture spec with cost estimate, a live sector-specific web
+prototype, a GitHub repo with README and CI, and a client pitch deck.
+
+One Orchestrator agent plans each run and hands work to six specialist agents, one per
+bottleneck in the problem statement plus a QA reviewer. Two human approval gates (after
+requirements, before publishing to GitHub) keep the developer in control without slowing
+the run.
+
+Bottleneck                  Agent that removes                Output
+                            it
+5. Meeting fragmentation    Meeting                           Requirements brief, action items
+                            Intelligence
+1. AI scoping and           Solution Architect                Architecture spec, diagram, cost
+architecture                                                  table
+2. Sector web prototyping   Prototype Builder                 Running Next.js prototype + preview
+                                                              URL
+3. Repo and GitHub ops      Repo and DevOps                   GitHub repo, README, CI, issues
+4. Decks and                Pitch and Docs                    Slide deck, exec summary, user flows
+documentation
+Quality across all outputs  QA Reviewer                       Consistency and build report
+
+                                                                                            Page 1 of 10
+Meeting-to-PoC Agent Platform -- Technical Solution Proposal
+
+Agent roster
+
+Each agent has one job, a fixed input/output schema (Pydantic), and only the tools it
+needs. Agents pass structured JSON, never free text, so every step can be validated and
+retried.
+
+Agent         Input                                           What it does        Tools            Output
+0 ·           User request +                                                      LangGraph state  Run state, event
+Orchestrator  transcript                                      Builds the run      graph, Redis     stream
+(supervisor)                                                  plan, keeps         queue
+              Transcript text or                              shared state,                        requirements.json ,
+1 · Meeting   audio                                           routes tasks,       Whisper /        action-item list
+Intelligence                                                  retries failures,   Deepgram, LLM
+              requirements.json                               pauses at           structured       architecture.md ,
+2 · Solution                                                  approval gates      output           diagram, cost table
+Architect
+                                                              Transcribes and     Reference-
+                                                              diarizes audio;     architecture KB
+                                                              extracts goals,     (pgvector),
+                                                              pain points,        model price
+                                                              features,           table, Mermaid
+                                                              constraints,        renderer
+                                                              budget, timeline,
+                                                              sector,
+                                                              stakeholders,
+                                                              action items with
+                                                              owners
+
+                                                              Classifies the AI
+                                                              use case (RAG,
+                                                              agent, classifier,
+                                                              vision,
+                                                              forecasting);
+                                                              picks models;
+                                                              designs data flow,
+                                                              RAG pipeline and
+                                                              API routing;
+                                                              projects monthly
+                                                              cost
+
+                                                                                                   Page 2 of 10
+Meeting-to-PoC Agent Platform -- Technical Solution Proposal
+
+Agent          Input                                          What it does        Tools              Output
+                                                                                  Template library,  Next.js repo folder,
+3 · Prototype  Requirements +                                 Picks the sector    code sandbox       Vercel preview URL
+Builder        architecture                                   template,           (E2B/Docker),
+                                                              generates pages,    file writer        Repo URL, issue links,
+4 · Repo and   Generated code +                               forms, mock data                       deploy URL
+DevOps         docs                                           and API stubs;      GitHub App
+                                                              runs npm build ;    (Octokit), Vercel  deck.pptx + web
+5 · Pitch and  All prior outputs                              reads errors and    API                deck, docs/
+Docs                                                          fixes them (max 3
+                                                              loops)              Reveal.js /        QA report, pass/fail
+6 · QA         Every output                                                       python-pptx,
+Reviewer                                                      Creates the repo,   Markdown
+                                                              writes README
+                                                              and                 Linters, secret
+                                                              .env.example ,      scanner, link
+                                                              adds GitHub         checker
+                                                              Actions CI,
+                                                              pushes the first
+                                                              commit, opens
+                                                              issues from action
+                                                              items
+
+                                                              Writes executive
+                                                              summary, user
+                                                              flows, and a 8-10
+                                                              slide client deck
+                                                              (problem,
+                                                              solution,
+                                                              architecture,
+                                                              demo, timeline,
+                                                              cost)
+
+                                                              Checks outputs
+                                                              agree (same
+                                                              features, names,
+                                                              costs), build
+                                                              passed, no
+                                                              secrets in code,
+                                                              links work; sends
+                                                              failures back to
+                                                              the right agent
+
+Solution architecture
+
+The system has four layers: the website, one orchestrator, six specialist agents, and the
+shared tools they call, all on a common data platform.
+
+                                                                                                     Page 3 of 10
+Meeting-to-PoC Agent Platform -- Technical Solution Proposal
+
+  PoC Studio architecture · 4 layers, 6 agents
+
+  The web app talks only to the orchestrator; agents never call each other directly, so every
+  hand-off is logged, validated and resumable from a checkpoint if a step fails.
+
+ End-to-end workflow
+
+  A run goes from transcript to shareable PoC in about 4-5 minutes of agent time, plus
+  however long the developer takes at the two gates. Target timings below are design goals
+  to validate in the pilot.
+
+    1. Ingest (~10 s). The developer uploads a transcript (.txt, .vtt, .docx) or audio, picks or
+       confirms the client sector, and clicks Run. The API stores the file in S3 and creates a
+       run record.
+
+                                                                                                                                                                                                                                                    Page 4 of 10
+Meeting-to-PoC Agent Platform -- Technical Solution Proposal
+
+2. Extract (~30 s). Meeting Intelligence returns requirements.json : goals, features
+   ranked by priority, constraints, budget, sector, and action items with owners.
+
+3. Gate 1 -- confirm scope. The website shows the brief as an editable form. The
+   developer fixes anything wrong and approves. This is the cheapest place to catch
+   errors.
+
+4. Design (~60 s). Solution Architect writes the spec, diagram and cost table.
+5. Build and write, in parallel (~2-3 min).
+
+        Prototype Builder generates the app and loops on build errors until it compiles.
+        Pitch and Docs drafts the deck and docs from the spec.
+6. Review (~20 s). QA Reviewer checks every output; a failure goes back to the agent
+   that owns it, at most twice.
+7. Gate 2 -- publish. The developer previews the prototype and deck, then approves
+   publishing.
+8. Publish (~30 s). Repo and DevOps creates the GitHub repo, pushes code and docs,
+   opens issues from action items, and deploys a Vercel preview.
+9. Deliver. The run page shows the preview URL, repo URL, deck download and a share
+   link for the client.
+
+Website: pages and features
+
+The website is the developer's control room: start a run, watch agents work live, approve,
+and hand the client a link.
+
+Page       Route                                              Key features
+Dashboard
+           /                                                  List of runs with status, sector, client; New
+New Run                                                       Run button; weekly hours-saved counter
+           /runs/new
+                                                              Drag-and-drop transcript or audio, sector
+Live Run   /runs/[id]                                         picker, client name, options (deck style,
+                                                              stack, private/public repo)
+Requirements /runs/[id]/brief
+                                                              Agent timeline streaming over SSE: each
+                                                              agent's status, logs, tokens and cost; Gate 1
+                                                              and Gate 2 approval cards
+
+                                                              Editable brief and action items; export to
+                                                              Jira/Trello later
+
+                                                              Page 5 of 10
+Meeting-to-PoC Agent Platform -- Technical Solution Proposal
+
+Page          Route                                           Key features
+Architecture
+Prototype     /runs/[id]/architecture                         Rendered spec, Mermaid diagram, cost
+              /runs/[id]/prototype                            table; Regenerate with notes
+Deck and
+docs          /runs/[id]/deck                                 Embedded preview (iframe),
+Client share                                                  mobile/desktop toggle, file tree, Request
+Templates                                                     changes chat
+Settings
+                                                              Web slide viewer, download .pptx/PDF
+
+              /share/[token]                                  Read-only page for the client: summary,
+              /templates                                      prototype link, deck
+              /settings
+                                                              Manage sector templates and reference
+                                                              architectures that agents reuse
+
+                                                              GitHub App connection, Vercel token, LLM
+                                                              keys, team members, usage limits
+
+A Request changes chat on any output page sends the note back to the owning agent,
+which revises only that output.
+
+Tech stack
+
+Python for the agents (best agent tooling), TypeScript for the website and the generated
+prototypes. Every choice below has a drop-in alternative, so you can swap to match what
+your team already runs.
+
+Layer         Choice                                          Alternative
+Frontend                                                      React + Vite
+Auth          Next.js (App Router), Tailwind,                 Auth0, Supabase Auth
+API           shadcn/ui                                       Node + Express, WebSockets
+
+              Clerk or NextAuth with GitHub
+              login
+
+              FastAPI, Server-Sent Events for live
+              updates
+
+                                                              Page 6 of 10
+Meeting-to-PoC Agent Platform -- Technical Solution Proposal
+
+Layer            Choice                                       Alternative
+Agent                                                         CrewAI, Claude Agent SDK,
+orchestration    LangGraph (state graph,                      OpenAI Agents SDK
+Workers and      checkpoints, human-in-the-loop               BullMQ, Temporal
+queue            interrupts)                                  GPT, Gemini, local Llama via
+LLMs                                                          Ollama
+                 Celery or Arq on Redis
+Speech-to-text                                                AssemblyAI
+Knowledge base   Claude (Sonnet / Opus class) for             Pinecone, Qdrant
+                 architecture and code; a small fast
+Code sandbox     model for extraction; routed                 Daytona, Firecracker
+Repo and deploy  through LiteLLM                              GitLab API; Netlify
+Decks                                                         Marp, Slidev
+Storage          Whisper or Deepgram with                     Supabase
+Observability    diarization                                  Helicone
+Hosting                                                       Azure Container Apps, GCP
+                 Postgres + pgvector (reference               Cloud Run
+                 architectures, past proposals,
+                 templates)
+
+                 E2B or a Docker container per run
+
+                 GitHub App + Octokit; Vercel API
+                 for previews
+
+                 python-pptx for .pptx; Reveal.js for
+                 the web viewer
+
+                 Postgres (runs, specs), S3 / R2
+                 (files, artifacts)
+
+                 Langfuse or LangSmith (traces,
+                 tokens, cost per run)
+
+                 Vercel (web), Railway / Render /
+                 AWS ECS (API + workers)
+
+Data model and API endpoints
+
+Five core tables carry everything; agent outputs are stored as versioned artifacts so any
+one can be regenerated without rerunning the rest.
+
+                                                                                            Page 7 of 10
+Meeting-to-PoC Agent Platform -- Technical Solution Proposal
+
+Table        Key fields
+
+projects     id, client_name, sector, owner_id, created_at
+runs
+             id, project_id, status (queued / running /
+agent_steps  waiting_approval / done / failed), current_step,
+artifacts    cost_usd, started_at, finished_at
+approvals
+             id, run_id, agent, status, input_ref, output_ref,
+             tokens, cost_usd, error, attempt
+
+             id, run_id, type (brief / spec / prototype / deck /
+             docs / qa_report), version, s3_key, url
+
+             id, run_id, gate (scope / publish), decision,
+             edits_json, user_id, decided_at
+
+Shared state passed between agents (the LangGraph state object) holds: transcript ,
+requirements , architecture , code_manifest , deck , qa_report , repo_url ,
+preview_url .
+
+Method  Endpoint                                              Purpose
+POST                                                          Upload transcript, start a run
+GET     /api/runs                                             Run status and outputs
+GET     /api/runs/{id}                                        SSE stream of agent events
+POST    /api/runs/{id}/events                                 Approve or edit at a gate
+POST    /api/runs/{id}/approve                                Send a change request to one
+        /api/runs/{id}/artifacts/{type}/revise                agent
+                                                              Download an output
+GET     /api/runs/{id}/artifacts/{type}                       Create a client share link
+POST    /api/share/{run_id}                                   Manage sector templates and
+CRUD    /api/templates                                        reference architectures
+
+                                                                  Page 8 of 10
+Meeting-to-PoC Agent Platform -- Technical Solution Proposal
+
+ Security, guardrails and human-in-the-loop
+
+  Client meetings contain confidential data and the agents write code and push to GitHub,
+  so control points are built in from day one.
+
+       Two approval gates. Nothing leaves the platform (repo, deploy, share link) until the
+       developer approves Gate 2.
+       Sandboxed code. Generated code builds and runs only inside an isolated sandbox
+       with no access to platform secrets; network limited to the npm registry.
+       Least-privilege GitHub. A GitHub App scoped to one org, repo-create and contents-
+       write only; repos default to private.
+       Secrets. Keys live in a vault (Doppler, AWS Secrets Manager); a secret scanner blocks
+       any push containing keys.
+       PII redaction. Optional pass that masks names, emails and phone numbers in
+       transcripts before they reach the LLM.
+       Data retention. Per-client setting to delete transcripts after N days; LLM providers
+       used with zero-retention API terms.
+       Cost limits. Per-run token budget and max retry counts; the run stops and asks if a
+       budget is hit.
+       Audit trail. Every agent step, prompt version, approval and edit is logged for review.
+
+ Implementation roadmap and KPIs
+
+  Build it in four phases of about two weeks each, so a usable tool exists after Phase 1 and
+  each phase removes more bottlenecks.
+
+    1. Phase 1 -- Core pipeline (weeks 1-2). Website shell, upload, Orchestrator, Meeting
+       Intelligence and Solution Architect agents, Gate 1, live run view. Exit: transcript in,
+       approved brief and architecture spec out.
+
+    2. Phase 2 -- Prototype builder (weeks 3-4). Template library for 4 sectors (healthcare,
+       logistics, e-commerce, fintech), code sandbox, build-and-fix loop, Vercel preview.
+       Exit: 8 of 10 test transcripts produce a prototype that builds.
+
+    3. Phase 3 -- GitHub, deck and QA (weeks 5-6). Repo and DevOps agent, Pitch and
+       Docs agent, QA Reviewer, Gate 2, client share page. Exit: full run under 5 minutes of
+       agent time.
+
+                                                                                                                                                                                                                                                    Page 9 of 10
+Meeting-to-PoC Agent Platform -- Technical Solution Proposal
+
+4. Phase 4 -- Harden and scale (weeks 7-8). Auth and teams, cost limits, PII redaction,
+   Langfuse dashboards, more sector templates, Request changes chat. Exit: pilot with
+   real client meetings.
+
+KPI                         Today (from problem               Target
+                            statement)
+Meeting to working PoC      3-5 business days                 Under 10 minutes
+Architecture spec per       4-6 hours                         About 2 minutes + review
+prospect
+Prototype per prospect      1-2 days                          About 3 minutes + review
+Engineering hours on pre-   Over 60% of billable hours        15-20 hours/week returned per
+sales                                                         developer
+Prospects evaluated per     Baseline                          5x
+team
+Runs that build first time  --                                80% or more
+Agent cost per run          --                                Track in Langfuse; set a budget
+                                                              after pilot
+
+                                                              Page 10 of 10
+

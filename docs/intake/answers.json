@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "submitted_at": "2026-11-22T10:18:41.162Z",
+  "answers": {
+    "name": "poc-studio",
+    "purpose": "Drop in a discovery-meeting transcript, brd or trd or any requriment doc for project and get, in under 5 minutes of agent time: requirements + action items, an AI architecture spec with costs, a running sector prototype, a GitHub repo with README and CI, a pitch deck, a prototype walkthrough video and docs.",
+    "users": "Just you (AI developer and full-stack developer at Skyform) running pre-sales PoCs. Clients only see what you share: the repo, the deck, the video and a read-only share page.",
+    "features": [
+      "Dashboard: past runs with status, sector, client, cost per run and an hours-saved counter",
+      "New run: paste or drop a transcript (.txt, .vtt, .docx, .md), confirm sector and client name, options (deck style, repo visibility)",
+      "Meeting Intelligence: goals, ranked features, constraints, budget, timeline, sector, stakeholders, action items with owners (requirements.json)",
+      "Gate 1: brief shown as an editable form; approve to continue",
+      "Solution Architect: classifies the use case (RAG, agent, classifier, vision, forecasting), picks models, data flow, Mermaid diagram, monthly cost table (architecture.md)",
+      "Prototype Builder: picks one of 4 sector templates (healthcare, logistics, e-commerce, fintech), generates pages, forms, mock data and API stubs, runs npm build and fixes errors (max 3 loops)",
+      "Pitch & Docs (parallel with the build): 8-10 slide Reveal.js deck, executive summary, user flows; optional .pptx export",
+      "Prototype video: scripted Playwright walkthrough of the built prototype recorded to MP4/WebM, embedded in the deck",
+      "QA Reviewer: outputs agree (features, names, costs), build passed, no secrets, links work; failures go back to the owning agent at most twice",
+      "Gate 2: preview prototype (mobile/desktop toggle), deck and video; approve to publish",
+      "Repo & DevOps: create the GitHub repo on your account, README, .env.example, GitHub Actions CI, first push, issues from action items",
+      "Live run view: agent timeline over SSE with status, logs, tokens and cost per step",
+      "Request changes on any output: a note goes back to the owning agent, which revises only that artifact",
+      "Per-run token budget; the run pauses and asks when it is hit"
+    ],
+    "non_goals": [
+      "Login, teams, multi-tenant (single user on your machine; add auth only if it is ever shared)",
+      "Redis/Celery queue, S3, pgvector, E2B sandbox, Langfuse in v1 (local equivalents below; each is a later swap)",
+      "Audio transcription in v1 (transcripts arrive as text; local Whisper is a later add-on)",
+      "Auto-deploying client prototypes to production (Vercel preview is optional, on your yes)",
+      "Jira/Trello export"
+    ],
+    "kind": "both",
+    "scale": "personal",
+    "references": [],
+    "stack": [
+      {
+        "layer": "Frontend",
+        "choice": "Next.js 16 (App Router), Tailwind, shadcn/ui, Lucide, sileo toasts",
+        "reason": "Brief and proposal name Next.js; 16 is current (brief said 14). Generated prototypes use the same stack, so templates are shared."
+      },
+      {
+        "layer": "API",
+        "choice": "Python 3.12, FastAPI, Pydantic v2, Server-Sent Events",
+        "reason": "Proposal choice; SSE streams the agent timeline."
+      },
+      {
+        "layer": "Orchestration",
+        "choice": "LangGraph supervisor, interrupt() at the 2 gates, SQLite checkpointer, runs as asyncio tasks in the API process",
+        "reason": "Proposal names LangGraph. No Redis/Celery: one user does not need a queue, and checkpoints already make runs resumable. $0."
+      },
+      {
+        "layer": "Data and artifacts",
+        "choice": "SQLite (projects, runs, agent_steps, artifacts, approvals) + versioned files under ./runs/<id>/",
+        "reason": "Same 5-table model as the proposal; replaces Postgres + S3 at $0. Moves to Postgres with one URL change."
+      },
+      {
+        "layer": "LLMs",
+        "choice": "Skyform gateway (OpenAI-compatible): fast for extraction, smart for architecture and code, claude-haiku-5-5 only for deck polish",
+        "reason": "Brief budget rule: bulk work on the free Ollama models. Schema in the prompt, validated output, mock provider in tests."
+      },
+      {
+        "layer": "Prototype build sandbox",
+        "choice": "Local Docker container per run (node:22, network limited to npm), plain folder fallback",
+        "reason": "Replaces E2B at $0; keeps generated code away from your secrets."
+      },
+      {
+        "layer": "Deck and video",
+        "choice": "Reveal.js web deck + python-pptx export; Playwright headless recording for the prototype walkthrough",
+        "reason": "All free and local; the video is the new \"video of that prototype\" requirement."
+      },
+      {
+        "layer": "GitHub",
+        "choice": "Fine-grained personal token on Jegathpranava (repo create, contents, issues), via REST",
+        "reason": "Your own use; a GitHub App is overkill for one account. Generated client repos default to private."
+      },
+      {
+        "layer": "Observability",
+        "choice": "Tokens, cost and duration per agent step in SQLite, shown on the run page",
+        "reason": "Covers the proposal KPI \"cost per run\" without Langfuse. Add Langfuse later if needed."
+      },
+      {
+        "layer": "Hosting",
+        "choice": "Local: one script starts web + API (docker compose optional)",
+        "reason": "Dev tier. The build loop runs npm builds and git pushes, which need a real machine. $0 hosting."
+      }
+    ],
+    "deployment_tier": "dev",
+    "cloud_handoff": "maybe",
+    "repo_owner": "Jegathpranava",
+    "repo_visibility": "public",
+    "commit_policy": "per-increment",
+    "coauthor": true,
+    "deploy_policy": "explicit",
+    "direction": "terminal-teal",
+    "theme": "light",
+    "density": "compact",
+    "notes": "Sources: docs/requirements/technical-solution-proposal.txt (PDF), problem-statement.txt (DOCX), owner-direction-2026-11-22.md.\nBudget: target under $0.05 of paid LLM spend per run (only the Haiku deck polish is paid); everything else free or local.\nKPIs from the proposal: full run under 5 minutes of agent time, 8 of 10 test transcripts produce a prototype that builds, cost per run tracked.\nBuild order (proposal phases, compressed): 1 core pipeline + Gate 1 + live view; 2 prototype builder with 4 sector templates; 3 deck, video, QA, Gate 2, GitHub publish; 4 request-changes, budget limits, PII redaction option.\nGuardrails kept: nothing leaves the machine before Gate 2, secret scan blocks any push, generated repos private by default.\nExisting .env stays git-ignored and untouched."
+  }
+}
