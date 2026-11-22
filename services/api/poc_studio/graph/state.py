@@ -26,3 +26,4 @@ class RunState(TypedDict, total=False):
     intelligence_note: str | None  # note from a Gate 1 "changes" decision
     qa_send_back: str | None  # "screens" | "pitch" | "port" | None; set by the QA agent
     sent_back_count: int
+    block_publish: bool  # QA found a secret in the generated files: Gate 2 must not push

@@ -29,6 +29,7 @@ AGENT_MODULES: tuple[str, ...] = (
     "poc_studio.agents.port",
     "poc_studio.agents.pitch",
     "poc_studio.agents.assemble",
+    "poc_studio.agents.qa",
     "poc_studio.agents.video",
 )
 

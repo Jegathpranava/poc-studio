@@ -23,6 +23,10 @@ _KEY_VALUE = re.compile(
 )
 _SENSITIVE_KEY = re.compile(rf"(?i){_KEY_NAME}")
 
+# Public names for the QA secret scanner (qa/secrets.py): one pattern set, not a fork.
+SECRET_PATTERNS = _PATTERNS
+KEY_VALUE_PATTERN = _KEY_VALUE
+
 
 def redact(text: str) -> str:
     for pattern in _PATTERNS:
