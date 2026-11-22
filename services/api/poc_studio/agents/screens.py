@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import re
 from typing import Any
 
 from pydantic import BaseModel
@@ -24,9 +25,10 @@ from poc_studio.screens.kits import Kit, load_kit, sector_dir
 from poc_studio.screens.validate import Issue, validate
 
 AGENT = "screens"
-MAX_TOKENS = 8000  # the gateway's completion ceiling; a longer reply is cut off mid-JSON
+MAX_TOKENS = 16000  # shared by the model's hidden reasoning and the JSON; 8000 left no room for the answer
 MAX_REPAIRS = 2
 TIMEOUT_S = 300.0  # a full pack from the smart reasoning model can take minutes
+REASONING_EFFORT = "low"  # the pack is mostly markup; long reasoning only eats the token allowance
 TRUNCATED_NOTE = (
     "Your previous JSON response was cut off because it was too long. Make all HTML fragments much "
     "shorter and use at most 2 table rows per screen. Leave the kit CSS out of `product_css`."
@@ -58,6 +60,9 @@ SYSTEM = (
     "- All data is fictional: invented people, `example.com` addresses, realistic sector numbers. Never use "
     "real people or real companies. The client's name may appear as the product or company name.\n"
     "- Never invent facts about the client that the brief does not support.\n"
+    "- Inside HTML fragments, quote every attribute with single quotes (`<div class='card' "
+    "data-anchor='totals'>`), never double quotes, so the JSON strings need no escaping. Anchor selectors "
+    'keep the `[data-anchor="<name>"]` form.\n'
     "- Output valid JSON directly, with no preamble."
 )
 
@@ -79,6 +84,14 @@ def format_issues(issues: list[Issue]) -> str:
     return "\n".join(f"- {i}" for i in issues)
 
 
+_DQ_ATTR = re.compile(r"""(\s[\w:.-]+)="([^"']*)\"""")
+
+
+def single_quoted(html: str) -> str:
+    """`a="b"` to `a='b'`: the examples then show the quoting the model must use inside JSON strings."""
+    return _DQ_ATTR.sub(r"\1='\2'", html)
+
+
 def build_prompt(req: Requirements, arch: Architecture | None, kit: Kit, note: str | None = None) -> str:
     features = sorted(req.features, key=lambda f: _ORDER[f.priority])
     brief = {
@@ -97,7 +110,7 @@ def build_prompt(req: Requirements, arch: Architecture | None, kit: Kit, note: s
     examples = "\n\n".join(
         f"Example screen `{ex.id}` ({ex.label}); anchors: "
         + ", ".join(f'[data-anchor="{a}"]' for a in ex.anchors)
-        + f"\n```html\n{ex.html.strip()}\n```"
+        + f"\n```html\n{single_quoted(ex.html.strip())}\n```"
         for ex in kit.examples[:2]
     )
     p1 = [f.name for f in features if f.priority == "P1"]
@@ -193,6 +206,7 @@ async def run_screens(state: RunState) -> dict[str, Any]:
             result = await complete_json(
                 agent=AGENT, model=model, system=SYSTEM, user=user, schema=ScreenPack,
                 max_tokens=MAX_TOKENS, run=budget, timeout=TIMEOUT_S, truncated_note=TRUNCATED_NOTE,
+                reasoning_effort=REASONING_EFFORT,
             )  # fmt: skip
             tokens_in += result.tokens_in
             tokens_out += result.tokens_out

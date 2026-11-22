@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Protocol
 
+from openai import omit
+
 from poc_studio.config import Settings
 
 FIXTURE_DIR = Path(__file__).resolve().parents[2] / "tests" / "fixtures" / "llm"
@@ -16,6 +18,7 @@ class ChatReply:
     text: str
     tokens_in: int | None  # None when the gateway sent no `usage`; the client then uses its estimate
     tokens_out: int | None
+    finish_reason: str | None = None  # "length" means the max_tokens cap cut the reply (reasoning counts)
 
 
 class ChatProvider(Protocol):
@@ -26,6 +29,7 @@ class ChatProvider(Protocol):
         max_tokens: int,
         timeout: float,
         agent: str | None = None,
+        reasoning_effort: str | None = None,
     ) -> ChatReply: ...
 
 
@@ -46,18 +50,21 @@ class GatewayProvider:
         max_tokens: int,
         timeout: float,
         agent: str | None = None,
+        reasoning_effort: str | None = None,
     ) -> ChatReply:
         resp = await self._client.chat.completions.create(
             model=model,
             messages=messages,  # pyright: ignore[reportArgumentType]
             max_tokens=max_tokens,
             timeout=timeout,
+            reasoning_effort=omit if reasoning_effort is None else reasoning_effort,  # pyright: ignore[reportArgumentType]
         )
         usage = resp.usage
         return ChatReply(
             text=resp.choices[0].message.content or "",
             tokens_in=usage.prompt_tokens if usage else None,
             tokens_out=usage.completion_tokens if usage else None,
+            finish_reason=resp.choices[0].finish_reason,
         )
 
 
@@ -103,6 +110,7 @@ class MockProvider:
         max_tokens: int,
         timeout: float,
         agent: str | None = None,
+        reasoning_effort: str | None = None,
     ) -> ChatReply:
         name = agent or "echo"
         data: Any = json.loads((self._dir / f"{name}.json").read_text(encoding="utf-8"))

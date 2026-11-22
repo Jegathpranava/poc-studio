@@ -88,6 +88,7 @@ async def complete_json[T: BaseModel](
     provider: ChatProvider | None = None,
     timeout: float | None = None,
     truncated_note: str = TRUNCATED_NOTE,
+    reasoning_effort: str | None = None,
 ) -> Result[T]:
     prov = _resolve(provider)
     timeout_s = get_settings().llm_timeout_s if timeout is None else timeout
@@ -107,7 +108,9 @@ async def complete_json[T: BaseModel](
     for attempt in range(1, MAX_ATTEMPTS + 1):
         prompt = "\n".join(m["content"] for m in messages)
         run.check(model, prompt, max_tokens)
-        reply = await prov.chat(model, messages, max_tokens, timeout_s, agent=agent)
+        # Only sent when set, so providers and fakes that do not know the option keep working.
+        effort = {} if reasoning_effort is None else {"reasoning_effort": reasoning_effort}
+        reply = await prov.chat(model, messages, max_tokens, timeout_s, agent=agent, **effort)
         # No `usage` from the gateway: charge the pre-call estimate (worst case), never $0.
         used_in = count_tokens(prompt) if reply.tokens_in is None else reply.tokens_in
         used_out = max_tokens if reply.tokens_out is None else reply.tokens_out
@@ -116,6 +119,14 @@ async def complete_json[T: BaseModel](
         tokens_in += used_in
         tokens_out += used_out
         total_cost += cost
+        if not reply.text.strip():
+            # A reasoning model that spends the whole max_tokens on reasoning returns no answer at all.
+            last_error = (
+                f"the model returned an empty answer (finish_reason={reply.finish_reason}); its reasoning "
+                f"probably used the whole {max_tokens}-token allowance"
+            )
+            messages = [messages[0], {"role": "user", "content": f"{user}\n\n{truncated_note}"}]
+            continue
         try:
             value = schema.model_validate_json(strip_fences(reply.text))
         except ValidationError as exc:

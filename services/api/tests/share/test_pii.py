@@ -37,7 +37,7 @@ class Recorder:
         self.inner = MockProvider()
         self.prompts: list[str] = []
 
-    async def chat(self, model, messages, max_tokens, timeout, agent=None):  # noqa: ANN001, ANN201
+    async def chat(self, model, messages, max_tokens, timeout, agent=None, reasoning_effort=None):  # noqa: ANN001, ANN201
         self.prompts.append("\n".join(m["content"] for m in messages))
         return await self.inner.chat(model, messages, max_tokens, timeout, agent)
 

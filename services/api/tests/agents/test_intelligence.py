@@ -22,7 +22,7 @@ class Recorder:
         self.prompts: list[str] = []
 
     async def chat(self, model: str, messages: list[dict[str, str]], max_tokens: int, timeout: float,
-                   agent: str | None = None) -> ChatReply:  # fmt: skip
+                   agent: str | None = None, reasoning_effort: str | None = None) -> ChatReply:  # fmt: skip
         self.prompts.append("\n".join(m["content"] for m in messages))
         return await self.inner.chat(model, messages, max_tokens, timeout, agent)
 

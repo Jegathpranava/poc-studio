@@ -23,7 +23,7 @@ async def _empty(state: Any) -> dict[str, Any]:
 class AlwaysInvalidPitch(Recorder):
     """The mock provider, except that every pitch reply is the invalid first plan."""
 
-    async def chat(self, model, messages, max_tokens, timeout, agent=None) -> ChatReply:  # type: ignore[no-untyped-def]
+    async def chat(self, model, messages, max_tokens, timeout, agent=None, **_) -> ChatReply:  # type: ignore[no-untyped-def]
         if agent == "pitch":
             self.prompts.setdefault("pitch", []).append("\n".join(m["content"] for m in messages))
             plans = json.loads((FIXTURE_DIR / "pitch.json").read_text(encoding="utf-8"))

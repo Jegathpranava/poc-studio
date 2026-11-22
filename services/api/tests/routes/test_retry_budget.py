@@ -27,7 +27,7 @@ class PaidRecorder(Recorder):
     """Like the recorder, but a Haiku call reports real token usage, so it costs something."""
 
     async def chat(self, model: str, messages: list[dict[str, str]], max_tokens: int, timeout: float,
-                   agent: str | None = None) -> ChatReply:  # fmt: skip
+                   agent: str | None = None, reasoning_effort: str | None = None) -> ChatReply:  # fmt: skip
         reply = await super().chat(model, messages, max_tokens, timeout, agent)
         if agent == "pitch_polish":
             return ChatReply(reply.text, tokens_in=1000, tokens_out=200)
