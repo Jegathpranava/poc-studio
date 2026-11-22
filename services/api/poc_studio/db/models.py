@@ -96,6 +96,7 @@ class AgentStep(Base):
     agent: Mapped[str] = mapped_column(String(40))
     status: Mapped[str] = mapped_column(String(20))
     attempt: Mapped[int] = mapped_column(Integer, default=1)
+    reason: Mapped[str | None] = mapped_column(String(20))  # why a rerun started: revise, send_back, retry
     model: Mapped[str | None] = mapped_column(String(80))
     tokens_in: Mapped[int] = mapped_column(Integer, default=0)
     tokens_out: Mapped[int] = mapped_column(Integer, default=0)

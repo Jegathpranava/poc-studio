@@ -6,6 +6,7 @@ import {
   gateView,
   initialTimeline,
   reduceEvent,
+  stepTag,
   totals,
   type RunEvent,
 } from "@/lib/run-steps";
@@ -130,3 +131,56 @@ describe("run status and gates", () => {
     expect(s.rows.intelligence.attempt).toBe(2);
   });
 });
+
+describe("step tag", () => {
+  const running = (agent: string, attempt: number, reason?: RunEvent["reason"]) =>
+    ev({ agent, kind: "status", status: "running", attempt, reason });
+  const done = (agent: string, attempt: number) => ev({ agent, kind: "status", status: "done", attempt });
+
+  it("labels reruns from a revision or a send-back as Revision N, never as an attempt", () => {
+    nextId = 0;
+    let s = foldEvents([running("pitch", 1), done("pitch", 1)]);
+    expect(stepTag("pitch", s.rows.pitch)).toBeNull();
+    s = foldEvents([running("pitch", 2, "revise"), done("pitch", 2)], s);
+    expect(stepTag("pitch", s.rows.pitch)).toEqual({ label: "Revision 1", fail: false });
+    s = foldEvents([running("pitch", 3, "send_back")], s);
+    expect(stepTag("pitch", s.rows.pitch)).toEqual({ label: "Revision 2", fail: false });
+  });
+
+  it("does not count a retry of a failed step as a revision", () => {
+    nextId = 0;
+    const s = foldEvents([
+      running("architect", 1),
+      ev({ agent: "architect", kind: "error", status: "failed", attempt: 1, message: "boom" }),
+      running("architect", 2, "retry"),
+    ]);
+    expect(stepTag("architect", s.rows.architect)).toBeNull();
+  });
+
+  it("keeps Attempt X of 3 for the port's build attempts", () => {
+    nextId = 0;
+    let s = foldEvents([running("port", 1), ev({ agent: "port", kind: "log", attempt: 1, message: "build attempt 1 failed" })]);
+    expect(stepTag("port", s.rows.port)).toBeNull();
+    s = foldEvents([ev({ agent: "port", kind: "log", attempt: 2, message: "build attempt 2 failed" })], s);
+    expect(stepTag("port", s.rows.port)).toEqual({ label: "Attempt 2 of 3", fail: false });
+    s = foldEvents(
+      [
+        ev({ agent: "port", kind: "error", status: "failed", attempt: 3, message: "Attempt 3 of 3", error: { message: "Type error" } }),
+      ],
+      s,
+    );
+    expect(stepTag("port", s.rows.port)).toEqual({ label: "Attempt 3 of 3", fail: true });
+  });
+
+  it("a revised port rerun starts its build attempts over", () => {
+    nextId = 0;
+    const s = foldEvents([
+      running("port", 1),
+      ev({ agent: "port", kind: "log", attempt: 2, message: "build attempt 2 failed" }),
+      done("port", 1),
+      running("port", 2, "revise"),
+    ]);
+    expect(stepTag("port", s.rows.port)).toEqual({ label: "Revision 1", fail: false });
+  });
+});
+

@@ -12,7 +12,7 @@ from poc_studio.db.models import AgentStep, Artifact, Run
 from poc_studio.db.session import open_session
 from poc_studio.events import emit
 from poc_studio.graph.registry import NodeSpec
-from poc_studio.graph.revise import clear_note, note_block, revise_note
+from poc_studio.graph.revise import clear_note, note_block, rerun_reason, revise_note
 from poc_studio.graph.spend import node_budget
 from poc_studio.graph.state import RunState
 from poc_studio.graph.steps import step_scope
@@ -151,7 +151,7 @@ def persist_screenpack(run_id: str, pack: ScreenPack) -> int:
 async def run_screens(state: RunState) -> dict[str, Any]:
     run_id = state["run_id"]
     model = get_settings().default_smart_model
-    async with step_scope(run_id, AGENT, model=model) as step_id:
+    async with step_scope(run_id, AGENT, model=model, reason=rerun_reason(state, AGENT)) as step_id:
         req = _latest(state, "requirements", Requirements)
         if req is None:
             raise ValueError("no requirements artifact to build screens from")

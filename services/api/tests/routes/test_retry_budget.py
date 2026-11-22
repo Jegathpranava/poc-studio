@@ -76,6 +76,7 @@ def test_retry_with_a_note_reruns_only_port_with_the_note(
     assert all(FIX_NOTE not in p for p in prompts[:first_prompts])
     assert seen == [1, 2, 3, 1, 2]  # a fresh attempt budget: attempt numbers start again
     assert [s["status"] for s in detail["steps"] if s["agent"] == "port"] == ["failed", "done"]
+    assert [s["reason"] for s in detail["steps"] if s["agent"] == "port"] == [None, "retry"]
 
 
 def test_retry_attempts_limit_the_builds(client_for: Any, env: Any, monkeypatch: pytest.MonkeyPatch) -> None:

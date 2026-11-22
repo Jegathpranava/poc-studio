@@ -34,18 +34,24 @@ test("request changes on the deck at Gate 2 reruns only Pitch and Docs, then ret
 
   // Back at Gate 2 with a second pitch run; nothing upstream ran again.
   const pitch = page.locator('.step[data-agent="pitch"]');
-  await expect(pitch.locator(".tag.attempt")).toContainText("Attempt 2", { timeout: 2 * 60_000 });
+  await expect(pitch.locator(".tag.attempt")).toHaveText("Revision 1", { timeout: 2 * 60_000 });
   await expect(page.locator(".badge", { hasText: "Waiting at Gate 2" })).toBeVisible({ timeout: 2 * 60_000 });
   await expect(page.locator('.step[data-agent="intelligence"] .tag.attempt')).toHaveCount(0);
   await expect(page.locator('.step[data-agent="screens"] .tag.attempt')).toHaveCount(0);
 
   const detail = (await (await request.get(`${API}/api/runs/${runId}`)).json()) as {
     steps: { agent: string }[];
-    artifacts: { type: string; path: string }[];
+    artifacts: { type: string; path: string; version: number }[];
   };
   const count = (agent: string) => detail.steps.filter((s) => s.agent === agent).length;
   expect([count("pitch"), count("architect"), count("screens"), count("port")]).toEqual([2, 1, 1, 1]);
-  expect(detail.artifacts.filter((a) => a.type === "deck" && a.path.endsWith(".json"))).toHaveLength(2);
+  const versions = (ext: string) =>
+    detail.artifacts
+      .filter((a) => a.type === "deck" && a.path.endsWith(ext))
+      .map((a) => a.version)
+      .sort();
+  expect(versions(".json")).toEqual([1, 2]);
+  expect(versions(".html")).toEqual([1, 2]);
 
   await page.getByRole("link", { name: "Deck and video" }).click();
   await expect(page.getByRole("button", { name: "Request changes" })).toBeEnabled();

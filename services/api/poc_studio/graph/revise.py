@@ -30,6 +30,16 @@ def clear_note(state: RunState, agent: str) -> dict[str, Any]:
     return {REVISE_KEY: None} if agent in (state.get(REVISE_KEY) or {}) else {}
 
 
+def rerun_reason(state: RunState, agent: str) -> str | None:
+    """Why `agent` runs again: "revise" (a Gate 2 request for changes or a retry with a note) or "send_back"
+    (QA sent the run back to it). None when nothing in the state says so; `step_scope` then decides."""
+    if agent in (state.get(REVISE_KEY) or {}):
+        return "revise"
+    if state.get("qa_send_back") == agent:
+        return "send_back"
+    return None
+
+
 def note_block(note: str | None) -> str:
     if not note:
         return ""

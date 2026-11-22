@@ -52,3 +52,4 @@ def test_cancelled_step_is_marked_interrupted(client_for) -> None:
     with client_for() as client:
         wait_status(client, run_id, "waiting_gate1")
     assert [r.status for r in step_rows(run_id, "intelligence")] == ["interrupted", "done"]
+    assert [r.reason for r in step_rows(run_id, "intelligence")] == [None, "retry"]

@@ -23,7 +23,7 @@ from poc_studio.db.models import AgentStep, Run
 from poc_studio.db.session import open_session
 from poc_studio.events import emit
 from poc_studio.graph.registry import NodeSpec
-from poc_studio.graph.revise import clear_note, note_block, revise_note
+from poc_studio.graph.revise import clear_note, note_block, rerun_reason, revise_note
 from poc_studio.graph.spend import node_budget
 from poc_studio.graph.state import RunState
 from poc_studio.graph.steps import step_scope
@@ -263,7 +263,7 @@ def apply_patch(plan: DeckPlan, patch: PolishPatch) -> DeckPlan:
 
 
 def _write_outputs(run_id: str, plan: DeckPlan, pack: ScreenPack, req: Requirements) -> int:
-    version = next_version(run_id, "deck")
+    version = next_version(run_id, "deck", ".json")
     plan_json = plan.model_dump_json(by_alias=True, indent=2).encode()
     record(run_id, "deck", version, f"deck/plan.v{version}.json", plan_json)
     dv = next_version(run_id, "docs")
@@ -291,7 +291,8 @@ async def run_pitch(state: RunState) -> dict[str, Any]:
 async def _run_pitch(state: RunState) -> dict[str, Any]:
     run_id = state["run_id"]
     settings = get_settings()
-    async with step_scope(run_id, AGENT, model=settings.default_fast_model) as step_id:
+    reason = rerun_reason(state, AGENT)
+    async with step_scope(run_id, AGENT, model=settings.default_fast_model, reason=reason) as step_id:
         req = latest_json(state, "requirements", Requirements)
         arch = latest_json(state, "architecture", Architecture)
         pack = latest_json(state, "screenpack", ScreenPack)

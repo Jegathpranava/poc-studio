@@ -3,7 +3,7 @@ import { Check, Pause, X } from "lucide-react";
 import type { RunStatus } from "@/lib/api";
 
 import { formatClock, formatCost, formatElapsed, formatTokens, modelLabel } from "@/lib/run-labels";
-import type { StepRow } from "@/lib/run-steps";
+import { stepTag, type StepRow } from "@/lib/run-steps";
 
 import { StepActions } from "./step-actions";
 import { StepError } from "./step-error";
@@ -36,7 +36,7 @@ export function PipelineStep({ agent, row, now, runId, runStatus = null }: Pipel
   const info = stepInfo(agent);
   const Icon = row.state === "done" ? Check : row.state === "failed" ? X : row.state === "paused" ? Pause : info.icon;
   const started = row.state !== "idle";
-  const showAttempt = row.attempt > 1 || (row.state === "failed" && row.error !== null);
+  const tag = stepTag(agent, row);
   const sub = started ? stepSummary(row, "Working") : info.waiting;
 
   return (
@@ -48,9 +48,7 @@ export function PipelineStep({ agent, row, now, runId, runStatus = null }: Pipel
         <div className="step-title">
           {info.title}
           {info.tag ? <span className="tag">{info.tag}</span> : null}
-          {showAttempt ? (
-            <span className={`tag attempt${row.state === "failed" ? " fail" : ""}`}>Attempt {row.attempt} of 3</span>
-          ) : null}
+          {tag ? <span className={`tag attempt${tag.fail ? " fail" : ""}`}>{tag.label}</span> : null}
         </div>
         {row.state !== "failed" || !row.error ? <div className="step-sub">{sub}</div> : null}
         {row.error && row.state === "failed" ? <StepError error={row.error} /> : null}

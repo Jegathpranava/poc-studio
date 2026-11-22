@@ -47,11 +47,14 @@ def slugify(text: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-") or "deck"
 
 
-def next_version(run_id: str, kind: str) -> int:
+def next_version(run_id: str, kind: str, suffix: str | None = None) -> int:
+    """Next version of `kind`. With `suffix` (".json", ".html") only files of that kind are counted, so the
+    deck plan and the assembled deck each count v1, v2, ... on their own."""
+    query = select(func.max(Artifact.version)).where(Artifact.run_id == run_id, Artifact.type == kind)
+    if suffix is not None:
+        query = query.where(Artifact.path.like(f"%{suffix}"))
     with open_session() as session:
-        top = session.scalar(
-            select(func.max(Artifact.version)).where(Artifact.run_id == run_id, Artifact.type == kind)
-        )
+        top = session.scalar(query)
     return (top or 0) + 1
 
 

@@ -47,7 +47,7 @@ async def _run_assemble(state: RunState) -> dict[str, Any]:
         html = assemble(
             pack, plan, logo_data_uri=None, extra_css=icons
         )  # DeckNotSelfContained fails the step
-        version = next_version(run_id, "deck")
+        version = next_version(run_id, "deck", ".html")
         record(run_id, "deck", version, f"deck/{slugify(req.title)}.v{version}.html", html.encode("utf-8"))
         emit(run_id, AGENT, "log", message=f"deck html v{version}: {len(html) // 1024} KB")
         return {"deck_result": {"ok": True}}

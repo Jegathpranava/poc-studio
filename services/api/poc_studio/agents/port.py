@@ -24,7 +24,7 @@ from poc_studio.db.models import AgentStep, Artifact, Run
 from poc_studio.db.session import open_session
 from poc_studio.events import emit
 from poc_studio.graph.registry import NodeSpec
-from poc_studio.graph.revise import clear_note, note_block, revise_note
+from poc_studio.graph.revise import clear_note, note_block, rerun_reason, revise_note
 from poc_studio.graph.spend import node_budget
 from poc_studio.graph.state import RunState
 from poc_studio.graph.steps import step_scope
@@ -282,7 +282,7 @@ async def run_port(state: RunState) -> dict[str, Any]:
     budget = node_budget(state)
     done = {**clear_note(state, AGENT), **({"port_attempts": None} if state.get("port_attempts") else {})}
     try:
-        async with step_scope(run_id, AGENT, model=model) as step_id:
+        async with step_scope(run_id, AGENT, model=model, reason=rerun_reason(state, AGENT)) as step_id:
             outcome = await _port(state, step_id, model, budget)
     except PortFailed as exc:  # the step is already `failed`; the run goes on to Gate 2
         err = exc.error.model_dump() if exc.error else {"message": str(exc)}

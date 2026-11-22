@@ -47,6 +47,7 @@ class AgentStepOut(_Out):
     agent: str
     status: str
     attempt: int
+    reason: str | None = None
     model: str | None = None
     tokens_in: int
     tokens_out: int
@@ -199,4 +200,5 @@ class RunEvent(BaseModel):
     tokens_out: int | None = None
     cost_usd: float | None = None
     attempt: int | None = None
+    reason: str | None = None  # on a rerun's "running" event: revise, send_back or retry
     error: EventError | None = None

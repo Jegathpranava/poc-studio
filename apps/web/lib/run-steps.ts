@@ -1,5 +1,7 @@
 import type { RunStatus } from "./api";
 
+export type RerunReason = "revise" | "send_back" | "retry";
+
 /** SSE `data` payload (spec 7b). */
 export interface EventError {
   file?: string | null;
@@ -22,6 +24,8 @@ export interface RunEvent {
   tokens_out?: number | null;
   cost_usd?: number | null;
   attempt?: number | null;
+  /** On a rerun's "running" event: why it started. */
+  reason?: RerunReason | null;
   error?: EventError | null;
 }
 
@@ -55,7 +59,13 @@ export interface LogLine {
 export interface StepRow {
   agent: string;
   state: StepState;
+  /** Step runs so far (the build attempt of a port while it builds). */
   attempt: number;
+  /** Build attempts of the Prototype Builder, 1 to 3. Zero before its first build. */
+  buildAttempt: number;
+  /** Reruns caused by a Gate 2 revision or a QA send-back. */
+  revision: number;
+  reason: RerunReason | null;
   model: string | null;
   tokensIn: number;
   tokensOut: number;
@@ -88,6 +98,9 @@ export function emptyRow(agent: string): StepRow {
     agent,
     state: "idle",
     attempt: 0,
+    buildAttempt: 0,
+    revision: 0,
+    reason: null,
     model: null,
     tokensIn: 0,
     tokensOut: 0,
@@ -132,17 +145,21 @@ export function reduceEvent(state: TimelineState, ev: RunEvent): TimelineState {
     if (ev.status === "running") {
       row.state = "active";
       row.attempt = ev.attempt ?? row.attempt + 1;
+      row.reason = ev.reason ?? null;
+      if (ev.reason === "revise" || ev.reason === "send_back") row.revision += 1;
+      row.buildAttempt = 0;
       row.model = ev.model ?? row.model;
       row.startedAt = row.startedAt ?? ev.ts;
       row.finishedAt = null;
       row.error = null;
-      push("plain", `started, attempt ${row.attempt}`);
+      push("plain", row.revision > 0 && row.reason !== "retry" ? `started, revision ${row.revision}` : `started, run ${row.attempt}`);
     } else if (ev.status === "done") {
       row.state = "done";
       row.finishedAt = ev.ts;
       push("ok", "ok    finished");
     }
   } else if (ev.kind === "log") {
+    if (ev.agent === "port" && ev.attempt) row.buildAttempt = ev.attempt;
     push(ev.status === "warning" ? "warn" : "plain", ev.message ?? "");
   } else if (ev.kind === "cost") {
     row.model = ev.model ?? row.model;
@@ -153,6 +170,7 @@ export function reduceEvent(state: TimelineState, ev: RunEvent): TimelineState {
     row.state = ev.status === "paused" ? "paused" : "failed";
     row.finishedAt = ev.ts;
     row.attempt = ev.attempt ?? row.attempt;
+    if (ev.agent === "port" && ev.attempt) row.buildAttempt = ev.attempt;
     row.error = ev.error ?? { message: ev.message ?? "The step failed." };
     push("err", `err   ${row.error.message}`);
   }
@@ -163,6 +181,18 @@ export function reduceEvent(state: TimelineState, ev: RunEvent): TimelineState {
     next.rows = { ...next.rows, gate1: emptyRow("gate1") };
   }
   return next;
+}
+
+/**
+ * The tag next to a step title. "Attempt X of 3" counts the Prototype Builder's build attempts only; a rerun
+ * caused by a Gate 2 revision or a QA send-back reads "Revision N" and is never shown as a failure.
+ */
+export function stepTag(agent: string, row: StepRow): { label: string; fail: boolean } | null {
+  if (agent === "port" && (row.buildAttempt > 1 || (row.state === "failed" && row.error !== null))) {
+    return { label: `Attempt ${row.buildAttempt || row.attempt} of 3`, fail: row.state === "failed" };
+  }
+  if (row.revision > 0) return { label: `Revision ${row.revision}`, fail: false };
+  return null;
 }
 
 export function foldEvents(events: RunEvent[], from: TimelineState = initialTimeline()): TimelineState {

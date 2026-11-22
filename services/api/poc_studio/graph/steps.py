@@ -14,8 +14,14 @@ from poc_studio.redact import redact
 
 
 @asynccontextmanager
-async def step_scope(run_id: str, agent: str, *, model: str | None = None) -> AsyncIterator[int]:
-    """Record one attempt of `agent`. Yields the step row id; the caller updates tokens and cost on it."""
+async def step_scope(
+    run_id: str, agent: str, *, model: str | None = None, reason: str | None = None
+) -> AsyncIterator[int]:
+    """Record one run of `agent`. Yields the step row id; the caller updates tokens and cost on it.
+
+    A rerun is a "send_back" when the caller says so (see `graph.revise.rerun_reason`); otherwise it is a
+    "retry" when the previous run of the step did not finish and a "revise" when it did.
+    """
     with open_session() as session:
         attempt = (
             session.scalar(
@@ -25,16 +31,27 @@ async def step_scope(run_id: str, agent: str, *, model: str | None = None) -> As
             )
             or 0
         ) + 1
+        if attempt == 1:
+            reason = None
+        elif reason != "send_back":
+            last = session.scalar(
+                select(AgentStep.status)
+                .where(AgentStep.run_id == run_id, AgentStep.agent == agent)
+                .order_by(AgentStep.id.desc())
+                .limit(1)
+            )
+            reason = "revise" if last == "done" else "retry"  # a rerun of an unfinished step is a retry
         row = AgentStep(
-            run_id=run_id, agent=agent, status="running", attempt=attempt, model=model, started_at=now()
-        )
+            run_id=run_id, agent=agent, status="running", attempt=attempt, reason=reason, model=model,
+            started_at=now(),
+        )  # fmt: skip
         session.add(row)
         run = session.get(Run, run_id)
         if run is not None:
             run.current_step = agent
         session.commit()
         step_id = row.id
-    emit(run_id, agent, "status", status="running", attempt=attempt, model=model)
+    emit(run_id, agent, "status", status="running", attempt=attempt, reason=reason, model=model)
     try:
         yield step_id
     except asyncio.CancelledError:  # shutdown or cancel: the run is resumed later and gets a new attempt

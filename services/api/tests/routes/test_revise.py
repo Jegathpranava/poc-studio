@@ -6,7 +6,7 @@ from typing import Any
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 
-from poc_studio.db.models import Artifact
+from poc_studio.db.models import AgentStep, Artifact
 from poc_studio.db.session import open_session
 from poc_studio.llm.client import set_provider
 from poc_studio.schemas.deck import DeckPlan
@@ -53,16 +53,20 @@ def test_revising_the_deck_reruns_pitch_assemble_and_qa_only(client_for: Any, en
     assert NOTE in rec.prompts["pitch"][-1]
     assert all(NOTE not in p for p in rec.prompts["pitch"][:-1])
     with open_session() as s:
-        versions = s.scalars(
-            select(Artifact.version).where(
-                Artifact.run_id == run_id, Artifact.type == "deck", Artifact.path.like("%.json")
-            )
+        deck = s.scalars(
+            select(Artifact).where(Artifact.run_id == run_id, Artifact.type == "deck").order_by(Artifact.id)
         ).all()
-    # the deck type shares one version counter with the assembled html, so v2 may be named v3
-    assert len(versions) == 2 and max(versions) > min(versions)
-    plan = DeckPlan.model_validate_json(
-        (env / "runs" / run_id / "deck" / f"plan.v{max(versions)}.json").read_text(encoding="utf-8")
-    )
+        steps = s.scalars(
+            select(AgentStep)
+            .where(AgentStep.run_id == run_id, AgentStep.agent == "pitch")
+            .order_by(AgentStep.id)
+        ).all()
+    # the plan and the assembled html each count v1, v2 on their own
+    assert sorted(a.version for a in deck if a.path.endswith(".json")) == [1, 2]
+    assert sorted(a.version for a in deck if a.path.endswith(".html")) == [1, 2]
+    assert [(s.attempt, s.reason) for s in steps] == [(1, None), (2, "revise")]
+    plan_file = env / "runs" / run_id / "deck" / "plan.v2.json"
+    plan = DeckPlan.model_validate_json(plan_file.read_text(encoding="utf-8"))
     assert plan.slides
 
 
