@@ -31,6 +31,7 @@ class Settings(BaseSettings):
     default_fast_model: str = Field("fast", validation_alias=_a("DEFAULT_FAST_MODEL"))
     default_smart_model: str = Field("smart", validation_alias=_a("DEFAULT_SMART_MODEL"))
     polish_model: str = Field("claude-haiku-5-5", validation_alias=_a("POLISH_MODEL"))
+    llm_timeout_s: float = Field(300.0, gt=0, validation_alias=_a("LLM_TIMEOUT_S"))
     github_token: SecretStr = Field(SecretStr(""), validation_alias=_a("GITHUB_TOKEN"))
 
     database_url: str = Field(DEFAULT_DB_URL, validation_alias=_a("POC_DATABASE_URL"))

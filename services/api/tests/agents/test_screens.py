@@ -25,10 +25,12 @@ class Recorder:
     def __init__(self, fixture_dir: Path = FIXTURE_DIR) -> None:
         self.inner = MockProvider(fixture_dir)
         self.prompts: dict[str, list[str]] = {}
+        self.timeouts: dict[str, list[float]] = {}
 
     async def chat(self, model: str, messages: list[dict[str, str]], max_tokens: int, timeout: float,
                    agent: str | None = None) -> ChatReply:  # fmt: skip
         self.prompts.setdefault(agent or "", []).append("\n".join(m["content"] for m in messages))
+        self.timeouts.setdefault(agent or "", []).append(timeout)
         return await self.inner.chat(model, messages, max_tokens, timeout, agent)
 
 
@@ -70,6 +72,7 @@ def test_graph_run_repairs_and_stores_screenpack(client_for, env) -> None:
     )
     assert validate(pack, load_kit("logistics")) == []
     assert len(rec.prompts["screens"]) == 2  # invalid first, then the repaired pack
+    assert rec.timeouts["screens"] == [300.0, 300.0]
 
 
 def test_repair_prompt_names_the_issue_codes(client_for, env) -> None:

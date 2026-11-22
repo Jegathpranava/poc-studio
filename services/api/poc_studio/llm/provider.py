@@ -36,6 +36,7 @@ class GatewayProvider:
         self._client = AsyncOpenAI(
             base_url=settings.openai_base_url,
             api_key=settings.openai_api_key.get_secret_value() or "unset",
+            max_retries=0,  # complete_json owns retries; SDK retries tripled every timeout
         )
 
     async def chat(

@@ -26,11 +26,13 @@ from poc_studio.screens.validate import Issue, validate
 AGENT = "screens"
 MAX_TOKENS = 16000
 MAX_REPAIRS = 2
+TIMEOUT_S = 300.0  # a full pack from the smart reasoning model can take minutes
 
 SYSTEM = (
     "You are the Prototype Builder agent. Write the product screens of a clickable sector prototype as a "
     "ScreenPack, starting from the sector design kit you are given.\n\nRules:\n"
-    '- Write 6 to 12 screens as HTML fragments. Each fragment is rooted at `<div class="<app_class>">`. '
+    "- Keep screens focused and concise: write exactly 6 essential screens (the fewest the schema accepts) "
+    'as HTML fragments. Each fragment is rooted at `<div class="<app_class>">`. '
     "Use only classes defined in the kit CSS or in the CSS you add. Icons are "
     '`<span class="ic ic-<name>"></span>` with the names the kit lists.\n'
     "- `app_class` and `accent` are the kit's values. `product_css` is the kit's product.css, kept in "
@@ -46,7 +48,8 @@ SYSTEM = (
     "never makes network calls.\n"
     "- All data is fictional: invented people, `example.com` addresses, realistic sector numbers. Never use "
     "real people or real companies. The client's name may appear as the product or company name.\n"
-    "- Never invent facts about the client that the brief does not support."
+    "- Never invent facts about the client that the brief does not support.\n"
+    "- Output valid JSON directly, with no preamble."
 )
 
 _ORDER = {"P1": 0, "P2": 1, "P3": 2}
@@ -167,7 +170,7 @@ async def run_screens(state: RunState) -> dict[str, Any]:
         for attempt in range(MAX_REPAIRS + 1):
             result = await complete_json(
                 agent=AGENT, model=model, system=SYSTEM, user=user, schema=ScreenPack,
-                max_tokens=MAX_TOKENS, run=budget,
+                max_tokens=MAX_TOKENS, run=budget, timeout=TIMEOUT_S,
             )  # fmt: skip
             tokens_in += result.tokens_in
             tokens_out += result.tokens_out

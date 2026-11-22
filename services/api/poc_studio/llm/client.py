@@ -13,7 +13,6 @@ from poc_studio.llm.json_repair import repair_prompt, strip_fences
 from poc_studio.llm.pricing import cost_usd
 from poc_studio.llm.provider import ChatProvider, get_provider
 
-TIMEOUT_S = 90.0
 MAX_ATTEMPTS = 3  # first try plus 2 repair retries
 
 _provider: ChatProvider | None = None
@@ -74,8 +73,10 @@ async def complete_json[T: BaseModel](
     run: RunBudget,
     mask: Callable[[str], str] | None = None,
     provider: ChatProvider | None = None,
+    timeout: float | None = None,
 ) -> Result[T]:
     prov = _resolve(provider)
+    timeout_s = get_settings().llm_timeout_s if timeout is None else timeout
     if mask is not None:
         user = mask(user)
     full_system = (
@@ -92,7 +93,7 @@ async def complete_json[T: BaseModel](
     for attempt in range(1, MAX_ATTEMPTS + 1):
         prompt = "\n".join(m["content"] for m in messages)
         run.check(model, prompt, max_tokens)
-        reply = await prov.chat(model, messages, max_tokens, TIMEOUT_S, agent=agent)
+        reply = await prov.chat(model, messages, max_tokens, timeout_s, agent=agent)
         # No `usage` from the gateway: charge the pre-call estimate (worst case), never $0.
         used_in = count_tokens(prompt) if reply.tokens_in is None else reply.tokens_in
         used_out = max_tokens if reply.tokens_out is None else reply.tokens_out
