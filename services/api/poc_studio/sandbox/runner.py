@@ -9,7 +9,6 @@ import asyncio
 import os
 import shutil
 import subprocess
-import sys
 import time
 from pathlib import Path
 
@@ -17,12 +16,12 @@ from pydantic import BaseModel
 
 from poc_studio.redact import redact
 from poc_studio.sandbox.errors import BuildError, parse_build_error, strip_ansi
+from poc_studio.sandbox.procs import IS_WINDOWS, kill_pid_tree
 from poc_studio.screens.kits import TEMPLATES_DIR
 
 INSTALL_TIMEOUT_S = 180.0
 BUILD_TIMEOUT_S = 90.0
 LOG_TAIL_CHARS = 6000
-IS_WINDOWS = sys.platform == "win32"
 
 # Only these variables reach the child. Nothing else from os.environ, and nothing from `.env`.
 ENV_ALLOW = (
@@ -94,17 +93,7 @@ def _command(args: list[str], app_dir: Path) -> list[str]:
 def _kill_tree(proc: asyncio.subprocess.Process) -> None:
     if proc.returncode is not None:
         return
-    if IS_WINDOWS:
-        subprocess.run(
-            ["taskkill", "/T", "/F", "/PID", str(proc.pid)], capture_output=True, check=False, timeout=15
-        )
-    else:
-        import signal
-
-        try:
-            os.killpg(proc.pid, signal.SIGKILL)  # pyright: ignore[reportAttributeAccessIssue]
-        except ProcessLookupError:
-            pass
+    kill_pid_tree(proc.pid)
     try:
         proc.kill()
     except ProcessLookupError:

@@ -1,0 +1,14 @@
+/* Prototype page: device frame, preview iframe and the read-only file tree. */
+.frame-wrap { background: var(--color-sunken); border-radius: 0 0 var(--radius-lg) var(--radius-lg); padding: var(--space-6); display: flex; justify-content: center; }
+.device { background: var(--color-surface); border: 1px solid var(--color-border-strong); border-radius: var(--radius-md); overflow: hidden; width: 100%; max-width: 860px; transition: max-width var(--duration) var(--ease-out); }
+.device.mobile { max-width: 340px; }
+.device-bar { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3); border-bottom: 1px solid var(--color-border); font-family: var(--font-mono); font-size: var(--text-xs); color: var(--color-muted); }
+.device-bar .url { flex: 1; background: var(--color-bg); border-radius: var(--radius-sm); padding: 2px var(--space-2); overflow-wrap: anywhere; }
+.proto-frame { display: block; width: 100%; height: 560px; border: 0; background: var(--color-surface); }
+.tree { font-family: var(--font-mono); font-size: var(--text-xs); line-height: 1.8; max-height: 360px; overflow: auto; }
+.tree .d { color: var(--color-muted); }
+.tree-list { list-style: none; margin: 0; padding: 0; }
+.tree-list .tree-list { padding-left: var(--space-4); }
+.tree-list li > span { display: inline-flex; align-items: center; gap: var(--space-1); }
+.tree-list .icon { width: 12px; height: 12px; flex: none; }
+@media (max-width: 680px) { .frame-wrap { padding: var(--space-3); } }

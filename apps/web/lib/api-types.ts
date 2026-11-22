@@ -65,7 +65,8 @@ export interface paths {
         };
         /**
          * Stream Events
-         * @description `follow=false` ends the stream after the replay (for tests and curl).
+         * @description `follow=false` ends the stream after the replay (for tests and curl). `after=<id>` is the same as
+         *     Last-Event-ID, for a client that reconnects by hand (EventSource only sends the header by itself).
          */
         get: operations["stream_events_api_runs__run_id__events_get"];
         put?: never;
@@ -124,6 +125,63 @@ export interface paths {
         get: operations["download_markdown_artifact_api_runs__run_id__artifacts__artifact_type__markdown_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/runs/{run_id}/files": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get File Tree
+         * @description The prototype app's file tree. There is no path input: the root is always `runs/<id>/app`.
+         */
+        get: operations["get_file_tree_api_runs__run_id__files_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/runs/{run_id}/build": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Build
+         * @description `build.json`: ok, duration_s, attempts, error, log_tail.
+         */
+        get: operations["get_build_api_runs__run_id__build_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/runs/{run_id}/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start Preview */
+        post: operations["start_preview_api_runs__run_id__preview_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -221,6 +279,20 @@ export interface components {
             /** Id */
             id: string;
         };
+        /** FileNode */
+        FileNode: {
+            /** Name */
+            name: string;
+            /** Path */
+            path: string;
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "file" | "dir";
+            /** Children */
+            children?: components["schemas"]["FileNode"][] | null;
+        };
         /** GateDecisionRequest */
         GateDecisionRequest: {
             /**
@@ -282,6 +354,13 @@ export interface components {
              * @constant
              */
             db: "ok";
+        };
+        /** PreviewInfo */
+        PreviewInfo: {
+            /** Url */
+            url: string;
+            /** Port */
+            port: number;
         };
         /** RunDetail */
         RunDetail: {
@@ -478,6 +557,7 @@ export interface operations {
     stream_events_api_runs__run_id__events_get: {
         parameters: {
             query?: {
+                after?: string | null;
                 follow?: boolean;
             };
             header?: {
@@ -597,6 +677,101 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_file_tree_api_runs__run_id__files_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FileNode"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_build_api_runs__run_id__build_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    start_preview_api_runs__run_id__preview_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreviewInfo"];
                 };
             };
             /** @description Validation Error */

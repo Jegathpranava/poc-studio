@@ -7,6 +7,18 @@ export type RunDetail = components["schemas"]["RunDetail"];
 export type RunStatus = RunSummary["status"];
 export type HealthResponse = components["schemas"]["HealthResponse"];
 export type GateDecisionResponse = components["schemas"]["GateDecisionResponse"];
+export type FileNode = components["schemas"]["FileNode"];
+export type PreviewInfo = components["schemas"]["PreviewInfo"];
+
+/** `build.json`, written by the Prototype Builder. `error` is the structured build error. */
+export interface BuildInfo {
+  ok: boolean;
+  duration_s: number;
+  attempts?: number | null;
+  install_s?: number | null;
+  error?: { file?: string | null; line?: number | null; col?: number | null; message: string; excerpt?: string | null } | null;
+  log_tail?: string;
+}
 
 export const BASE_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000").replace(/\/$/, "");
 
@@ -76,6 +88,10 @@ export const api = {
     requirements: (id: string) => request<ArtifactJson<Requirements>>(`/api/runs/${id}/artifacts/requirements`),
     architecture: (id: string) => request<ArtifactJson<Architecture>>(`/api/runs/${id}/artifacts/architecture`),
     architectureMarkdownUrl: (id: string) => `${BASE_URL}/api/runs/${id}/artifacts/architecture/markdown`,
+    files: (id: string) => request<FileNode[]>(`/api/runs/${id}/files`),
+    build: (id: string) => request<BuildInfo>(`/api/runs/${id}/build`),
+    /** Starts (or reuses) the preview server. Calling it again counts as activity for the idle timer. */
+    startPreview: (id: string) => request<PreviewInfo>(`/api/runs/${id}/preview`, { method: "POST" }),
     decideScope: (id: string, body: { decision: "approve" | "changes"; edits?: Requirements; note?: string }) =>
       request<GateDecisionResponse>(`/api/runs/${id}/gates/scope`, json(body)),
   },

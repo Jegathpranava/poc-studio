@@ -1,5 +1,5 @@
-import { RunPlaceholder } from "@/components/run/run-placeholder";
+import { PrototypeView } from "@/components/prototype/prototype-view";
 
-export default function Page() {
-  return <RunPlaceholder title="Prototype" after="the architecture is designed" />;
+export default function PrototypePage() {
+  return <PrototypeView />;
 }
