@@ -1,4 +1,5 @@
-<section class="screen" id="architecture" data-title="Architecture" data-nav="runs" data-screen="Architecture">
+<section class="screen" id="architecture" data-title="Architecture" data-nav="runs" data-screen="Architecture"
+  data-run="r_7f3c" data-client="Kestrel Freight Co." data-sector="Logistics" data-state="run" data-state-label="Building prototype and deck" data-tab="architecture">
   <div class="page-head">
     <div>
       <div class="crumbs"><a href="#runs" data-go="runs">Runs</a><svg data-icon="right"></svg><a href="#live-run" data-go="live-run">Kestrel Freight Co.</a><svg data-icon="right"></svg><span>Architecture</span></div>
@@ -40,19 +41,19 @@
     <div class="stack">
       <div class="panel">
         <div class="panel-head"><h2>Model picks</h2></div>
-        <table class="table">
+        <div class="table-wrap"><table class="table cards">
           <thead><tr><th>Job</th><th>Model</th><th class="r">Per 1k calls</th></tr></thead>
           <tbody>
-            <tr><td>Dispatch reasoning</td><td class="mono small">smart</td><td class="r mono num">$1.90</td></tr>
-            <tr><td>Note summaries</td><td class="mono small">fast</td><td class="r mono num">$0.20</td></tr>
-            <tr><td>Embeddings</td><td class="mono small">text-embed-3-small</td><td class="r mono num">$0.02</td></tr>
-            <tr><td>ETA prediction</td><td class="mono small">LightGBM</td><td class="r mono num">$0.00</td></tr>
+            <tr><td data-label="Job">Dispatch reasoning</td><td class="mono small" data-label="Model">smart</td><td class="r mono num" data-label="Per 1k calls">$1.90</td></tr>
+            <tr><td data-label="Job">Note summaries</td><td class="mono small" data-label="Model">fast</td><td class="r mono num" data-label="Per 1k calls">$0.20</td></tr>
+            <tr><td data-label="Job">Embeddings</td><td class="mono small" data-label="Model">text-embed-3-small</td><td class="r mono num" data-label="Per 1k calls">$0.02</td></tr>
+            <tr><td data-label="Job">ETA prediction</td><td class="mono small" data-label="Model">LightGBM</td><td class="r mono num" data-label="Per 1k calls">$0.00</td></tr>
           </tbody>
-        </table>
+        </table></div>
       </div>
       <div class="panel">
         <div class="panel-head"><h2>Monthly cost, pilot scale</h2><span class="xs muted">40 dispatchers, 6k queries</span></div>
-        <table class="table">
+        <div class="table-wrap"><table class="table cards">
           <tbody>
             <tr><td>LLM calls</td><td class="r mono num">$84</td></tr>
             <tr><td>Vector store</td><td class="r mono num">$25</td></tr>
@@ -60,7 +61,7 @@
             <tr><td>Monitoring</td><td class="r mono num">$15</td></tr>
             <tr><td><b>Total</b></td><td class="r mono num"><b>$186</b></td></tr>
           </tbody>
-        </table>
+        </table></div>
       </div>
     </div>
   </div>

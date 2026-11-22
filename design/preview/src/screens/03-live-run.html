@@ -1,86 +1,95 @@
-<section class="screen" id="live-run" data-title="Live run" data-nav="runs" data-screen="Live run">
+<section class="screen" id="live-run" data-title="Live run" data-nav="runs" data-screen="Live run"
+  data-run="r_7f3c" data-client="Kestrel Freight Co." data-sector="Logistics" data-state="run" data-state-label="Building prototype and deck" data-tab="live-run">
   <div class="page-head">
     <div>
-      <div class="crumbs"><a href="#runs" data-go="runs">Runs</a><svg data-icon="right"></svg><span>Kestrel Freight Co.</span></div>
       <h1>Dispatch copilot for regional hauls</h1>
-      <p class="small muted"><span class="tag">Logistics</span> &nbsp;Started 2m 41s ago from 2 files</p>
+      <p class="small muted">Started 2m 41s ago from 2 files</p>
     </div>
-    <div class="actions"><span class="status run">Building prototype and deck</span></div>
   </div>
-  <nav class="seg run-tabs" aria-label="Run outputs">
-    <button aria-pressed="true" aria-current="page">Timeline</button><button aria-pressed="false" data-go="gate-1">Brief</button><button aria-pressed="false" data-go="architecture">Architecture</button><button aria-pressed="false" data-go="prototype">Prototype</button><button aria-pressed="false" data-go="deck">Deck and video</button>
-  </nav>
   <div class="grid-2">
     <div class="panel">
-      <div class="panel-head"><h2>Agents</h2><span class="xs muted mono num">tokens 61.4k &nbsp;paid $0.00 / $0.05</span></div>
+      <div class="panel-head"><h2>Agents</h2><span class="xs muted mono num">61.4k tokens &nbsp;$0.000 of $0.05</span></div>
       <div class="pipeline">
-        <div class="step done"><span class="node"><svg data-icon="check"></svg></span><div><div class="step-title">Meeting Intelligence</div><div class="step-sub">12 features, 4 stakeholders, 6 action items, budget about $40k</div></div><div class="step-meta">31s<br>fast</div></div>
+        <div class="step done"><span class="node"><svg data-icon="check"></svg></span>
+          <div class="step-body"><div class="step-title">Meeting Intelligence</div><div class="step-sub">12 features, 4 stakeholders, 6 action items, budget about $40k</div>
+            <details class="steplog"><summary>Output log, 4 lines</summary><div class="log"><div><span class="t">00:00</span>read 2 inputs, 9,412 + 3,880 words</div><div><span class="t">00:22</span>extracted 12 features, 6 action items</div><div><span class="t">00:30</span><span class="ok">ok    requirements.json valid (schema v1)</span></div><div><span class="t">00:31</span>handed to Gate 1</div></div></details>
+          </div>
+          <div class="step-meta"><span>31s</span><span>24.1k tok</span><span class="cost">$0.000 / Ollama fast</span></div></div>
         <div class="gate passed"><div class="gate-title"><span class="gnode"><svg data-icon="check"></svg></span>Gate 1 approved by you, 2 edits</div><a href="#gate-1" data-go="gate-1" class="small">View brief</a></div>
-        <div class="step done"><span class="node"><svg data-icon="check"></svg></span><div><div class="step-title">Solution Architect</div><div class="step-sub">Agent + RAG over route history. 3 models, $186 a month at pilot scale</div></div><div class="step-meta">58s<br>smart</div></div>
-        <div class="step active"><span class="node"><svg data-icon="code"></svg></span><div><div class="step-title">Prototype Builder <span class="tag">build attempt 2 of 3</span></div><div class="step-sub">Fixed a missing import in app/routes/page.tsx, rebuilding</div></div><div class="step-meta">1m 12s<br>smart</div></div>
-        <div class="step active"><span class="node"><svg data-icon="presentation"></svg></span><div><div class="step-title">Pitch and Docs <span class="tag">in parallel</span></div><div class="step-sub">Slides 6 of 9 drafted. Video waits for the build.</div></div><div class="step-meta">49s<br>fast</div></div>
-        <div class="step"><span class="node"><svg data-icon="shield"></svg></span><div><div class="step-title">QA Reviewer</div><div class="step-sub">Waits for the prototype and deck</div></div><div class="step-meta">-</div></div>
+        <div class="step done"><span class="node"><svg data-icon="check"></svg></span>
+          <div class="step-body"><div class="step-title">Solution Architect</div><div class="step-sub">Agent + RAG over route history. 3 models, $186 a month at pilot scale</div>
+            <details class="steplog"><summary>Output log, 3 lines</summary><div class="log"><div><span class="t">01:03</span>use case: agent + retrieval</div><div><span class="t">01:40</span>priced 4 components at pilot scale</div><div><span class="t">02:00</span><span class="ok">ok    architecture.md, 1 diagram, cost table</span></div></div></details>
+          </div>
+          <div class="step-meta"><span>58s</span><span>18.9k tok</span><span class="cost">$0.000 / Ollama smart</span></div></div>
+        <div class="step active"><span class="node"><svg data-icon="code"></svg></span>
+          <div class="step-body"><div class="step-title">Prototype Builder <span class="tag attempt">Attempt 2 of 3</span></div><div class="step-sub">Fixed a missing import, rebuilding</div>
+            <details class="steplog"><summary>Output log, 6 lines</summary><div class="log"><div><span class="t">02:01</span>template logistics-dispatch v3</div><div><span class="t">02:22</span>wrote 41 files, npm run build</div><div class="errline"><span class="t">02:29</span><span class="err">err   ./app/dispatch/page.tsx:7:1 Module not found: Can't resolve '@/lib/routes'</span></div><div><span class="t">02:30</span>fix: added lib/routes.ts</div><div><span class="t">02:41</span>npm run build (attempt 2)</div><div><span class="t">02:41</span>compiling...</div></div></details>
+          </div>
+          <div class="step-meta"><span>1m 12s</span><span>18.4k tok</span><span class="cost">$0.000 / Ollama smart</span></div></div>
+        <div class="step active"><span class="node"><svg data-icon="presentation"></svg></span>
+          <div class="step-body"><div class="step-title">Pitch and Docs <span class="tag">in parallel</span></div><div class="step-sub">Slides 6 of 9 drafted. Video waits for the build.</div>
+            <details class="steplog"><summary>Output log, 2 lines</summary><div class="log"><div><span class="t">02:05</span>outline: 9 slides</div><div><span class="t">02:38</span>slide 6 "Architecture" drafted</div></div></details>
+          </div>
+          <div class="step-meta"><span>49s</span><span>0 tok so far</span><span class="cost">$0.000 / Haiku 5.5 next</span></div></div>
+        <div class="step"><span class="node"><svg data-icon="shield"></svg></span><div class="step-body"><div class="step-title">QA Reviewer</div><div class="step-sub">Waits for the prototype and deck</div></div><div class="step-meta"><span>-</span></div></div>
         <div class="gate"><div class="gate-title"><span class="gnode"><svg data-icon="pause"></svg></span>Gate 2: you preview before anything is published</div><span class="xs muted">Not reached yet</span></div>
-        <div class="step"><span class="node"><svg data-icon="branch"></svg></span><div><div class="step-title">Repo and DevOps</div><div class="step-sub">Creates the GitHub repo after your approval</div></div><div class="step-meta">-</div></div>
+        <div class="step"><span class="node"><svg data-icon="branch"></svg></span><div class="step-body"><div class="step-title">Repo and DevOps</div><div class="step-sub">Creates the GitHub repo after your approval</div></div><div class="step-meta"><span>-</span></div></div>
       </div>
     </div>
     <div class="stack">
       <div class="panel">
-        <div class="panel-head"><h2>Live log</h2><span class="status run">Streaming</span></div>
-        <div class="log" aria-live="polite">
-          <div><span class="t">00:00</span>orchestrator  run r_7f3c started, 2 inputs</div>
-          <div><span class="t">00:31</span><span class="ok">ok    intelligence  requirements.json valid (schema v1)</span></div>
-          <div><span class="t">01:02</span>gate.scope    approved, 2 edits</div>
-          <div><span class="t">02:00</span><span class="ok">ok    architect     architecture.md, 1 diagram, cost table</span></div>
-          <div><span class="t">02:01</span>builder       template logistics-dispatch v3</div>
-          <div><span class="t">02:22</span>builder       wrote 41 files, npm run build</div>
-          <div><span class="t">02:29</span><span class="warn">warn  builder       build failed: Cannot find module '@/lib/routes'</span></div>
-          <div><span class="t">02:30</span>builder       fix attempt 1: add lib/routes.ts</div>
-          <div><span class="t">02:38</span>pitch         slide 6 "Architecture" drafted</div>
-          <div><span class="t">02:41</span>builder       npm run build (attempt 2)</div>
-        </div>
+        <div class="panel-head"><h2>Cost by model</h2></div>
+        <div class="table-wrap"><table class="table cards">
+          <thead><tr><th>Model</th><th class="r">Tokens</th><th class="r">Cost</th></tr></thead>
+          <tbody>
+            <tr><td data-label="Model">Ollama fast</td><td class="r mono num" data-label="Tokens">24.1k</td><td class="r mono num" data-label="Cost">$0.000</td></tr>
+            <tr><td data-label="Model">Ollama smart</td><td class="r mono num" data-label="Tokens">37.3k</td><td class="r mono num" data-label="Cost">$0.000</td></tr>
+            <tr><td data-label="Model">claude-haiku-5-5</td><td class="r mono num" data-label="Tokens">0</td><td class="r mono num" data-label="Cost">$0.000</td></tr>
+          </tbody>
+        </table></div>
       </div>
-      <div class="panel"><div class="panel-body">
-        <div class="small"><b>Cost so far</b></div>
-        <ul class="list">
-          <li><span class="grow">fast (free)</span><span class="mono num small">24.1k tokens</span></li>
-          <li><span class="grow">smart (free)</span><span class="mono num small">37.3k tokens</span></li>
-          <li><span class="grow">claude-haiku-5-5 (deck polish)</span><span class="mono num small">not used yet</span></li>
-        </ul>
+      <div class="panel"><div class="panel-body small">
+        <b>Next for you</b>
+        <p style="margin-top:var(--space-2)">Gate 2 opens when QA passes, in about 1 minute. You get a notification in this tab.</p>
       </div></div>
     </div>
   </div>
 </section>
 
-<section class="screen" id="live-run-fail" data-title="Live run (step failed)" data-nav="runs" data-screen="Live run">
+<section class="screen" id="live-run-fail" data-title="Live run (step failed)" data-nav="runs" data-screen="Live run"
+  data-run="r_5a91" data-client="Brightwater Physio" data-sector="Healthcare" data-state="fail" data-state-label="Needs attention" data-tab="live-run">
   <div class="page-head">
     <div>
-      <div class="crumbs"><a href="#runs" data-go="runs">Runs</a><svg data-icon="right"></svg><span>Brightwater Physio</span></div>
       <h1>Session notes to treatment plan summaries</h1>
-      <p class="small muted"><span class="tag">Healthcare</span> &nbsp;Stopped after 3m 55s</p>
+      <p class="small muted">Stopped after 3m 55s. The brief, spec and deck are saved.</p>
     </div>
-    <div class="actions"><span class="status fail">Needs attention</span></div>
   </div>
   <div class="grid-2">
     <div class="panel">
-      <div class="panel-head"><h2>Agents</h2><span class="xs muted mono num">tokens 88.2k &nbsp;paid $0.01 / $0.05</span></div>
+      <div class="panel-head"><h2>Agents</h2><span class="xs muted mono num">88.2k tokens &nbsp;$0.010 of $0.05</span></div>
       <div class="pipeline">
-        <div class="step done"><span class="node"><svg data-icon="check"></svg></span><div><div class="step-title">Meeting Intelligence</div><div class="step-sub">9 features, 3 stakeholders, 4 action items</div></div><div class="step-meta">28s<br>fast</div></div>
+        <div class="step done"><span class="node"><svg data-icon="check"></svg></span><div class="step-body"><div class="step-title">Meeting Intelligence</div><div class="step-sub">9 features, 3 stakeholders, 4 action items</div></div><div class="step-meta"><span>28s</span><span>19.0k tok</span><span class="cost">$0.000 / Ollama fast</span></div></div>
         <div class="gate passed"><div class="gate-title"><span class="gnode"><svg data-icon="check"></svg></span>Gate 1 approved by you</div><a href="#gate-1" data-go="gate-1" class="small">View brief</a></div>
-        <div class="step done"><span class="node"><svg data-icon="check"></svg></span><div><div class="step-title">Solution Architect</div><div class="step-sub">Summariser + RAG over clinic protocols, $94 a month</div></div><div class="step-meta">52s<br>smart</div></div>
-        <div class="step fail"><span class="node"><svg data-icon="x"></svg></span><div><div class="step-title">Prototype Builder <span class="tag">3 of 3 attempts used</span></div><div class="step-sub">Type error in app/plans/page.tsx:42</div><div class="actions" style="margin-top:var(--space-2)"><button class="btn sm primary" data-toast="retry"><svg data-icon="refresh"></svg>Retry with 3 more attempts</button><button class="btn sm" data-open="modal-changes">Retry with a note</button></div></div><div class="step-meta">2m 10s<br>smart</div></div>
-        <div class="step done"><span class="node"><svg data-icon="check"></svg></span><div><div class="step-title">Pitch and Docs</div><div class="step-sub">Deck ready. Video waits for a passing build.</div></div><div class="step-meta">51s<br>fast</div></div>
-        <div class="step"><span class="node"><svg data-icon="shield"></svg></span><div><div class="step-title">QA Reviewer</div><div class="step-sub">Not started</div></div><div class="step-meta">-</div></div>
+        <div class="step done"><span class="node"><svg data-icon="check"></svg></span><div class="step-body"><div class="step-title">Solution Architect</div><div class="step-sub">Summariser + RAG over clinic protocols, $94 a month</div></div><div class="step-meta"><span>52s</span><span>16.2k tok</span><span class="cost">$0.000 / Ollama smart</span></div></div>
+        <div class="step fail"><span class="node"><svg data-icon="x"></svg></span>
+          <div class="step-body"><div class="step-title">Prototype Builder <span class="tag attempt fail">Attempt 3 of 3</span></div>
+            <div class="errbox"><div class="errbox-head"><svg data-icon="alertc"></svg>TypeScript error, build stopped</div>
+              <pre class="code"><span class="ln">41</span>  const plans = useSessions(patientId)
+<span class="ln hl">42</span>  return &lt;PlanList plans={<mark>sessions</mark>} /&gt;
+<span class="ln">43</span>}</pre>
+              <div class="xs mono">app/plans/page.tsx:42:30  Type 'Session[]' is not assignable to type 'Plan[]'.</div>
+            </div>
+            <div class="actions" style="margin-top:var(--space-3)"><button class="btn sm primary" data-toast="retry"><svg data-icon="refresh"></svg>Retry with 3 more attempts</button><button class="btn sm" data-open="modal-changes">Retry with a note</button></div>
+            <details class="steplog"><summary>Output log, 9 lines</summary><div class="log"><div><span class="t">02:10</span>template healthcare-intake v2</div><div><span class="t">02:31</span>npm run build (attempt 1)</div><div class="errline"><span class="t">02:44</span><span class="err">err   app/plans/page.tsx:42:30 Type 'Session[]' is not assignable to type 'Plan[]'</span></div><div><span class="t">02:45</span>fix 1: renamed variable</div><div class="errline"><span class="t">03:01</span><span class="err">err   same error (attempt 2)</span></div><div><span class="t">03:02</span>fix 2: cast type</div><div class="errline"><span class="t">03:24</span><span class="err">err   same error (attempt 3)</span></div><div><span class="t">03:24</span>gave up after 3 attempts</div><div><span class="t">03:25</span><span class="ok">ok    brief, spec and deck saved</span></div></div></details>
+          </div>
+          <div class="step-meta"><span>2m 10s</span><span>34.8k tok</span><span class="cost">$0.000 / Ollama smart</span></div></div>
+        <div class="step done"><span class="node"><svg data-icon="check"></svg></span><div class="step-body"><div class="step-title">Pitch and Docs</div><div class="step-sub">Deck ready. Video waits for a passing build.</div></div><div class="step-meta"><span>51s</span><span>18.2k tok</span><span class="cost">$0.010 / Haiku 5.5</span></div></div>
+        <div class="step"><span class="node"><svg data-icon="shield"></svg></span><div class="step-body"><div class="step-title">QA Reviewer</div><div class="step-sub">Not started</div></div><div class="step-meta"><span>-</span></div></div>
       </div>
     </div>
-    <div class="panel">
-      <div class="panel-head"><h2>Live log</h2><span class="status fail">Stopped</span></div>
-      <div class="log">
-        <div><span class="t">03:12</span>builder       npm run build (attempt 3)</div>
-        <div><span class="t">03:24</span><span class="err">err   Type &#39;Session[]&#39; is not assignable to type &#39;Plan[]&#39;</span></div>
-        <div><span class="t">03:24</span><span class="err">err   builder gave up after 3 attempts</span></div>
-        <div><span class="t">03:25</span><span class="ok">ok    brief, spec and deck saved</span></div>
-      </div>
-    </div>
+    <div class="panel"><div class="panel-body small">
+      <b>Why it stopped</b>
+      <p style="margin-top:var(--space-2)">The builder repeated the same fix three times. A note usually helps, for example "plans come from usePlans, not useSessions".</p>
+    </div></div>
   </div>
 </section>

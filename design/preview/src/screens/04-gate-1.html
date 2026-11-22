@@ -1,13 +1,13 @@
-<section class="screen" id="gate-1" data-title="Gate 1: brief" data-nav="runs" data-screen="Gate 1 brief">
+<section class="screen" id="gate-1" data-title="Gate 1: brief" data-nav="runs" data-screen="Gate 1 brief"
+  data-run="r_2c18" data-client="Maple &amp; Moss Dental Group" data-sector="Healthcare" data-state="wait" data-state-label="Waiting at Gate 1" data-tab="gate-1">
   <div class="page-head">
     <div>
       <div class="crumbs"><a href="#runs" data-go="runs">Runs</a><svg data-icon="right"></svg><span>Maple &amp; Moss Dental Group</span></div>
       <h1>Review the brief</h1>
       <p class="small muted">Nothing is designed or built until you approve. Edit anything that is wrong; this is the cheapest place to fix it.</p>
     </div>
-    <div class="actions"><button class="btn"><svg data-icon="refresh"></svg>Re-extract with a note</button><button class="btn primary" data-go="live-run" data-toast="approved1"><svg data-icon="check"></svg>Approve brief</button></div>
   </div>
-  <div class="banner warn"><svg data-icon="pause"></svg><div class="grow"><b>Run paused at Gate 1.</b> <span class="muted">Extracted in 38 s from a 31 min call and a 6 page TRD.</span></div></div>
+  <p class="small" style="margin:calc(-1 * var(--space-3)) 0 var(--space-4)">Extracted in 38 s from a 31 min call and a 6 page TRD.</p>
   <div class="grid-2">
     <div class="stack">
       <div class="panel">
@@ -62,5 +62,9 @@
         <button class="more" data-more>Show more</button>
       </div></div>
     </div>
+  </div>
+  <div class="action-bar" role="region" aria-label="Gate 1 decision">
+    <div class="ab-text"><span class="gnode wait"><svg data-icon="pause"></svg></span><div><b>Gate 1: approve the brief</b><div class="xs muted">1 field needs a check. Nothing is designed or built until you approve.</div></div></div>
+    <div class="actions"><button class="btn"><svg data-icon="refresh"></svg>Re-extract with a note</button><button class="btn primary" data-go="live-run" data-toast="approved1"><svg data-icon="check"></svg>Approve brief</button></div>
   </div>
 </section>

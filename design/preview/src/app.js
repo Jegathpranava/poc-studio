@@ -24,6 +24,17 @@ function renderRuns(q = '') {
 renderRuns()
 $('#runs-q')?.addEventListener('input', (e) => renderRuns(e.target.value))
 
+// Sticky run sub-nav on every run view
+const RUN_TABS = [['live-run', 'Timeline'], ['gate-1', 'Brief'], ['architecture', 'Architecture'], ['prototype', 'Prototype'], ['deck', 'Deck and video'], ['gate-2', 'Publish']]
+$$('.screen[data-run]').forEach((s) => {
+  const d = s.dataset
+  const bar = document.createElement('div')
+  bar.className = 'subnav'
+  const tabs = RUN_TABS.map(([id, t]) => '<a href="#' + id + '" data-go="' + id + '"' + (id === d.tab ? ' aria-current="page"' : '') + '>' + t + '</a>').join('')
+  bar.innerHTML = '<div class="subnav-id"><a href="#runs" data-go="runs">Runs</a><span class="sep">/</span><b>' + d.client + '</b><span class="rid" title="Run ID">' + d.run + '</span><span class="tag">' + d.sector + '</span><span class="badge ' + d.state + '" role="status">' + d.stateLabel + '</span></div><nav class="subnav-tabs" aria-label="Run pages">' + tabs + '</nav>'
+  s.prepend(bar)
+})
+
 // Screen switching
 const screens = $$('.screen')
 const nav = $('#nav')
@@ -31,7 +42,7 @@ function show(id) {
   const s = screens.find((x) => x.id === id) || screens[0]
   screens.forEach((x) => x.classList.toggle('active', x === s))
   ;[...nav.children].forEach((b) => b.setAttribute('aria-current', String(b.dataset.id === s.id)))
-  document.body.classList.toggle('no-chrome', s.dataset.chrome === 'none')
+  document.body.classList.toggle('public', s.dataset.chrome === 'none')
   $$('[data-nav]').forEach((a) => a.toggleAttribute('aria-current', false))
   $$(`[data-nav="${s.dataset.nav}"]`).forEach((a) => a.setAttribute('aria-current', 'page'))
   history.replaceState(null, '', '#' + s.id)
