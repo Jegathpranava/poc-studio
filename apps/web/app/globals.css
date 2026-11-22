@@ -9,6 +9,7 @@
 @import "./run.css";
 @import "./prototype.css";
 @import "./deck.css";
+@import "./publish.css";
 
 /* Tailwind utilities for the frozen tokens. tokens.css keeps the original names;
    the aliases below give utilities such as bg-panel, text-ink-muted, border-line. */

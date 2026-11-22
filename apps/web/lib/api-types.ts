@@ -280,6 +280,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/runs/{run_id}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Publish */
+        get: operations["get_publish_api_runs__run_id__publish_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -322,7 +339,7 @@ export interface components {
              * Type
              * @enum {string}
              */
-            type: "requirements" | "architecture" | "prototype" | "deck" | "pptx" | "video" | "docs" | "qa_report" | "share_export" | "screenpack";
+            type: "requirements" | "architecture" | "prototype" | "deck" | "pptx" | "video" | "docs" | "qa_report" | "share_export" | "screenpack" | "repo";
             /** Version */
             version: number;
             /** Data */
@@ -338,7 +355,7 @@ export interface components {
              * Type
              * @enum {string}
              */
-            type: "requirements" | "architecture" | "prototype" | "deck" | "pptx" | "video" | "docs" | "qa_report" | "share_export" | "screenpack";
+            type: "requirements" | "architecture" | "prototype" | "deck" | "pptx" | "video" | "docs" | "qa_report" | "share_export" | "screenpack" | "repo";
             /** Version */
             version: number;
             /** Path */
@@ -398,6 +415,7 @@ export interface components {
             } | null;
             /** Note */
             note?: string | null;
+            options?: components["schemas"]["PublishOptionsRequest"] | null;
         };
         /** GateDecisionResponse */
         GateDecisionResponse: {
@@ -453,6 +471,70 @@ export interface components {
             url: string;
             /** Port */
             port: number;
+        };
+        /**
+         * PublishOptionsRequest
+         * @description Gate 2 options. A missing `repo_name` defaults to the client and title slug plus `-poc`.
+         */
+        PublishOptionsRequest: {
+            /** Repo Name */
+            repo_name?: string | null;
+            /**
+             * Private
+             * @default true
+             */
+            private: boolean;
+            /**
+             * Open Issues
+             * @default true
+             */
+            open_issues: boolean;
+            /**
+             * Add Ci
+             * @default true
+             */
+            add_ci: boolean;
+        };
+        /** PublishResult */
+        PublishResult: {
+            /** Repo Url */
+            repo_url: string;
+            /** Name */
+            name: string;
+            /** Private */
+            private: boolean;
+            /** Issues */
+            issues: string[];
+            /** Pushed */
+            pushed: boolean;
+            /** Mode */
+            mode: string;
+            /** File Count */
+            file_count: number;
+            /** Commit */
+            commit?: string | null;
+        };
+        /** PublishStatus */
+        PublishStatus: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "publishing" | "delivered" | "failed";
+            /**
+             * Mode
+             * @enum {string}
+             */
+            mode: "mock" | "live";
+            /** Blocked */
+            blocked: boolean;
+            /** Options */
+            options?: {
+                [key: string]: unknown;
+            } | null;
+            result?: components["schemas"]["PublishResult"] | null;
+            /** Error */
+            error?: string | null;
         };
         /** RunDetail */
         RunDetail: {
@@ -724,7 +806,7 @@ export interface operations {
             header?: never;
             path: {
                 run_id: string;
-                artifact_type: "requirements" | "architecture" | "prototype" | "deck" | "pptx" | "video" | "docs" | "qa_report" | "share_export" | "screenpack";
+                artifact_type: "requirements" | "architecture" | "prototype" | "deck" | "pptx" | "video" | "docs" | "qa_report" | "share_export" | "screenpack" | "repo";
             };
             cookie?: never;
         };
@@ -756,7 +838,7 @@ export interface operations {
             header?: never;
             path: {
                 run_id: string;
-                artifact_type: "requirements" | "architecture" | "prototype" | "deck" | "pptx" | "video" | "docs" | "qa_report" | "share_export" | "screenpack";
+                artifact_type: "requirements" | "architecture" | "prototype" | "deck" | "pptx" | "video" | "docs" | "qa_report" | "share_export" | "screenpack" | "repo";
             };
             cookie?: never;
         };
@@ -1024,6 +1106,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PreviewInfo"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_publish_api_runs__run_id__publish_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublishStatus"];
                 };
             };
             /** @description Validation Error */

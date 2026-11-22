@@ -31,6 +31,7 @@ AGENT_MODULES: tuple[str, ...] = (
     "poc_studio.agents.assemble",
     "poc_studio.agents.qa",
     "poc_studio.agents.video",
+    "poc_studio.agents.repo",
 )
 
 

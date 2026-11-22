@@ -10,7 +10,7 @@ RunStatus = Literal[
 ]
 ArtifactType = Literal[
     "requirements", "architecture", "prototype", "deck", "pptx", "video",
-    "docs", "qa_report", "share_export", "screenpack",
+    "docs", "qa_report", "share_export", "screenpack", "repo",
 ]  # fmt: skip
 GateScope = Literal["scope", "publish"]
 RunId = Field(pattern=r"^r_[0-9a-f]{6}$")
@@ -96,10 +96,23 @@ class CreateRunResponse(BaseModel):
 
 
 # --- gates, revise, retry, budget ----------------------------------------------
+REPO_NAME_PATTERN = r"^[A-Za-z0-9._-]{1,100}$"
+
+
+class PublishOptionsRequest(BaseModel):
+    """Gate 2 options. A missing `repo_name` defaults to the client and title slug plus `-poc`."""
+
+    repo_name: str | None = Field(default=None, pattern=REPO_NAME_PATTERN)
+    private: bool = True
+    open_issues: bool = True
+    add_ci: bool = True
+
+
 class GateDecisionRequest(BaseModel):
     decision: Literal["approve", "changes"]
     edits: dict[str, object] | None = None
     note: str | None = None
+    options: PublishOptionsRequest | None = None  # publish gate only; stored with the approval
 
 
 class GateDecisionResponse(BaseModel):

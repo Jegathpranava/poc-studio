@@ -1,5 +1,5 @@
-import { RunPlaceholder } from "@/components/run/run-placeholder";
+import { PublishView } from "@/components/publish/publish-view";
 
 export default function Page() {
-  return <RunPlaceholder title="Publish" after="QA passes and you reach Gate 2" />;
+  return <PublishView />;
 }

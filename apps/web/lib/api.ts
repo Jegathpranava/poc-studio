@@ -9,6 +9,34 @@ export type HealthResponse = components["schemas"]["HealthResponse"];
 export type GateDecisionResponse = components["schemas"]["GateDecisionResponse"];
 export type FileNode = components["schemas"]["FileNode"];
 export type PreviewInfo = components["schemas"]["PreviewInfo"];
+export type PublishStatus = components["schemas"]["PublishStatus"];
+export type PublishResult = components["schemas"]["PublishResult"];
+
+/** Gate 2 options as sent to the API. `repo_name` is validated by the same pattern on the server. */
+export interface PublishOptions {
+  repo_name: string;
+  private: boolean;
+  open_issues: boolean;
+  add_ci: boolean;
+}
+
+export interface QaCheck {
+  name: string;
+  ok: boolean;
+  detail: string;
+  owner_agent: string;
+  report_only: boolean;
+}
+
+/** `qa_report.v<N>.json`, written by the QA Reviewer. */
+export interface QaReport {
+  checks: QaCheck[];
+  passed: string[];
+  failed: string[];
+  send_back: string | null;
+  block_publish: boolean;
+  sent_back_count: number;
+}
 
 /** `build.json`, written by the Prototype Builder. `error` is the structured build error. */
 export interface BuildInfo {
@@ -102,6 +130,10 @@ export const api = {
     build: (id: string) => request<BuildInfo>(`/api/runs/${id}/build`),
     /** Starts (or reuses) the preview server. Calling it again counts as activity for the idle timer. */
     startPreview: (id: string) => request<PreviewInfo>(`/api/runs/${id}/preview`, { method: "POST" }),
+    qaReport: (id: string) => request<ArtifactJson<QaReport>>(`/api/runs/${id}/artifacts/qa_report`),
+    publish: (id: string) => request<PublishStatus>(`/api/runs/${id}/publish`),
+    decidePublish: (id: string, options: PublishOptions) =>
+      request<GateDecisionResponse>(`/api/runs/${id}/gates/publish`, json({ decision: "approve", options })),
     decideScope: (id: string, body: { decision: "approve" | "changes"; edits?: Requirements; note?: string }) =>
       request<GateDecisionResponse>(`/api/runs/${id}/gates/scope`, json(body)),
   },

@@ -21,6 +21,7 @@ ARTIFACT_TYPES = (
     "qa_report",
     "share_export",
     "screenpack",
+    "repo",
 )
 GATES = ("scope", "publish")
 DECISIONS = ("approve", "changes")

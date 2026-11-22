@@ -23,6 +23,9 @@ NO_PII_SUFFIXES = {".css", ".svg", ".map", ".json"}
 MAX_BYTES = 1_000_000
 MIN_ENV_VALUE = 8
 BENIGN_ENV_VALUES = {"development", "production", "localhost", "password"}
+# Settings that are not credentials (a model name such as the pitch polish model is public and shows up in
+# generated docs): their values are not hashed.
+NON_SECRET_KEY = re.compile(r"(?i)_(?:MODEL|BASE_URL|MODE|PROVIDER|ENV|DIR|DAYS|USD)$")
 
 _TOKEN = re.compile(r"[^\s\"'`,;(){}<>\[\]=]+")
 _EMAIL = re.compile(r"(?<![\w.+-])([A-Za-z0-9._%+-]+)@([A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,})\b")
@@ -64,7 +67,7 @@ def env_file_path() -> Path | None:
 @lru_cache(maxsize=4)
 def _hashes_of(path: Path, stamp: tuple[int, int]) -> frozenset[str]:
     del stamp  # only part of the cache key: a changed file is read again
-    values = (v for v in dotenv_values(path).values() if v)
+    values = (v for k, v in dotenv_values(path).items() if v and not NON_SECRET_KEY.search(k))
     return frozenset(
         _sha(v) for v in values if len(v) >= MIN_ENV_VALUE and v.lower() not in BENIGN_ENV_VALUES
     )

@@ -39,3 +39,13 @@ Task 4. Constants live in `services/api/poc_studio/llm/pricing.py`. Prices are U
 | `claude-opus-5-5` | 4.00 | 20.00 | VERIFY_PRICE: same source |
 
 These are Anthropic first-party list prices. The gateway's own billing is not confirmed. The owner-only live test (`EVAL_LIVE=1`) must compare them with the gateway usage before they count as verified. Haiku input is capped at 12,000 tokens (`InputTooLarge`).
+
+## GitHub publish
+
+Task 18.
+- The token reaches git through `GIT_CONFIG_COUNT/KEY_0/VALUE_0` (`http.extraheader`) in the child process environment: same effect as `git -c`, but it is not on a command line, in `.git/config` or in the remote URL.
+- The first commit author is `PoC Studio <noreply@example.com>`, never the owner's address.
+- Mock mode inits and commits locally in `runs/<id>/publish/` and records the planned calls in `runs/<id>/publish.mock.json`. It never adds a remote or pushes.
+- A name clash gets `-2`, `-3` and so on. A blocked publish (secret scan or QA `block_publish`) fails the repo step and the run ends `failed`; there is no `delivered` without a repo URL.
+- The secret scan no longer hashes `.env` values of non-credential settings (`*_MODEL`, `*_BASE_URL`, `*_MODE` and similar): a public model name in a generated README was a false positive.
+- Migration 0005 adds the `repo` artifact type.
