@@ -38,6 +38,7 @@ class Settings(BaseSettings):
     monthly_cap_usd: float = Field(5.0, validation_alias=_a("MONTHLY_CAP_USD"))
     eval_live: bool = Field(False, validation_alias=_a("EVAL_LIVE"))
     retention_days: int = Field(30, validation_alias=_a("RETENTION_DAYS"))
+    runs_dir_setting: str = Field("runs", validation_alias=_a("RUNS_DIR"))
 
     @model_validator(mode="after")
     def _no_mocks_in_production(self) -> Self:
@@ -47,6 +48,21 @@ class Settings(BaseSettings):
             if self.github_mode == "mock":
                 raise ValueError("GITHUB_MODE=mock is refused when APP_ENV=production")
         return self
+
+    @property
+    def runs_dir(self) -> Path:
+        path = Path(self.runs_dir_setting)
+        return path if path.is_absolute() else REPO_ROOT / path
+
+    @property
+    def checkpoint_db_path(self) -> Path | None:
+        """LangGraph checkpoints live in a file next to the app DB (data/checkpoints.sqlite).
+        None means the app DB is in memory, so the checkpoints are too."""
+        prefix = "sqlite:///"
+        url = self.resolved_database_url
+        if url.startswith(prefix) and not url.endswith(":memory:"):
+            return Path(url.removeprefix(prefix)).with_name("checkpoints.sqlite")
+        return None
 
     @property
     def resolved_database_url(self) -> str:

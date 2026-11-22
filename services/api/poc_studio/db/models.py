@@ -125,5 +125,6 @@ class Event(Base):
     run_id: Mapped[str] = mapped_column(ForeignKey("runs.id"), index=True)
     ts: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
     agent: Mapped[str] = mapped_column(String(40))
-    level: Mapped[str] = mapped_column(String(10), default="info")
-    message: Mapped[str] = mapped_column(Text)
+    level: Mapped[str] = mapped_column(String(10), default="log")  # the spec 7b `kind`
+    message: Mapped[str] = mapped_column(Text, default="")
+    data: Mapped[str | None] = mapped_column(Text)  # JSON of the other spec 7b fields, redacted

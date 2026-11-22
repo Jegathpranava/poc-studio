@@ -38,3 +38,8 @@ def _factory() -> sessionmaker[Session]:
 def get_session() -> Iterator[Session]:
     with _factory()() as session:
         yield session
+
+
+def open_session() -> Session:
+    """A plain session for code outside request handlers (graph nodes, the event bus)."""
+    return _factory()()
