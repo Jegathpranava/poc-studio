@@ -31,6 +31,78 @@ export interface paths {
         /** List Runs */
         get: operations["list_runs_api_runs_get"];
         put?: never;
+        /** Create Run */
+        post: operations["create_run_api_runs_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/runs/{run_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Run */
+        get: operations["get_run_api_runs__run_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/runs/{run_id}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Stream Events
+         * @description `follow=false` ends the stream after the replay (for tests and curl).
+         */
+        get: operations["stream_events_api_runs__run_id__events_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/runs/{run_id}/gates/{gate}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Decide Gate */
+        post: operations["decide_gate_api_runs__run_id__gates__gate__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/runs/{run_id}/artifacts/{artifact_type}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Json Artifact */
+        get: operations["get_json_artifact_api_runs__run_id__artifacts__artifact_type__get"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -42,6 +114,132 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AgentStepOut */
+        AgentStepOut: {
+            /** Id */
+            id: number;
+            /** Agent */
+            agent: string;
+            /** Status */
+            status: string;
+            /** Attempt */
+            attempt: number;
+            /** Model */
+            model?: string | null;
+            /** Tokens In */
+            tokens_in: number;
+            /** Tokens Out */
+            tokens_out: number;
+            /** Cost Usd */
+            cost_usd: number;
+            /** Started At */
+            started_at?: string | null;
+            /** Finished At */
+            finished_at?: string | null;
+            /** Error File */
+            error_file?: string | null;
+            /** Error Line */
+            error_line?: number | null;
+            /** Error Message */
+            error_message?: string | null;
+        };
+        /**
+         * ArtifactJson
+         * @description The latest version of a JSON artifact, such as `requirements`.
+         */
+        ArtifactJson: {
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "requirements" | "architecture" | "prototype" | "deck" | "pptx" | "video" | "docs" | "qa_report" | "share_export" | "screenpack";
+            /** Version */
+            version: number;
+            /** Data */
+            data: {
+                [key: string]: unknown;
+            };
+        };
+        /** ArtifactOut */
+        ArtifactOut: {
+            /** Id */
+            id: number;
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "requirements" | "architecture" | "prototype" | "deck" | "pptx" | "video" | "docs" | "qa_report" | "share_export" | "screenpack";
+            /** Version */
+            version: number;
+            /** Path */
+            path: string;
+            /** Sha256 */
+            sha256?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /** Body_create_run_api_runs_post */
+        Body_create_run_api_runs_post: {
+            /** Files */
+            files: string[];
+            /** Client */
+            client?: string | null;
+            /** Client Name */
+            client_name?: string | null;
+            /** Sector */
+            sector?: string | null;
+            /** Title */
+            title?: string | null;
+            /** Budget Usd */
+            budget_usd?: number | null;
+        };
+        /** CreateRunResponse */
+        CreateRunResponse: {
+            /** Id */
+            id: string;
+        };
+        /** GateDecisionRequest */
+        GateDecisionRequest: {
+            /**
+             * Decision
+             * @enum {string}
+             */
+            decision: "approve" | "changes";
+            /** Edits */
+            edits?: {
+                [key: string]: unknown;
+            } | null;
+            /** Note */
+            note?: string | null;
+        };
+        /** GateDecisionResponse */
+        GateDecisionResponse: {
+            /** Run Id */
+            run_id: string;
+            /**
+             * Gate
+             * @enum {string}
+             */
+            gate: "scope" | "publish";
+            /**
+             * Decision
+             * @enum {string}
+             */
+            decision: "approve" | "changes";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "queued" | "running" | "waiting_gate1" | "waiting_gate2" | "paused_budget" | "failed" | "delivered";
+        };
+        /** HTTPValidationError */
+        HTTPValidationError: {
+            /** Detail */
+            detail?: components["schemas"]["ValidationError"][];
+        };
         /** HealthResponse */
         HealthResponse: {
             /**
@@ -64,6 +262,46 @@ export interface components {
              * @constant
              */
             db: "ok";
+        };
+        /** RunDetail */
+        RunDetail: {
+            /** Id */
+            id: string;
+            /** Title */
+            title: string;
+            /** Client Name */
+            client_name: string;
+            /** Sector */
+            sector?: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "queued" | "running" | "waiting_gate1" | "waiting_gate2" | "paused_budget" | "failed" | "delivered";
+            /** Current Step */
+            current_step?: string | null;
+            /** Paid Usd */
+            paid_usd: number;
+            /** Budget Usd */
+            budget_usd: number;
+            /** Started At */
+            started_at?: string | null;
+            /** Finished At */
+            finished_at?: string | null;
+            /** Tokens Total */
+            tokens_total: number;
+            /** Preview Port */
+            preview_port?: number | null;
+            /**
+             * Steps
+             * @default []
+             */
+            steps: components["schemas"]["AgentStepOut"][];
+            /**
+             * Artifacts
+             * @default []
+             */
+            artifacts: components["schemas"]["ArtifactOut"][];
         };
         /** RunSummary */
         RunSummary: {
@@ -90,6 +328,19 @@ export interface components {
             started_at?: string | null;
             /** Finished At */
             finished_at?: string | null;
+        };
+        /** ValidationError */
+        ValidationError: {
+            /** Location */
+            loc: (string | number)[];
+            /** Message */
+            msg: string;
+            /** Error Type */
+            type: string;
+            /** Input */
+            input?: unknown;
+            /** Context */
+            ctx?: Record<string, never>;
         };
     };
     responses: never;
@@ -136,6 +387,173 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RunSummary"][];
+                };
+            };
+        };
+    };
+    create_run_api_runs_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_create_run_api_runs_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreateRunResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_run_api_runs__run_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    stream_events_api_runs__run_id__events_get: {
+        parameters: {
+            query?: {
+                follow?: boolean;
+            };
+            header?: {
+                "Last-Event-ID"?: string | null;
+            };
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    decide_gate_api_runs__run_id__gates__gate__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+                gate: "scope" | "publish";
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GateDecisionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GateDecisionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_json_artifact_api_runs__run_id__artifacts__artifact_type__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+                artifact_type: "requirements" | "architecture" | "prototype" | "deck" | "pptx" | "video" | "docs" | "qa_report" | "share_export" | "screenpack";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ArtifactJson"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

@@ -5,7 +5,7 @@ from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from poc_studio.graph.registry import NodeSpec
-from poc_studio.routes import events, gates, health, runs
+from poc_studio.routes import artifacts, events, gates, health, runs
 from poc_studio.runs.service import RunService
 
 
@@ -30,7 +30,7 @@ def create_app(nodes: dict[str, NodeSpec] | None = None) -> FastAPI:
         allow_headers=["*"],
     )
     api = APIRouter(prefix="/api")
-    for module in (health, runs, events, gates):
+    for module in (health, runs, events, gates, artifacts):
         api.include_router(module.router)
     app.include_router(api)
     return app

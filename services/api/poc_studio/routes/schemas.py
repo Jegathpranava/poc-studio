@@ -1,7 +1,7 @@
 """Request and response models for every endpoint in spec section 7, plus the 7b event shape."""
 
 from datetime import datetime
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -65,6 +65,14 @@ class ArtifactOut(_Out):
     path: str
     sha256: str | None = None
     created_at: datetime
+
+
+class ArtifactJson(BaseModel):
+    """The latest version of a JSON artifact, such as `requirements`."""
+
+    type: ArtifactType
+    version: int
+    data: dict[str, Any]
 
 
 class RunDetail(RunSummary):

@@ -13,7 +13,7 @@ def test_full_run_reaches_delivered(client_for, env) -> None:
         assert agents(detail) == ["intake", "intelligence"]
         assert (env / "runs" / run_id / "input" / "sample.vtt").is_file()
 
-        res = client.post(GATE.format(run_id, "scope"), json={"decision": "approve", "edits": {"x": 1}})
+        res = client.post(GATE.format(run_id, "scope"), json={"decision": "approve"})
         assert res.status_code == 200 and res.json()["status"] == "running"
         detail = wait_status(client, run_id, "waiting_gate2")
         assert agents(detail) == [
