@@ -37,3 +37,7 @@ runs/
 
 # Owner reference material (client/product demos): never commit, repo is public
 reference/
+.work/
+
+# SQLite database and run data
+data/
