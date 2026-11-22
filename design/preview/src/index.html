@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PoC Studio sample</title>
+<style>
+/*CSS*/
+</style>
+</head>
+<body>
+<nav class="nav" id="nav" aria-label="Sample screens"></nav>
+<div class="shell">
+  <aside class="rail" aria-label="Main">
+    <div class="brand"><span class="brand-mark"><svg data-icon="terminal"></svg></span><span>PoC Studio</span></div>
+    <a href="#runs" data-go="runs" data-nav="runs" title="Runs"><svg data-icon="list"></svg><span>Runs</span></a>
+    <a href="#new-run" data-go="new-run" data-nav="new" title="New run"><svg data-icon="plus"></svg><span>New run</span></a>
+    <a href="#templates" data-go="templates" data-nav="templates" title="Templates"><svg data-icon="template"></svg><span>Templates</span></a>
+    <a href="#settings" data-go="settings" data-nav="settings" title="Settings"><svg data-icon="sliders"></svg><span>Settings</span></a>
+    <div class="spacer"></div>
+    <div class="budget-meter">
+      <div style="display:flex;justify-content:space-between"><span>Paid spend this month</span><span class="mono num">$0.62</span></div>
+      <div class="bar"><span style="width:12%"></span></div>
+      <div style="margin-top:6px">of $5.00 monthly cap</div>
+    </div>
+  </aside>
+  <main id="main">
+<!--SCREENS-->
+  </main>
+</div>
+<nav class="tabbar" aria-label="Main">
+  <a href="#runs" data-go="runs" data-nav="runs"><svg data-icon="list"></svg>Runs</a>
+  <a href="#new-run" data-go="new-run" data-nav="new"><svg data-icon="plus"></svg>New run</a>
+  <a href="#templates" data-go="templates" data-nav="templates"><svg data-icon="template"></svg>Templates</a>
+  <a href="#settings" data-go="settings" data-nav="settings"><svg data-icon="sliders"></svg>Settings</a>
+</nav>
+<div class="scrim" id="modal-changes" role="dialog" aria-modal="true" aria-labelledby="mc-title">
+  <div class="modal">
+    <div class="panel-head"><h2 id="mc-title">Request changes to the prototype</h2><button class="btn ghost sm" data-close aria-label="Close"><svg data-icon="x"></svg></button></div>
+    <div class="panel-body">
+      <p class="small muted">Only the Prototype Builder reruns. The brief, architecture and deck stay as they are.</p>
+      <div class="field"><label for="mc-note">What should change?</label><textarea class="textarea" id="mc-note">Add a driver detail page with today's route and proof-of-delivery photos. Keep the dashboard as is.</textarea></div>
+    </div>
+    <div class="modal-foot"><button class="btn" data-close>Cancel</button><button class="btn primary" data-close data-toast="changes"><svg data-icon="send"></svg>Send to Prototype Builder</button></div>
+  </div>
+</div>
+<div class="scrim" id="modal-publish" role="dialog" aria-modal="true" aria-labelledby="mp-title">
+  <div class="modal">
+    <div class="panel-head"><h2 id="mp-title">Publish to GitHub?</h2><button class="btn ghost sm" data-close aria-label="Close"><svg data-icon="x"></svg></button></div>
+    <div class="panel-body">
+      <p class="small">This creates <span class="mono">Jegathpranava/kestrel-freight-dispatch-poc</span> as a <b>private</b> repo, pushes 64 files and opens 6 issues from the action items.</p>
+      <p class="small muted">Nothing has left your machine yet. You can delete the repo on GitHub afterwards.</p>
+    </div>
+    <div class="modal-foot"><button class="btn" data-close>Cancel</button><button class="btn primary" data-close data-go="delivered" data-toast="published"><svg data-icon="branch"></svg>Publish</button></div>
+  </div>
+</div>
+<script>
+/*JS*/
+</script>
+</body>
+</html>

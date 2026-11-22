@@ -1,0 +1,66 @@
+<section class="screen" id="gate-1" data-title="Gate 1: brief" data-nav="runs" data-screen="Gate 1 brief">
+  <div class="page-head">
+    <div>
+      <div class="crumbs"><a href="#runs" data-go="runs">Runs</a><svg data-icon="right"></svg><span>Maple &amp; Moss Dental Group</span></div>
+      <h1>Review the brief</h1>
+      <p class="small muted">Nothing is designed or built until you approve. Edit anything that is wrong; this is the cheapest place to fix it.</p>
+    </div>
+    <div class="actions"><button class="btn"><svg data-icon="refresh"></svg>Re-extract with a note</button><button class="btn primary" data-go="live-run" data-toast="approved1"><svg data-icon="check"></svg>Approve brief</button></div>
+  </div>
+  <div class="banner warn"><svg data-icon="pause"></svg><div class="grow"><b>Run paused at Gate 1.</b> <span class="muted">Extracted in 38 s from a 31 min call and a 6 page TRD.</span></div></div>
+  <div class="grid-2">
+    <div class="stack">
+      <div class="panel">
+        <div class="panel-head"><h2>Goals and problem</h2><span class="xs muted">from the transcript, 00:02:10 to 00:09:45</span></div>
+        <div class="panel-body form-grid">
+          <div class="field full"><label for="g1-goal">Primary goal</label><input class="input" id="g1-goal" value="Cut front-desk intake time and bring lapsed patients back for check-ups"></div>
+          <div class="field full"><label for="g1-pain">Pain points</label>
+            <textarea class="textarea" id="g1-pain">Paper intake forms are retyped into the practice system, about 12 minutes per new patient. Recall reminders go out by hand once a quarter and about 30% of patients lapse past 18 months. Three locations use different spreadsheets for waitlists.</textarea></div>
+          <div class="field"><label for="g1-budget">Budget</label><input class="input" id="g1-budget" value="About $25k for the pilot"><span class="hint">Said by Dr. Imani Castellanos at 00:21:03</span></div>
+          <div class="field"><label for="g1-time">Timeline</label><input class="input" id="g1-time" value="Pilot in one clinic by March"></div>
+          <div class="field full error"><label for="g1-const">Constraints</label><input class="input" id="g1-const" value="Patient data must stay in the US"><span class="hint">Not confirmed in the call. Check with the client or remove it.</span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2>Features, ranked</h2><button class="btn sm"><svg data-icon="plus"></svg>Add feature</button></div>
+        <div class="panel-body">
+          <ul class="list">
+            <li><span class="prio">P1</span><div class="grow"><b>Digital intake form on a tablet or phone link</b><div class="xs muted">Pre-fills from the insurance card photo</div></div><button class="btn ghost sm" aria-label="Edit"><svg data-icon="pencil"></svg></button></li>
+            <li><span class="prio">P1</span><div class="grow"><b>Automated recall reminders by SMS and email</b><div class="xs muted">Based on last visit date and treatment plan</div></div><button class="btn ghost sm" aria-label="Edit"><svg data-icon="pencil"></svg></button></li>
+            <li><span class="prio">P2</span><div class="grow"><b>Shared waitlist across three locations</b></div><button class="btn ghost sm" aria-label="Edit"><svg data-icon="pencil"></svg></button></li>
+            <li><span class="prio">P2</span><div class="grow"><b>Front-desk dashboard: today's arrivals and missing forms</b></div><button class="btn ghost sm" aria-label="Edit"><svg data-icon="pencil"></svg></button></li>
+            <li><span class="prio">P3</span><div class="grow"><b>Treatment plan explainer for patients</b><div class="xs muted">Mentioned once, low confidence</div></div><button class="btn ghost sm" aria-label="Edit"><svg data-icon="pencil"></svg></button></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="panel">
+        <div class="panel-head"><h2>Action items</h2><span class="xs muted">become GitHub issues</span></div>
+        <div class="panel-body">
+          <ul class="list">
+            <li><input type="checkbox" checked aria-label="Include"><div class="grow">Send sample intake form and current recall letter<div class="xs muted">Dr. Imani Castellanos, by Fri</div></div></li>
+            <li><input type="checkbox" checked aria-label="Include"><div class="grow">Confirm which practice system they run (export or API)<div class="xs muted">Rowan Achterberg (IT), next week</div></div></li>
+            <li><input type="checkbox" checked aria-label="Include"><div class="grow">Share PoC link and deck after the call<div class="xs muted">You, today</div></div></li>
+            <li><input type="checkbox" aria-label="Include"><div class="grow">Book a follow-up with all three practice managers<div class="xs muted">No owner named</div></div></li>
+          </ul>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2>Stakeholders</h2></div>
+        <div class="panel-body">
+          <ul class="list">
+            <li><div class="grow"><b>Dr. Imani Castellanos</b><div class="xs muted">Clinical director, budget owner</div></div></li>
+            <li><div class="grow"><b>Rowan Achterberg</b><div class="xs muted">IT contractor</div></div></li>
+            <li><div class="grow"><b>Priya Venkataraman-Holloway</b><div class="xs muted">Practice manager, Eastside clinic</div></div></li>
+          </ul>
+        </div>
+      </div>
+      <div class="panel"><div class="panel-body">
+        <div class="small"><b>Summary</b></div>
+        <p class="small clamp" style="margin-top:var(--space-2)">Three-location dental group wants to replace paper intake and manual recall letters. The clinical director owns a pilot budget of about $25k and wants one clinic live by March. IT is run by a contractor who is unsure whether the practice system has an API, so the PoC should use a CSV export as the integration point and show the API path as a later phase. Patients skew older; SMS reminders matter more than an app.</p>
+        <button class="more" data-more>Show more</button>
+      </div></div>
+    </div>
+  </div>
+</section>

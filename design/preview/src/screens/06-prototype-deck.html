@@ -1,0 +1,109 @@
+<section class="screen" id="prototype" data-title="Prototype" data-nav="runs" data-screen="Prototype">
+  <div class="page-head">
+    <div>
+      <div class="crumbs"><a href="#runs" data-go="runs">Runs</a><svg data-icon="right"></svg><a href="#live-run" data-go="live-run">Kestrel Freight Co.</a><svg data-icon="right"></svg><span>Prototype</span></div>
+      <h1>Prototype</h1>
+      <p class="small muted">Template <span class="mono">logistics-dispatch v3</span> &nbsp;41 files &nbsp;<span class="status done">Build passed on attempt 2</span></p>
+    </div>
+    <div class="actions"><button class="btn" data-open="modal-changes"><svg data-icon="message"></svg>Request changes</button><button class="btn"><svg data-icon="external"></svg>Open in new tab</button></div>
+  </div>
+  <div class="grid-2">
+    <div class="panel">
+      <div class="panel-head">
+        <div class="seg" role="group" aria-label="Viewport"><button aria-pressed="true" data-device="desktop"><svg data-icon="monitor"></svg></button><button aria-pressed="false" data-device="mobile"><svg data-icon="phone"></svg></button></div>
+        <span class="xs muted mono">localhost:4317</span>
+      </div>
+      <div class="frame-wrap">
+        <div class="device">
+          <div class="device-bar"><span class="url">localhost:4317/dispatch</span></div>
+          <div class="proto">
+            <div class="proto-side"><b>Kestrel Dispatch</b><span>Board</span><span>Drivers</span><span>Loads</span><span>Ask the copilot</span></div>
+            <div class="proto-main">
+              <b>Today, depot North</b>
+              <div class="proto-kpis"><div class="proto-kpi">Open loads<b>23</b></div><div class="proto-kpi">Drivers free<b>9</b></div><div class="proto-kpi">On-time<b>94%</b></div></div>
+              <div><div class="proto-row"><span>LD-2291 to Leeds, 15:00</span><span>Suggest: R. Osei</span></div><div class="proto-row"><span>LD-2294 to Hull, 16:30</span><span>Suggest: M. Kowalczyk</span></div><div class="proto-row"><span>LD-2302 to York, 17:15</span><span class="muted">No driver under 10 h</span></div></div>
+              <div class="proto-kpi">Ask: who can take the Leeds drop at 3?</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="panel">
+        <div class="panel-head"><h2>Files</h2><span class="xs muted">read only</span></div>
+        <div class="panel-body tree">
+          <div class="d">app/</div>
+          <div>&nbsp;&nbsp;dispatch/page.tsx</div>
+          <div>&nbsp;&nbsp;drivers/page.tsx</div>
+          <div>&nbsp;&nbsp;copilot/page.tsx</div>
+          <div>&nbsp;&nbsp;api/suggest/route.ts <span class="muted">mock</span></div>
+          <div class="d">lib/</div>
+          <div>&nbsp;&nbsp;routes.ts <span class="muted">added in fix 1</span></div>
+          <div>&nbsp;&nbsp;mock-data.ts</div>
+          <div>README.md</div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2>Build log</h2></div>
+        <div class="log">
+          <div><span class="t">1</span><span class="warn">warn  Module not found: '@/lib/routes'</span></div>
+          <div><span class="t">2</span><span class="ok">ok    Compiled successfully in 11.8s</span></div>
+          <div><span class="t">2</span>Route /dispatch 4.1 kB</div>
+          <div><span class="t">2</span>Route /copilot 3.6 kB</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="screen" id="deck" data-title="Deck and video" data-nav="runs" data-screen="Deck and video">
+  <div class="page-head">
+    <div>
+      <div class="crumbs"><a href="#runs" data-go="runs">Runs</a><svg data-icon="right"></svg><a href="#live-run" data-go="live-run">Kestrel Freight Co.</a><svg data-icon="right"></svg><span>Deck and video</span></div>
+      <h1>Deck, video and docs</h1>
+      <p class="small muted">9 slides &nbsp;polished with claude-haiku-5-5 for <span class="mono num">$0.012</span></p>
+    </div>
+    <div class="actions"><button class="btn"><svg data-icon="download"></svg>.pptx</button><button class="btn"><svg data-icon="download"></svg>PDF</button><button class="btn"><svg data-icon="presentation"></svg>Present</button></div>
+  </div>
+  <div class="grid-2">
+    <div class="stack">
+      <div class="panel">
+        <div class="panel-head"><h2 id="slide-title">Kestrel dispatch copilot</h2><span class="xs muted">click a slide</span></div>
+        <div class="panel-body slides">
+          <div class="slide cover" aria-current="true" tabindex="0"><span class="n">1</span><span class="h">Kestrel dispatch copilot</span></div>
+          <div class="slide" tabindex="0"><span class="n">2</span><span class="h">What we heard</span><span class="lines"><span style="width:90%"></span><span style="width:70%"></span></span></div>
+          <div class="slide" tabindex="0"><span class="n">3</span><span class="h">Cost of the status quo</span><span class="lines"><span style="width:80%"></span><span style="width:60%"></span></span></div>
+          <div class="slide" tabindex="0"><span class="n">4</span><span class="h">The solution</span><span class="lines"><span style="width:85%"></span><span style="width:50%"></span></span></div>
+          <div class="slide" tabindex="0"><span class="n">5</span><span class="h">Live demo</span><span class="lines"><span style="width:60%"></span></span></div>
+          <div class="slide" tabindex="0"><span class="n">6</span><span class="h">Architecture</span><span class="lines"><span style="width:75%"></span><span style="width:55%"></span></span></div>
+          <div class="slide" tabindex="0"><span class="n">7</span><span class="h">Pilot plan, 4 weeks</span><span class="lines"><span style="width:70%"></span><span style="width:80%"></span></span></div>
+          <div class="slide" tabindex="0"><span class="n">8</span><span class="h">Monthly cost</span><span class="lines"><span style="width:65%"></span></span></div>
+          <div class="slide" tabindex="0"><span class="n">9</span><span class="h">Next steps</span><span class="lines"><span style="width:85%"></span><span style="width:40%"></span></span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2>Docs</h2></div>
+        <div class="panel-body">
+          <ul class="list">
+            <li><svg data-icon="file"></svg><span class="grow">Executive summary <span class="xs muted">1 page</span></span><a href="#deck" class="small">Open</a></li>
+            <li><svg data-icon="file"></svg><span class="grow">User flows <span class="xs muted">3 flows</span></span><a href="#deck" class="small">Open</a></li>
+            <li><svg data-icon="file"></svg><span class="grow">README for the repo</span><a href="#deck" class="small">Open</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h2>Walkthrough video</h2><span class="xs muted mono">walkthrough.mp4 &nbsp;0:42 &nbsp;1280x720</span></div>
+      <div class="panel-body stack">
+        <div class="video"><button class="play" aria-label="Play video"><svg data-icon="play"></svg></button><div class="scrub"><span>0:14</span><span class="track"><span></span></span><span>0:42</span></div></div>
+        <ul class="list chapters">
+          <li><span class="prio mono">0:00</span><span class="grow">Dispatch board, today's loads</span></li>
+          <li><span class="prio mono">0:14</span><span class="grow">Ask the copilot for a driver</span></li>
+          <li><span class="prio mono">0:27</span><span class="grow">Driver detail and hours left</span></li>
+          <li><span class="prio mono">0:36</span><span class="grow">Same flow on a phone</span></li>
+        </ul>
+        <p class="xs muted">Recorded headless with Playwright against the built prototype. Embedded on slide 5.</p>
+      </div>
+    </div>
+  </div>
+</section>

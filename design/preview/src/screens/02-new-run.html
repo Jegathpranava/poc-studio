@@ -1,0 +1,72 @@
+<section class="screen" id="new-run" data-title="New run" data-nav="new" data-screen="New run">
+  <div class="page-head">
+    <div><div class="crumbs"><a href="#runs" data-go="runs">Runs</a><svg data-icon="right"></svg><span>New run</span></div><h1>New run</h1><p class="muted small">One input, seven agents, two checkpoints. About 5 minutes of agent time.</p></div>
+  </div>
+  <div class="grid-2">
+    <div class="stack">
+      <div class="panel">
+        <div class="panel-head"><h2>Source</h2><div class="seg" role="group" aria-label="Input type"><button aria-pressed="true">Upload</button><button aria-pressed="false">Paste text</button></div></div>
+        <div class="panel-body stack">
+          <div class="drop">
+            <svg data-icon="upload"></svg>
+            <b>Drop a transcript or requirements doc</b>
+            <span class="small muted">.txt, .vtt, .md, .docx or .pdf, up to 20 MB. Several files become one brief.</span>
+            <button class="btn sm">Choose files</button>
+          </div>
+          <div class="file-chip">
+            <svg data-icon="file"></svg>
+            <div class="grow"><div class="name">kestrel-freight-discovery-call-2026-11-21.vtt</div><div class="xs muted">48 min call, 4 speakers, 9,412 words</div></div>
+            <button class="btn ghost sm" aria-label="Remove file"><svg data-icon="trash"></svg></button>
+          </div>
+          <div class="file-chip">
+            <svg data-icon="file"></svg>
+            <div class="grow"><div class="name">Kestrel_Dispatch_BRD_v2_final_signed_off_by_ops_and_finance.pdf</div><div class="xs muted">BRD, 14 pages</div></div>
+            <button class="btn ghost sm" aria-label="Remove file"><svg data-icon="trash"></svg></button>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2>Client</h2></div>
+        <div class="panel-body form-grid">
+          <div class="field"><label for="client">Client name</label><input class="input" id="client" value="Kestrel Freight Co."></div>
+          <div class="field">
+            <span class="label" id="sector-l">Sector</span>
+            <div class="combo">
+              <button class="combo-btn" aria-labelledby="sector-l" aria-haspopup="listbox"><span class="val">Logistics</span><svg data-icon="down"></svg></button>
+              <div class="combo-pop" role="listbox">
+                <input placeholder="Search or create a sector" aria-label="Search sectors">
+                <button class="combo-opt" data-value="Logistics" aria-selected="true">Logistics<span class="xs muted">template</span></button>
+                <button class="combo-opt" data-value="Healthcare">Healthcare<span class="xs muted">template</span></button>
+                <button class="combo-opt" data-value="E-commerce">E-commerce<span class="xs muted">template</span></button>
+                <button class="combo-opt" data-value="Fintech">Fintech<span class="xs muted">template</span></button>
+                <button class="combo-opt create" style="display:none"><span>Create "<span class="q"></span>"</span><span class="xs">uses the closest template</span></button>
+              </div>
+            </div>
+            <span class="hint">Detected from the transcript. Change it if it is wrong.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="panel">
+        <div class="panel-head"><h2>Options</h2></div>
+        <div class="panel-body">
+          <div class="switch"><div><div class="small"><b>Private client repo</b></div><div class="xs muted">Recommended for client work</div></div><button class="sw" role="switch" aria-checked="true" aria-label="Private client repo"></button></div>
+          <div class="switch"><div><div class="small"><b>Record a walkthrough video</b></div><div class="xs muted">Playwright, about 40 s, runs locally</div></div><button class="sw" role="switch" aria-checked="true" aria-label="Record walkthrough video"></button></div>
+          <div class="switch"><div><div class="small"><b>Also export .pptx</b></div><div class="xs muted">The web deck is always made</div></div><button class="sw" role="switch" aria-checked="false" aria-label="Export pptx"></button></div>
+          <div class="switch"><div><div class="small"><b>Mask names and emails</b></div><div class="xs muted">Before text reaches the models</div></div><button class="sw" role="switch" aria-checked="false" aria-label="Mask personal data"></button></div>
+          <div class="switch"><div><div class="small"><b>Paid spend limit for this run</b></div><div class="xs muted">The run pauses and asks if it is reached</div></div><span class="mono num small">$0.05</span></div>
+        </div>
+      </div>
+      <div class="panel"><div class="panel-body">
+        <div class="small"><b>What happens next</b></div>
+        <ul class="list">
+          <li><span class="prio">1</span><span class="grow">Brief and action items, then <b>you review</b> (Gate 1)</span></li>
+          <li><span class="prio">2</span><span class="grow">Architecture, prototype, deck and video, then QA</span></li>
+          <li><span class="prio">3</span><span class="grow"><b>You preview</b> everything before it is pushed (Gate 2)</span></li>
+        </ul>
+        <button class="btn primary" style="width:100%;justify-content:center;margin-top:var(--space-3)" data-go="live-run" data-toast="started"><svg data-icon="play"></svg>Start run</button>
+      </div></div>
+    </div>
+  </div>
+</section>

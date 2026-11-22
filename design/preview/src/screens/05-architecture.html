@@ -1,0 +1,67 @@
+<section class="screen" id="architecture" data-title="Architecture" data-nav="runs" data-screen="Architecture">
+  <div class="page-head">
+    <div>
+      <div class="crumbs"><a href="#runs" data-go="runs">Runs</a><svg data-icon="right"></svg><a href="#live-run" data-go="live-run">Kestrel Freight Co.</a><svg data-icon="right"></svg><span>Architecture</span></div>
+      <h1>Architecture spec</h1>
+      <p class="small muted"><span class="mono">architecture.md</span> &nbsp;version 1 &nbsp;Solution Architect, 58 s</p>
+    </div>
+    <div class="actions"><button class="btn"><svg data-icon="download"></svg>Download .md</button><button class="btn"><svg data-icon="refresh"></svg>Regenerate with a note</button></div>
+  </div>
+  <div class="grid-2">
+    <div class="stack">
+      <div class="panel">
+        <div class="panel-head"><h2>System diagram</h2><span class="tag">Agent + RAG</span></div>
+        <div class="panel-body">
+          <svg class="diagram" viewBox="0 0 640 250" role="img" aria-label="Dispatcher app calls a dispatch agent, which uses route history search, a fleet API and an ETA model">
+            <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 10 5 0 10z"/></marker></defs>
+            <rect class="box" x="10" y="95" width="120" height="56" rx="6"/><text x="70" y="119" text-anchor="middle">Dispatcher app</text><text class="sub" x="70" y="137" text-anchor="middle">Next.js</text>
+            <rect class="box" x="170" y="95" width="120" height="56" rx="6"/><text x="230" y="119" text-anchor="middle">API</text><text class="sub" x="230" y="137" text-anchor="middle">FastAPI</text>
+            <rect class="box ai" x="330" y="95" width="130" height="56" rx="6"/><text x="395" y="119" text-anchor="middle">Dispatch agent</text><text class="sub" x="395" y="137" text-anchor="middle">smart, tool calls</text>
+            <rect class="box" x="500" y="15" width="130" height="50" rx="6"/><text x="565" y="37" text-anchor="middle">Route history</text><text class="sub" x="565" y="53" text-anchor="middle">pgvector, 2 yrs</text>
+            <rect class="box" x="500" y="98" width="130" height="50" rx="6"/><text x="565" y="120" text-anchor="middle">Fleet telematics</text><text class="sub" x="565" y="136" text-anchor="middle">REST, mocked</text>
+            <rect class="box ai" x="500" y="181" width="130" height="50" rx="6"/><text x="565" y="203" text-anchor="middle">ETA model</text><text class="sub" x="565" y="219" text-anchor="middle">gradient boosting</text>
+            <path class="edge" d="M130 123H168"/><path class="edge" d="M290 123H328"/>
+            <path class="edge" d="M460 113 C480 100 480 50 498 42"/><path class="edge" d="M460 123H498"/><path class="edge" d="M460 133 C480 146 480 196 498 204"/>
+          </svg>
+          <p class="xs muted" style="margin-top:var(--space-2)">Rendered from Mermaid in the spec. The repo keeps the Mermaid source.</p>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2>Approach</h2></div>
+        <div class="panel-body prose">
+          <p>Dispatchers ask in plain language ("who can take the Leeds drop at 3?"). The agent searches two years of route history for similar loads, checks live driver positions from telematics, and ranks drivers by predicted ETA and hours left on shift.</p>
+          <h3>Why these models</h3>
+          <p><b>smart</b> handles tool calls and ranking explanations. <b>fast</b> summarises driver notes. ETA uses a small gradient-boosted model trained on their history; an LLM is not needed there.</p>
+          <h3>Phases</h3>
+          <p>PoC with mocked telematics and sample routes, then a 4-week pilot on one depot with the real feed.</p>
+        </div>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="panel">
+        <div class="panel-head"><h2>Model picks</h2></div>
+        <table class="table">
+          <thead><tr><th>Job</th><th>Model</th><th class="r">Per 1k calls</th></tr></thead>
+          <tbody>
+            <tr><td>Dispatch reasoning</td><td class="mono small">smart</td><td class="r mono num">$1.90</td></tr>
+            <tr><td>Note summaries</td><td class="mono small">fast</td><td class="r mono num">$0.20</td></tr>
+            <tr><td>Embeddings</td><td class="mono small">text-embed-3-small</td><td class="r mono num">$0.02</td></tr>
+            <tr><td>ETA prediction</td><td class="mono small">LightGBM</td><td class="r mono num">$0.00</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2>Monthly cost, pilot scale</h2><span class="xs muted">40 dispatchers, 6k queries</span></div>
+        <table class="table">
+          <tbody>
+            <tr><td>LLM calls</td><td class="r mono num">$84</td></tr>
+            <tr><td>Vector store</td><td class="r mono num">$25</td></tr>
+            <tr><td>Hosting (API + worker)</td><td class="r mono num">$62</td></tr>
+            <tr><td>Monitoring</td><td class="r mono num">$15</td></tr>
+            <tr><td><b>Total</b></td><td class="r mono num"><b>$186</b></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>

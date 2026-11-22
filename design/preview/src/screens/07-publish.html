@@ -1,0 +1,66 @@
+<section class="screen" id="gate-2" data-title="Gate 2: publish" data-nav="runs" data-screen="Gate 2 publish">
+  <div class="page-head">
+    <div>
+      <div class="crumbs"><a href="#runs" data-go="runs">Runs</a><svg data-icon="right"></svg><span>Kestrel Freight Co.</span></div>
+      <h1>Ready to publish</h1>
+      <p class="small muted">Preview everything below. Nothing has left your machine.</p>
+    </div>
+    <div class="actions"><button class="btn" data-go="prototype"><svg data-icon="monitor"></svg>Preview prototype</button><button class="btn" data-go="deck"><svg data-icon="presentation"></svg>Preview deck</button><button class="btn primary" data-open="modal-publish"><svg data-icon="branch"></svg>Publish to GitHub</button></div>
+  </div>
+  <div class="grid-2">
+    <div class="panel">
+      <div class="panel-head"><h2>QA report</h2><span class="status done">8 of 8 checks passed</span></div>
+      <div class="panel-body">
+        <ul class="list">
+          <li><svg data-icon="check" class="check"></svg><div class="grow">Same 12 features in the brief, prototype, deck and README</div></li>
+          <li><svg data-icon="check" class="check"></svg><div class="grow">Monthly cost matches in the spec and slide 8 ($186)</div></li>
+          <li><svg data-icon="check" class="check"></svg><div class="grow">Prototype builds (<span class="mono">npm run build</span>, attempt 2)</div></li>
+          <li><svg data-icon="check" class="check"></svg><div class="grow">No secrets found in 64 files</div></li>
+          <li><svg data-icon="check" class="check"></svg><div class="grow">All 11 links in the deck and docs resolve</div></li>
+          <li><svg data-icon="check" class="check"></svg><div class="grow">Client name spelled the same everywhere</div></li>
+          <li><svg data-icon="check" class="check"></svg><div class="grow">Video recorded and plays (0:42)</div></li>
+          <li><svg data-icon="check" class="check"></svg><div class="grow">Sent back once: deck said "Kestrel Logistics", fixed by Pitch and Docs</div></li>
+        </ul>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="panel">
+        <div class="panel-head"><h2>Repository</h2></div>
+        <div class="panel-body stack">
+          <div class="field"><label for="repo-name">Name</label><input class="input mono" id="repo-name" value="kestrel-freight-dispatch-poc"><span class="hint">github.com/Jegathpranava/kestrel-freight-dispatch-poc</span></div>
+          <div class="switch"><div><div class="small"><b>Private</b></div><div class="xs muted">Client work defaults to private</div></div><button class="sw" role="switch" aria-checked="true" aria-label="Private repo"></button></div>
+          <div class="switch"><div><div class="small"><b>Open issues from action items</b></div><div class="xs muted">6 issues</div></div><button class="sw" role="switch" aria-checked="true" aria-label="Open issues"></button></div>
+          <div class="switch"><div><div class="small"><b>Add GitHub Actions CI</b></div><div class="xs muted">Install, typecheck, build</div></div><button class="sw" role="switch" aria-checked="true" aria-label="Add CI"></button></div>
+        </div>
+      </div>
+      <div class="panel"><div class="panel-body">
+        <div class="small"><b>This run</b></div>
+        <ul class="list">
+          <li><span class="grow">Agent time</span><span class="mono num small">4m 12s</span></li>
+          <li><span class="grow">Paid spend</span><span class="mono num small">$0.012 of $0.05</span></li>
+          <li><span class="grow">Your time at gates</span><span class="mono num small">3m 40s</span></li>
+        </ul>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<section class="screen" id="delivered" data-title="Delivered" data-nav="runs" data-screen="Delivered">
+  <div class="page-head">
+    <div>
+      <div class="crumbs"><a href="#runs" data-go="runs">Runs</a><svg data-icon="right"></svg><span>Kestrel Freight Co.</span></div>
+      <h1>Delivered in 4m 12s</h1>
+      <p class="small muted">Paid spend $0.012. Send the share link to the client, or the pieces separately.</p>
+    </div>
+    <div class="actions"><button class="btn primary" data-toast="copied"><svg data-icon="copy"></svg>Copy client share link</button></div>
+  </div>
+  <div class="banner ok"><svg data-icon="check"></svg><div class="grow"><b>Published.</b> <span class="muted">Repo pushed with 64 files, CI green on the first run, 6 issues opened.</span></div></div>
+  <div class="deliver">
+    <a class="item" href="#delivered"><svg data-icon="branch" class="lg"></svg><div class="grow"><b>GitHub repo</b><div class="u">github.com/Jegathpranava/kestrel-freight-dispatch-poc</div></div><svg data-icon="external"></svg></a>
+    <a class="item" href="#prototype" data-go="prototype"><svg data-icon="monitor" class="lg"></svg><div class="grow"><b>Prototype</b><div class="u">localhost:4317, or deploy a Vercel preview</div></div><svg data-icon="right"></svg></a>
+    <a class="item" href="#deck" data-go="deck"><svg data-icon="presentation" class="lg"></svg><div class="grow"><b>Pitch deck</b><div class="u">9 slides, .pptx and PDF</div></div><svg data-icon="right"></svg></a>
+    <a class="item" href="#deck" data-go="deck"><svg data-icon="video" class="lg"></svg><div class="grow"><b>Walkthrough video</b><div class="u">walkthrough.mp4, 0:42</div></div><svg data-icon="right"></svg></a>
+    <a class="item" href="#architecture" data-go="architecture"><svg data-icon="network" class="lg"></svg><div class="grow"><b>Architecture spec</b><div class="u">architecture.md, $186 a month</div></div><svg data-icon="right"></svg></a>
+    <a class="item" href="#share" data-go="share"><svg data-icon="link" class="lg"></svg><div class="grow"><b>Client share page</b><div class="u">Read-only summary, prototype and deck</div></div><svg data-icon="right"></svg></a>
+  </div>
+</section>

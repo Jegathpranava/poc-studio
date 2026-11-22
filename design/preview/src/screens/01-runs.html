@@ -1,0 +1,58 @@
+<section class="screen" id="runs" data-title="Runs" data-nav="runs" data-screen="Runs">
+  <div class="page-head">
+    <div><h1>Runs</h1><p class="muted small">Every transcript or requirements doc you have turned into a PoC.</p></div>
+    <div class="actions"><button class="btn primary" data-go="new-run"><svg data-icon="plus"></svg>New run</button></div>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="k">Runs this week</div><div class="v">7</div></div>
+    <div class="stat"><div class="k">Median time to PoC</div><div class="v">4m 05s</div></div>
+    <div class="stat"><div class="k">Hours saved this week</div><div class="v">38 h</div><div class="xs muted">at 5.5 h per prospect</div></div>
+    <div class="stat"><div class="k">Paid spend per run</div><div class="v">$0.02</div><div class="xs muted">budget $0.05</div></div>
+  </div>
+  <div class="panel">
+    <div class="panel-head">
+      <div class="toolbar">
+        <label class="search"><svg data-icon="search"></svg><input id="runs-q" placeholder="Search client or sector" aria-label="Search runs"></label>
+        <div class="seg" role="group" aria-label="Status filter"><button aria-pressed="true">All</button><button aria-pressed="false">Waiting for you</button><button aria-pressed="false">Delivered</button></div>
+      </div>
+      <span class="xs muted">Click a run to open it</span>
+    </div>
+    <table class="table responsive">
+      <thead><tr><th>Client and use case</th><th>Sector</th><th>Status</th><th>Agent time</th><th class="r">Paid spend</th><th>Started</th></tr></thead>
+      <tbody id="runs-body"></tbody>
+    </table>
+  </div>
+</section>
+
+<section class="screen" id="runs-loading" data-title="Runs (loading)" data-nav="runs" data-screen="Runs">
+  <div class="page-head"><div><h1>Runs</h1><p class="muted small">Every transcript or requirements doc you have turned into a PoC.</p></div></div>
+  <div class="panel">
+    <div class="panel-head"><span class="sk" style="width:220px;height:30px"></span></div>
+    <div class="panel-body stack" aria-busy="true" aria-label="Loading runs">
+      <span class="sk" style="width:62%"></span><span class="sk" style="width:48%"></span><span class="sk" style="width:70%"></span><span class="sk" style="width:40%"></span><span class="sk" style="width:56%"></span>
+    </div>
+  </div>
+</section>
+
+<section class="screen" id="runs-empty" data-title="Runs (empty)" data-nav="runs" data-screen="Runs">
+  <div class="page-head"><div><h1>Runs</h1></div></div>
+  <div class="panel">
+    <div class="empty">
+      <svg data-icon="inbox"></svg>
+      <h2>Start your first run</h2>
+      <p>Drop in a meeting transcript, BRD or TRD. You get a brief, an architecture spec, a working prototype, a deck and a repo, with two checkpoints where you approve.</p>
+      <div class="actions"><button class="btn primary" data-go="new-run"><svg data-icon="plus"></svg>New run</button><button class="btn" data-go="new-run">Try the sample transcript</button></div>
+    </div>
+  </div>
+</section>
+
+<section class="screen" id="runs-error" data-title="Runs (error)" data-nav="runs" data-screen="Runs">
+  <div class="page-head"><div><h1>Runs</h1></div></div>
+  <div class="banner err" role="alert">
+    <svg data-icon="alertc"></svg>
+    <div class="grow"><b>The PoC Studio API is not answering on port 8000.</b>
+      <p class="muted">Start it with <span class="mono">npm run dev</span> from the project folder, then reload.</p>
+      <div class="actions"><button class="btn sm"><svg data-icon="refresh"></svg>Try again</button></div>
+    </div>
+  </div>
+</section>

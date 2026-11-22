@@ -1,0 +1,106 @@
+<section class="screen" id="problems" data-title="Run problems" data-nav="runs" data-screen="Run problems">
+  <div class="page-head">
+    <div>
+      <div class="crumbs"><a href="#runs" data-go="runs">Runs</a><svg data-icon="right"></svg><span>Brightwater Physio</span></div>
+      <h1>Session notes to treatment plan summaries</h1>
+      <p class="small muted"><span class="tag">Healthcare</span> &nbsp;Stopped after 3m 55s</p>
+    </div>
+  </div>
+  <div class="banner err" role="alert"><svg data-icon="alertc"></svg>
+    <div class="grow"><b>The prototype did not build after 3 fix attempts.</b>
+      <p class="muted">Last error: <span class="mono">Type 'Session[]' is not assignable to type 'Plan[]'</span> in <span class="mono">app/plans/page.tsx:42</span>. The brief, spec and deck are saved.</p>
+      <div class="actions"><button class="btn sm primary" data-toast="retry"><svg data-icon="refresh"></svg>Retry with 3 more attempts</button><button class="btn sm" data-open="modal-changes"><svg data-icon="message"></svg>Retry with a note</button><button class="btn sm"><svg data-icon="folder"></svg>Open the files</button></div>
+    </div>
+  </div>
+  <div class="banner warn"><svg data-icon="coins"></svg>
+    <div class="grow"><b>Paused: this run reached its $0.05 paid limit.</b>
+      <p class="muted">Pitch and Docs needs about $0.02 more to polish the deck. You can raise the limit for this run or finish the deck with the free model.</p>
+      <div class="actions"><button class="btn sm" data-toast="budget">Raise to $0.10 for this run</button><button class="btn sm">Use the free model</button></div>
+    </div>
+  </div>
+  <div class="banner err"><svg data-icon="key"></svg>
+    <div class="grow"><b>GitHub rejected the token.</b>
+      <p class="muted">It needs repository create, contents and issues permissions. Make a new fine-grained token, then paste it in Settings.</p>
+      <div class="actions"><button class="btn sm" data-go="settings">Open settings</button></div>
+    </div>
+  </div>
+</section>
+
+<section class="screen" id="templates" data-title="Templates" data-nav="templates" data-screen="Templates">
+  <div class="page-head">
+    <div><h1>Sector templates</h1><p class="muted small">The starting point the Prototype Builder adapts. Edit them in <span class="mono">templates/</span>.</p></div>
+    <div class="actions"><button class="btn"><svg data-icon="plus"></svg>Add template</button></div>
+  </div>
+  <div class="panel">
+    <table class="table responsive">
+      <thead><tr><th>Template</th><th>Screens</th><th>First-time builds</th><th>Used</th></tr></thead>
+      <tbody>
+        <tr><td><b>logistics-dispatch</b><div class="xs muted">Board, drivers, loads, copilot chat</div></td><td class="hide-sm small">6</td><td class="mono num small">9 of 10</td><td class="hide-sm mono num small">14</td></tr>
+        <tr><td><b>healthcare-intake</b><div class="xs muted">Patient form, front desk, reminders</div></td><td class="hide-sm small">5</td><td class="mono num small">7 of 9</td><td class="hide-sm mono num small">9</td></tr>
+        <tr><td><b>ecommerce-storefront</b><div class="xs muted">Catalogue, product, cart, assistant</div></td><td class="hide-sm small">7</td><td class="mono num small">10 of 10</td><td class="hide-sm mono num small">11</td></tr>
+        <tr><td><b>fintech-onboarding</b><div class="xs muted">Application, document upload, review queue</div></td><td class="hide-sm small">6</td><td class="mono num small">8 of 10</td><td class="hide-sm mono num small">6</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="screen" id="settings" data-title="Settings" data-nav="settings" data-screen="Settings">
+  <div class="page-head"><div><h1>Settings</h1><p class="muted small">Keys are read from <span class="mono">.env</span> and never shown.</p></div><div class="actions"><button class="btn primary" data-toast="saved">Save settings</button></div></div>
+  <div class="grid-2">
+    <div class="stack">
+      <div class="panel">
+        <div class="panel-head"><h2>Model gateway</h2><span class="status done">Connected</span></div>
+        <div class="panel-body form-grid">
+          <div class="field full"><label for="gw">Base URL</label><input class="input mono" id="gw" value="https://gateway.ai.skyformit.com/v1"></div>
+          <div class="field"><label for="m-fast">Extraction model</label><input class="input mono" id="m-fast" value="fast"><span class="hint">Free</span></div>
+          <div class="field"><label for="m-smart">Architecture and code model</label><input class="input mono" id="m-smart" value="smart"><span class="hint">Free</span></div>
+          <div class="field full"><label for="m-pol">Deck polish model</label><input class="input mono" id="m-pol" value="claude-haiku-5-5"><span class="hint">The only paid call, about $0.01 per run</span></div>
+          <div class="field full"><span class="label">API key</span><div class="file-chip"><svg data-icon="key"></svg><div class="grow mono small">OPENAI_API_KEY is set in .env</div><button class="btn sm" data-toast="tested"><svg data-icon="plug"></svg>Test</button></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="panel">
+        <div class="panel-head"><h2>GitHub</h2><span class="status done">Jegathpranava</span></div>
+        <div class="panel-body">
+          <div class="file-chip"><svg data-icon="key"></svg><div class="grow mono small">GITHUB_TOKEN is set in .env</div></div>
+          <div class="switch"><div><div class="small"><b>New client repos are private</b></div></div><button class="sw" role="switch" aria-checked="true" aria-label="Private by default"></button></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2>Budget</h2></div>
+        <div class="panel-body form-grid">
+          <div class="field"><label for="b-run">Paid limit per run</label><input class="input mono num" id="b-run" value="$0.05"></div>
+          <div class="field"><label for="b-mo">Monthly cap</label><input class="input mono num" id="b-mo" value="$5.00"></div>
+          <div class="field full"><label for="b-h">Hours saved per run</label><input class="input mono num" id="b-h" value="5.5"><span class="hint">Used for the hours-saved counter. From the problem statement: 4 to 6 h of scoping per prospect.</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="screen" id="share" data-title="Client share page" data-nav="none" data-chrome="none" data-screen="Client share">
+  <div class="share">
+    <header>
+      <div class="xs muted">Prepared for Kestrel Freight Co. by Skyform</div>
+      <h1>Dispatch copilot for regional hauls</h1>
+      <p class="muted" style="margin-top:var(--space-2)">A working proof of concept from our call on 21 November: dispatchers ask in plain language and get the best driver for each load, ranked by ETA and hours left on shift.</p>
+    </header>
+    <div class="stack">
+      <div class="video"><button class="play" aria-label="Play walkthrough"><svg data-icon="play"></svg></button><div class="scrub"><span>0:00</span><span class="track"><span style="width:0"></span></span><span>0:42</span></div></div>
+      <div class="deliver">
+        <a class="item" href="#share"><svg data-icon="monitor" class="lg"></svg><div class="grow"><b>Try the prototype</b><div class="u">Opens in a new tab</div></div><svg data-icon="external"></svg></a>
+        <a class="item" href="#share"><svg data-icon="presentation" class="lg"></svg><div class="grow"><b>View the deck</b><div class="u">9 slides</div></div><svg data-icon="external"></svg></a>
+      </div>
+      <div class="panel"><div class="panel-body">
+        <h2>What we heard</h2>
+        <ul class="list">
+          <li><span class="grow">Dispatchers spend about 2 hours a day matching loads to drivers by phone.</span></li>
+          <li><span class="grow">Late afternoon loads miss their slot when drivers run out of hours.</span></li>
+          <li><span class="grow">Two years of route history sit unused in the TMS export.</span></li>
+        </ul>
+      </div></div>
+      <p class="xs muted">Pilot: 4 weeks on one depot, about $186 a month to run.</p>
+    </div>
+  </div>
+</section>
