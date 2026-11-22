@@ -1,9 +1,10 @@
 """KPI evaluation over the 10 fixtures, through the real FastAPI app in-process.
 
-Run from services/api:  uv run python ../../eval/run_eval.py --stage build [--dry] [--only FILE] [--out PATH]
+Run from services/api:
+  uv run python ../../eval/run_eval.py --stage build|full [--dry] [--only FILE] [--out PATH] [--real-video]
 
-Stages: `build` (this file). Task 21 adds `full` by registering a runner in STAGES.
-Gates are auto-approved here (eval mode only).
+Stages: `build` (to Gate 2, build validation) and `full` (both gates, QA, deck, video, mocked publish,
+checked against the success measures). Gates are auto-approved here (eval mode only). Publish is always mocked.
 """
 
 from __future__ import annotations
@@ -27,9 +28,13 @@ if str(API_DIR) not in sys.path:  # `python eval/run_eval.py` puts only eval/ on
     sys.path.insert(0, str(API_DIR))
 FIXTURES = EVAL_DIR / "fixtures"
 RUN_TIMEOUT_S = 600.0
+FULL_TIMEOUT_S = 900.0  # 15 minutes per fixture for the full stage
 POLL_S = 0.1
 TERMINAL = {"waiting_gate2", "failed", "paused_budget"}
+END_STATES = {"delivered", "failed", "paused_budget"}
 MIN_BUILDS = 8
+MAX_AGENT_TIME_S = 300.0
+MAX_PAID_USD = 0.05
 LIVE_WARNING = "Live eval calls the gateway and npm; expected paid spend under $0.50"
 MOCK_NA = "n/a (mock)"
 # The mock provider's canned requirements quote this transcript, and Gate 0 drops quotes not found in the
@@ -50,6 +55,14 @@ class Row:
     paid_usd: float = 0.0
     tokens: int = 0
     error: str | None = None
+    # full stage only
+    qa_passed: int | None = None
+    qa_failed: int | None = None
+    secret_findings: int = 0
+    block_publish: bool = False
+    deck: bool = False
+    video: bool = False
+    total_time_s: float | None = None
 
 
 # ---- scoring (pure) --------------------------------------------------------------------------
@@ -117,7 +130,7 @@ def _patch_sandbox() -> None:
 
 
 @contextlib.contextmanager
-def _isolated(dry: bool) -> Iterator[None]:
+def _isolated(dry: bool, real_video: bool = False) -> Iterator[None]:
     """Env changes and the dry sandbox fakes last for one eval and are undone afterwards, also on errors."""
     saved_env = dict(os.environ)
     saved_fns: tuple[Any, Any] | None = None
@@ -127,6 +140,11 @@ def _isolated(dry: bool) -> Iterator[None]:
         saved_fns = (runner.install, runner.build)
     try:
         configure_env(dry)
+        os.environ["GITHUB_MODE"] = "mock"  # forced, also live: the eval never publishes to GitHub
+        if real_video:
+            os.environ.pop("VIDEO_FAKE", None)
+        else:
+            os.environ["VIDEO_FAKE"] = "1"  # a real recording takes 2 to 3 minutes per run
         if dry:
             _patch_sandbox()
         yield
@@ -141,7 +159,7 @@ def _isolated(dry: bool) -> Iterator[None]:
             _clear_caches()  # settings were read from the eval's env: drop them
 
 
-def run_fixture(entry: dict[str, Any], dry: bool) -> Row:
+def run_fixture(entry: dict[str, Any], dry: bool, full: bool = False) -> Row:
     from fastapi.testclient import TestClient
 
     from poc_studio.db import models  # noqa: F401
@@ -160,7 +178,7 @@ def run_fixture(entry: dict[str, Any], dry: bool) -> Row:
         try:
             with TestClient(create_app()) as client:
                 started = time.monotonic()
-                deadline = started + RUN_TIMEOUT_S
+                deadline = started + (FULL_TIMEOUT_S if full else RUN_TIMEOUT_S)
                 res = client.post(
                     "/api/runs",
                     files=[("files", (path.name, path.read_bytes(), "application/octet-stream"))],
@@ -178,10 +196,14 @@ def run_fixture(entry: dict[str, Any], dry: bool) -> Row:
                 else:
                     gate1_s, final = 0.0, at_gate1
                 row.agent_time_s = time.monotonic() - started - gate1_s
+                if full and final["status"] == "waiting_gate2":
+                    final = _finish_full(client, run_id, row, started, deadline)
                 row.status = final["status"]
                 row.paid_usd = float(final.get("paid_usd") or 0.0)
                 row.tokens = int(final.get("tokens_total") or 0)
                 _score(row, entry, run_id, dry)
+                if full:
+                    _score_full(row, run_id, final)
         except Exception as exc:  # one bad fixture must not stop the other nine
             if row.status == "unknown":
                 row.status = "error"
@@ -190,6 +212,33 @@ def run_fixture(entry: dict[str, Any], dry: bool) -> Row:
             get_engine().dispose()
             _clear_caches()
     return row
+
+
+def _finish_full(client: Any, run_id: str, row: Row, started: float, deadline: float) -> dict[str, Any]:
+    """Auto-approve Gate 2 with default options (eval only), then wait for the end state."""
+    res = client.post(f"/api/runs/{run_id}/gates/publish", json={"decision": "approve"})
+    if res.status_code == 409:  # QA blocked the publish (a secret): the run stays at Gate 2
+        row.block_publish = True
+        row.error = f"publish blocked: {res.json().get('detail', res.text)}"
+        return client.get(f"/api/runs/{run_id}").json()
+    res.raise_for_status()
+    final = _wait(client, run_id, END_STATES, deadline)
+    row.total_time_s = time.monotonic() - started
+    return final
+
+
+def _score_full(row: Row, run_id: str, final: dict[str, Any]) -> None:
+    from poc_studio.github.publish import latest_qa_report
+
+    kinds = {a["type"]: a for a in final.get("artifacts", [])}
+    row.deck = "deck" in kinds
+    row.video = any(a["type"] == "video" and str(a["path"]).endswith(".mp4") for a in final.get("artifacts", []))
+    report = latest_qa_report(run_id)
+    if report:
+        row.qa_passed = len(report.get("passed", []))
+        row.qa_failed = len(report.get("failed", []))
+        row.block_publish = row.block_publish or bool(report.get("block_publish"))
+        row.secret_findings = int("no_secrets" in report.get("failed", [])) or int(row.block_publish)
 
 
 def _score(row: Row, entry: dict[str, Any], run_id: str, dry: bool) -> None:
@@ -216,7 +265,70 @@ def _fmt_time(seconds: float | None) -> str:
     return "-" if seconds is None else f"{seconds:.1f}s"
 
 
+def measures(rows: list[Row]) -> list[tuple[str, bool, str]]:
+    """The full-stage success measures: (label, ok, detail). Builds need 80% (8 of 10 for the full set)."""
+    n = len(rows)
+    need = -(-n * MIN_BUILDS // 10)  # ceil(0.8 n)
+    built = sum(1 for r in rows if r.build_ok)
+    times = [r.agent_time_s for r in rows if r.agent_time_s is not None]
+    med = statistics.median(times) if times else None
+    top_paid = max((r.paid_usd for r in rows), default=0.0)
+    secrets = sum(r.secret_findings for r in rows)
+    return [
+        ("Builds total", built >= need, f"{built}/{n} (need at least {need})"),
+        ("Median agent time", med is not None and med < MAX_AGENT_TIME_S, f"{_fmt_time(med)} (limit {MAX_AGENT_TIME_S:.0f}s)"),
+        ("Max paid per run", top_paid < MAX_PAID_USD, f"${top_paid:.4f} (limit ${MAX_PAID_USD:.2f})"),
+        ("Secret findings", secrets == 0, f"{secrets} across {n} runs (must be 0)"),
+    ]
+
+
+def _yn(flag: bool) -> str:
+    return "yes" if flag else "no"
+
+
+def render_full_report(rows: list[Row], dry: bool) -> str:
+    mode = "dry (mock provider, fake npm, mock publish)" if dry else "live (publish still mocked)"
+    lines = [
+        f"# Eval report: stage `full`, {mode}",
+        "",
+        "| file | sector ok | features found/3 | build ok | attempt | QA passed/failed | secrets | deck | video "
+        "| status | agent time | total time | paid $ | tokens |",
+        "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|",
+    ]
+    for r in rows:
+        if dry:
+            sector, feats = MOCK_NA, MOCK_NA
+        else:
+            sector = "-" if r.sector_ok is None else _yn(r.sector_ok)
+            feats = "-" if r.features_found is None else f"{r.features_found}/{r.features_total}"
+        qa = "-" if r.qa_passed is None else f"{r.qa_passed}/{r.qa_failed}"
+        secrets = f"{r.secret_findings}" + (" (blocked)" if r.block_publish else "")
+        lines.append(
+            f"| {r.file} | {sector} | {feats} | {_yn(r.build_ok)} | {r.attempt or '-'} | {qa} | {secrets} "
+            f"| {_yn(r.deck)} | {_yn(r.video)} | {r.status} | {_fmt_time(r.agent_time_s)} "
+            f"| {_fmt_time(r.total_time_s)} | {r.paid_usd:.4f} | {r.tokens} |"
+        )
+    n = len(rows)
+    lines += ["", "**Summary against the success measures:**", ""]
+    for label, ok, detail in measures(rows):
+        lines.append(f"- {'PASS' if ok else 'FAIL'}: {label}: {detail}")
+    lines += [
+        f"- Delivered: {sum(r.status == 'delivered' for r in rows)}/{n}",
+        f"- Decks: {sum(r.deck for r in rows)}/{n}",
+        f"- Videos: {sum(r.video for r in rows)}/{n}",
+        f"- Paid total ${sum(r.paid_usd for r in rows):.4f}",
+    ]
+    if dry:
+        lines += ["", "Sector and feature scores are not meaningful with the mock provider."]
+    errors = [f"- {r.file}: {r.error}" for r in rows if r.error]
+    if errors:
+        lines += ["", "Errors:", *errors]
+    return "\n".join(lines) + "\n"
+
+
 def render_report(rows: list[Row], dry: bool, stage: str = "build") -> str:
+    if stage == "full":
+        return render_full_report(rows, dry)
     mode = "dry (mock provider, fake npm)" if dry else "live"
     lines = [
         f"# Eval report: stage `{stage}`, {mode}",
@@ -272,7 +384,14 @@ def run_build_stage(entries: list[dict[str, Any]], dry: bool) -> list[Row]:
     return [run_fixture(e, dry) for e in entries]
 
 
-STAGES: dict[str, Callable[[list[dict[str, Any]], bool], list[Row]]] = {"build": run_build_stage}
+def run_full_stage(entries: list[dict[str, Any]], dry: bool) -> list[Row]:
+    return [run_fixture(e, dry, full=True) for e in entries]
+
+
+STAGES: dict[str, Callable[[list[dict[str, Any]], bool], list[Row]]] = {
+    "build": run_build_stage,
+    "full": run_full_stage,
+}
 
 
 class LiveRefused(RuntimeError):
@@ -289,21 +408,29 @@ def configure_env(dry: bool) -> None:
 
 
 def run_eval(
-    stage: str, dry: bool, only: list[str] | None = None, out: Path | None = None
+    stage: str,
+    dry: bool,
+    only: list[str] | None = None,
+    out: Path | None = None,
+    real_video: bool = False,
 ) -> tuple[str, int]:
     """Returns (report, exit_code). Raises LiveRefused for a live run without EVAL_LIVE=1."""
     if stage not in STAGES:
         raise SystemExit(f"unknown stage {stage!r}; available: {', '.join(STAGES)}")
     if not dry and os.environ.get("EVAL_LIVE") != "1":
         raise LiveRefused("Refusing to run live: set EVAL_LIVE=1 (or use --dry).")
-    with _isolated(dry):
+    with _isolated(dry, real_video):
         rows = STAGES[stage](load_expected(only), dry)
     report = render_report(rows, dry, stage)
     if out is not None:
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(report, encoding="utf-8")
+    if dry:
+        return report, 0
+    if stage == "full":
+        return report, 0 if all(ok for _, ok, _ in measures(rows)) else 1
     built = sum(1 for r in rows if r.build_ok)
-    return report, 0 if dry or built >= MIN_BUILDS else 1
+    return report, 0 if built >= MIN_BUILDS else 1
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -312,12 +439,13 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--dry", action="store_true", help="mock provider, fake npm, no network")
     p.add_argument("--only", action="append", help="fixture file name (repeatable)")
     p.add_argument("--out", type=Path, default=None, help="report path (default eval/report-<stage>.md)")
+    p.add_argument("--real-video", action="store_true", help="record the real walkthrough (2-3 min per run)")
     args = p.parse_args(argv)
     if not args.dry and os.environ.get("EVAL_LIVE") == "1":
-        print(f"WARNING: {LIVE_WARNING}.", file=sys.stderr)
+        print(f"WARNING: {LIVE_WARNING} (Haiku polish only).", file=sys.stderr)
     out = args.out or (EVAL_DIR / f"report-{args.stage}.md")
     try:
-        report, code = run_eval(args.stage, args.dry, args.only, out)
+        report, code = run_eval(args.stage, args.dry, args.only, out, args.real_video)
     except LiveRefused as exc:
         print(str(exc), file=sys.stderr)
         return 2
