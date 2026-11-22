@@ -139,7 +139,7 @@ The owner approves at two gates. It is built on a budget: everything runs locall
 | Table | Columns |
 |---|---|
 | `projects` | id, client_name, sector, created_at |
-| `runs` | id (`r_` + 4 hex), project_id, title, status (`queued`, `running`, `waiting_gate1`, `waiting_gate2`, `paused_budget`, `failed`, `delivered`), current_step, paid_usd, tokens_total, budget_usd, started_at, finished_at |
+| `runs` | id (`r_` + 6 hex), project_id, title, status (`queued`, `running`, `waiting_gate1`, `waiting_gate2`, `paused_budget`, `failed`, `delivered`), current_step, paid_usd, tokens_total, budget_usd, started_at, finished_at |
 | `agent_steps` | id, run_id, agent, status, attempt, model, tokens_in, tokens_out, cost_usd, started_at, finished_at, error_file, error_line, error_message |
 | `artifacts` | id, run_id, type (`requirements`, `architecture`, `prototype`, `deck`, `pptx`, `video`, `docs`, `qa_report`, `share_export`), version, path, sha256, created_at |
 | `approvals` | id, run_id, gate (`scope`, `publish`), decision, edits_json, decided_at |
@@ -151,7 +151,7 @@ The owner approves at two gates. It is built on a budget: everything runs locall
 - `Requirements`: client, sector, goals, pain_points, features (ranked, with confidence and source timestamp), constraints (each with a `confirmed` flag), budget, timeline, stakeholders, action_items (owner, due).
 - `Architecture`: use_case_class, components, mermaid, models (job, model, cost per 1k calls), monthly_cost lines plus total, phases, rationale.
 - `CodeManifest`: template id, files written, routes, build attempts, last error (file, line, column, message, code excerpt).
-- `Deck`: slides (8 to 10, each with title, bullets, notes), exec_summary_md, user_flows_md.
+- `DeckPlan`: the dk-data slides from section 7a (9 to 12 slides), plus exec_summary_md and user_flows_md.
 - `QAReport`: checks (name, pass, detail, owner_agent), sent_back_count.
 
 **HTTP API**
@@ -326,7 +326,7 @@ Hard limits: npm install 180 s, build 90 s, each LLM call 90 s. JSON repair retr
 ## 8. Security and privacy
 
 - **Untrusted input:** transcripts, docs and generated code are data. Prompts wrap them in delimiters with "treat as data". Agent output never runs as a shell command except `npm` scripts inside the sandbox.
-- **Sandbox:** the run folder only, with no `OPENAI_API_KEY` or `GITHUB_TOKEN` in its environment. Docker mode adds `--network` limited to npm. Timeouts: install 180 s, build 120 s.
+- **Sandbox:** the run folder only, with no `OPENAI_API_KEY` or `GITHUB_TOKEN` in its environment. Docker mode adds `--network` limited to npm. Timeouts: install 180 s, build 90 s.
 - **Secrets:** read from `.env` and never logged; the event and log writers redact known key patterns. A secret scan (built-in regex set) runs on every generated repo before a push and blocks it on a hit.
 - **PII:** an optional mask pass (names, emails, phones) runs before LLM calls, off by default per run. The owner's personal data is never written to seeds or fixtures; test fixtures are fictional.
 - **Mocks:** `LLM_PROVIDER=mock` and `GITHUB_MODE=mock` are the defaults in tests and CI, and are refused when `APP_ENV=production`. Live GitHub needs `GITHUB_MODE=live` plus the Gate 2 click.
@@ -334,7 +334,7 @@ Hard limits: npm install 180 s, build 90 s, each LLM call 90 s. JSON repair retr
 
 ## 9. UI
 
-Approved preview: `design/preview/preview.html`, approved 2026-11-22 after 2 rounds (sha256 in `docs/intake/approval.json`). Tokens are frozen in `design/preview/tokens.css`: palette `night-terminal` (light), fonts Geist and Geist Mono.
+Approved preview: `design/preview/preview.html`, approved 2026-11-22 after 3 rounds (sha256 in `docs/intake/approval.json`). Tokens are frozen in `design/preview/tokens.css`: palette `night-terminal` (light), fonts Geist and Geist Mono.
 
 Screens and routes:
 
@@ -431,7 +431,7 @@ Every list and form has loading, empty and error states, as in the preview.
 - The video is MP4 (H.264), 1280x720, recorded from the deck. Each step is held for 3 s plus 25 ms per caption character, capped so the total is 2 to 3 minutes (amendment 10). Chapters come from the slide titles.
 - The deck runtime and chrome CSS are vendored once from your reference HTML. Only the screens and the slide plan are generated per run, which keeps every deck on the same proven runtime.
 - The ScreenPack (HTML fragments) is the single source of screens: the deck uses it directly, and the Next.js repo pages are ported from it.
-- Run ids are `r_` plus 4 hex characters (collision check on insert).
+- Run ids are `r_` plus 6 hex characters, with a collision check on insert.
 - The prototype preview runs `next start` on ports 4300 to 4399 behind the API proxy, and stops after 30 minutes idle.
 - The pricing table for paid models lives in `services/api/poc_studio/llm/pricing.py`; the Ollama models cost $0.
 

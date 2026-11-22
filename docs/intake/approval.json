@@ -1,11 +1,11 @@
 {
   "mock": {
     "decision": "approve",
-    "approved_at": "2026-11-22T10:48:27.936Z",
+    "approved_at": "2026-11-22T11:06:50.858Z",
     "comments": "",
     "screenNotes": [],
-    "artifact": "step-5.html",
-    "sha256": "6e7cebefbdef1db7b467f9c94eee95f1f42b27d63789a0786b1429e8a78adb62",
-    "rounds": 2
+    "artifact": "step-6.html",
+    "sha256": "5fa60f3eb4b65322015513b165f5f149c6cb3727dee2afcafe1625044cbb9778",
+    "rounds": 3
   }
 }
