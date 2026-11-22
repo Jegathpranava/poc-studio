@@ -50,3 +50,21 @@ def test_crash_between_decision_and_drive_is_recovered(client_for) -> None:
     with open_session() as session:
         rows = session.query(Approval).filter(Approval.run_id == run_id).all()
         assert len(rows) == 1 and rows[0].consumed_at is not None
+
+
+def test_an_error_without_text_is_named(client_for) -> None:
+    async def blank(state: dict[str, Any]) -> dict[str, Any]:
+        async with step_scope(state["run_id"], "architect"):
+            raise NotImplementedError  # what a subprocess call raises on a loop that cannot run one
+        return {}
+
+    with client_for(with_node("architect", blank)) as client:
+        run_id = create_run(client)
+        wait_status(client, run_id, "waiting_gate1")
+        client.post(GATE.format(run_id, "scope"), json={"decision": "approve"})
+        wait_status(client, run_id, "failed")
+    with open_session() as s:
+        from poc_studio.db.models import AgentStep
+
+        step = s.query(AgentStep).filter_by(run_id=run_id, agent="architect").first()
+        assert step is not None and step.error_message == "NotImplementedError"

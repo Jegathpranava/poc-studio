@@ -60,7 +60,7 @@ async def step_scope(
         raise
     except Exception as exc:
         status = "paused" if isinstance(exc, BudgetExceeded) else "failed"
-        message = redact(str(exc))[:500]
+        message = redact(str(exc) or type(exc).__name__)[:500]  # some errors carry no text
         _finish(step_id, status, message)
         emit(run_id, agent, "error", status=status, attempt=attempt, error={"message": message})
         raise

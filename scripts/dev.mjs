@@ -37,7 +37,11 @@ process.on("SIGTERM", () => shutdown(0));
 start(
   "api",
   "uv",
-  ["run", "uvicorn", "poc_studio.main:app", "--host", "127.0.0.1", "--port", "8000", "--reload"],
+  [
+    "run", "uvicorn", "poc_studio.main:app", "--host", "127.0.0.1", "--port", "8000", "--reload",
+    // With --reload, uvicorn's default Windows loop cannot start subprocesses (npm, preview server).
+    "--loop", "poc_studio.event_loop:loop_factory",
+  ],
   join(root, "services", "api"),
 );
 
