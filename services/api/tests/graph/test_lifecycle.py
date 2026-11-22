@@ -1,4 +1,5 @@
 import asyncio
+import threading
 
 from tests.graph.conftest import agents, create_run, wait_status, with_node
 
@@ -55,13 +56,18 @@ def test_restart_at_gate_resumes_from_checkpoint(client_for, env) -> None:
 
 
 def test_restart_resumes_run_left_running(client_for) -> None:
+    started = threading.Event()
+
     async def hang(state):  # the process dies while intelligence is working
+        started.set()
         await asyncio.Event().wait()
         return {}
 
     with client_for(with_node("intelligence", hang)) as client:
         run_id = create_run(client)
         wait_status(client, run_id, "running")
+        # Intake must be checkpointed before the "crash"; waiting only for "running" raced on fast CI.
+        assert started.wait(15), "intelligence never started"
     with client_for() as client:
         detail = wait_status(client, run_id, "waiting_gate1")
     assert agents(detail).count("intake") == 1
