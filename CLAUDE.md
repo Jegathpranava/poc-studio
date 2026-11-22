@@ -46,7 +46,11 @@ Transcript or requirements doc -> requirements.json + action items -> architectu
 - Read the current Next.js 16 and LangGraph docs (context7) before using their APIs.
 
 ## Commands
-- To be filled in by the first build increment (install, dev servers on web :3000 / API :8000, typecheck, tests).
+- Install: `npm ci` (root, includes `apps/web`), then `cd services/api && uv sync`; database: `cd services/api && uv run alembic upgrade head` (SQLite at `data/poc-studio.sqlite`, override with `POC_DATABASE_URL`).
+- Run: `npm run dev` starts the API on 127.0.0.1:8000 and the web app on 127.0.0.1:3000. Real models need `LLM_PROVIDER=gateway` in `.env`; default is `mock`. Publishing stays mocked until `GITHUB_MODE=live`.
+- Checks: `npm run lint`, `npm run typecheck`, `npm test` (pytest without slow/live, plus Vitest). Browser: `cd services/api && uv run pytest -m browser`. Slow (real npm build): `uv run pytest -m slow`. E2E: `npm --workspace apps/web run e2e` (starts its own servers on mocks).
+- API types after an API change: start the API, then `npm --workspace apps/web run gen:types`.
+- KPI: `cd services/api && uv run python ../../eval/run_eval.py --stage full --dry` (pipeline only); live runs need `EVAL_LIVE=1` and the owner's yes (see `eval/README.md`).
 
 ## graphify
 
