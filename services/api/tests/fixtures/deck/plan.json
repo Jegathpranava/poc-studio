@@ -1,0 +1,237 @@
+{
+ "title": "Northline Freight prototype",
+ "accent": "#b45309",
+ "accentInk": "#ffffff",
+ "logo": "",
+ "dataNote": "Sample data: illustrative",
+ "byline": "Prepared by PoC Studio",
+ "productDark": false,
+ "playScreens": [
+  {
+   "id": "dashboard",
+   "label": "Dashboard"
+  },
+  {
+   "id": "shipments",
+   "label": "Shipments list and detail"
+  },
+  {
+   "id": "create-shipment",
+   "label": "Create shipment"
+  }
+ ],
+ "slides": [
+  {
+   "id": "welcome",
+   "kind": "welcome",
+   "eyebrow": "Northline Freight",
+   "title": "Depot operations, one screen",
+   "caption": "A guided tour of the proposed prototype.",
+   "hint": null,
+   "steps": [],
+   "figures": []
+  },
+  {
+   "id": "dashboard",
+   "kind": "overview",
+   "eyebrow": "Overview",
+   "title": "The product at a glance",
+   "caption": "Four moments from a shift.",
+   "hint": null,
+   "steps": [
+    {
+     "title": "Step 1",
+     "caption": "What this part of dashboard does.",
+     "spotlight": "[data-anchor=\"alerts\"]"
+    },
+    {
+     "title": "Step 2",
+     "caption": "What this part of dashboard does.",
+     "spotlight": "[data-anchor=\"kpis\"]"
+    },
+    {
+     "title": "Step 3",
+     "caption": "What this part of dashboard does.",
+     "spotlight": "[data-anchor=\"nav-active\"]"
+    },
+    {
+     "title": "Step 4",
+     "caption": "What this part of dashboard does.",
+     "spotlight": "[data-anchor=\"primary-action\"]"
+    }
+   ],
+   "figures": []
+  },
+  {
+   "id": "shipments",
+   "kind": "area",
+   "eyebrow": "Area",
+   "title": "Shipments",
+   "caption": "How shipments works.",
+   "hint": null,
+   "steps": [
+    {
+     "title": "Step 1",
+     "caption": "What this part of shipments does.",
+     "spotlight": "[data-anchor=\"detail\"]"
+    },
+    {
+     "title": "Step 2",
+     "caption": "What this part of shipments does.",
+     "spotlight": "[data-anchor=\"detail-action\"]"
+    },
+    {
+     "title": "Step 3",
+     "caption": "What this part of shipments does.",
+     "spotlight": "[data-anchor=\"filters\"]"
+    }
+   ],
+   "figures": []
+  },
+  {
+   "id": "create-shipment",
+   "kind": "area",
+   "eyebrow": "Area",
+   "title": "Create Shipment",
+   "caption": "How create-shipment works.",
+   "hint": null,
+   "steps": [
+    {
+     "title": "Step 1",
+     "caption": "What this part of create-shipment does.",
+     "spotlight": "[data-anchor=\"form\"]"
+    },
+    {
+     "title": "Step 2",
+     "caption": "What this part of create-shipment does.",
+     "spotlight": "[data-anchor=\"key-field\"]"
+    },
+    {
+     "title": "Step 3",
+     "caption": "What this part of create-shipment does.",
+     "spotlight": "[data-anchor=\"nav-active\"]"
+    }
+   ],
+   "figures": []
+  },
+  {
+   "id": "fleet",
+   "kind": "area",
+   "eyebrow": "Area",
+   "title": "Fleet",
+   "caption": "How fleet works.",
+   "hint": null,
+   "steps": [
+    {
+     "title": "Step 1",
+     "caption": "What this part of fleet does.",
+     "spotlight": "[data-anchor=\"alerts\"]"
+    },
+    {
+     "title": "Step 2",
+     "caption": "What this part of fleet does.",
+     "spotlight": "[data-anchor=\"kpis\"]"
+    },
+    {
+     "title": "Step 3",
+     "caption": "What this part of fleet does.",
+     "spotlight": "[data-anchor=\"nav-active\"]"
+    }
+   ],
+   "figures": []
+  },
+  {
+   "id": "routes",
+   "kind": "area",
+   "eyebrow": "Area",
+   "title": "Routes",
+   "caption": "How routes works.",
+   "hint": null,
+   "steps": [
+    {
+     "title": "Step 1",
+     "caption": "What this part of routes does.",
+     "spotlight": "[data-anchor=\"detail\"]"
+    },
+    {
+     "title": "Step 2",
+     "caption": "What this part of routes does.",
+     "spotlight": "[data-anchor=\"detail-action\"]"
+    },
+    {
+     "title": "Step 3",
+     "caption": "What this part of routes does.",
+     "spotlight": "[data-anchor=\"filters\"]"
+    }
+   ],
+   "figures": []
+  },
+  {
+   "id": "new-route",
+   "kind": "area",
+   "eyebrow": "Area",
+   "title": "New Route",
+   "caption": "How new-route works.",
+   "hint": null,
+   "steps": [
+    {
+     "title": "Step 1",
+     "caption": "What this part of new-route does.",
+     "spotlight": "[data-anchor=\"form\"]"
+    },
+    {
+     "title": "Step 2",
+     "caption": "What this part of new-route does.",
+     "spotlight": "[data-anchor=\"key-field\"]"
+    },
+    {
+     "title": "Step 3",
+     "caption": "What this part of new-route does.",
+     "spotlight": "[data-anchor=\"nav-active\"]"
+    }
+   ],
+   "figures": []
+  },
+  {
+   "id": "play",
+   "kind": "play",
+   "eyebrow": null,
+   "title": "Your turn",
+   "caption": "Click through the screens.",
+   "hint": "Actions are simulated.",
+   "steps": [],
+   "figures": []
+  },
+  {
+   "id": "close",
+   "kind": "close",
+   "eyebrow": null,
+   "title": "What it is worth",
+   "caption": "Figures from the brief.",
+   "hint": null,
+   "steps": [],
+   "figures": [
+    {
+     "label": "Late deliveries cut",
+     "value": 30.0,
+     "source": "brief: goals",
+     "verified": true
+    },
+    {
+     "label": "Dispatch hours saved per week",
+     "value": 12.0,
+     "source": "brief: pain points",
+     "verified": true
+    },
+    {
+     "label": "Pilot weeks",
+     "value": 6.0,
+     "source": "architecture: plan",
+     "verified": true
+    }
+   ]
+  }
+ ],
+ "execSummaryMd": "",
+ "userFlowsMd": ""
+}
