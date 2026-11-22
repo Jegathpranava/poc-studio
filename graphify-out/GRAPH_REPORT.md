@@ -1,7 +1,7 @@
 # Graph Report - poc-studio  (2026-11-22)
 
 ## Corpus Check
-- 402 files · ~173,672 words
+- 402 files · ~173,794 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 55 file(s) not represented in the graph (top: .css 34, (none) 11, .vtt 5)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `5469c2f6`
+- Built from commit: `281f2930`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -171,12 +171,12 @@
 10. `i()` - 53 edges
 
 ## Surprising Connections (you probably didn't know these)
+- `LLM pricing` --references--> `InputTooLarge`  [INFERRED]
+  docs/decisions.md → services/api/poc_studio/llm/budget.py
 - `7. Data model and interfaces` --references--> `DeckPlan`  [INFERRED]
   docs/specs/2026-11-22-poc-studio-design.md → services/api/poc_studio/schemas/deck.py
 - `Measures` --references--> `no_secrets()`  [INFERRED]
   eval/README.md → services/api/poc_studio/qa/checks.py
-- `LLM pricing` --references--> `InputTooLarge`  [INFERRED]
-  docs/decisions.md → services/api/poc_studio/llm/budget.py
 - `7a. Deck and prototype output contract (amendment 8)` --references--> `ScreenPack`  [INFERRED]
   docs/specs/2026-11-22-poc-studio-design.md → services/api/poc_studio/schemas/screenpack.py
 - `Request changes, retry and budget` --references--> `RunBudgetBanner()`  [INFERRED]
@@ -704,16 +704,16 @@ Nodes (3): decide_gate(), _publish_options(), GateDecisionRequest
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `main()` connect `intelligence.py` to `graph/conftest.py`, `github/publish.py`, `media/video.py`, `app.js`?**
-  _High betweenness centrality (0.269) - this node is a cross-community bridge._
+  _High betweenness centrality (0.241) - this node is a cross-community bridge._
 - **What connects `poc-studio-api` to the rest of the system?**
   _1 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `toast.js` be split into smaller, more focused modules?**
   _Cohesion score 0.013941543353308059 - nodes in this community are weakly interconnected._
-- **Why does `up()` connect `bT` to `toast.js`, `i`, `A`, `app.js`?**
-  _High betweenness centrality (0.263) - this node is a cross-community bridge._
+- **Why does `Request changes, retry and budget` connect `Decisions` to `run-context.tsx`, `RunService`, `typing`?**
+  _High betweenness centrality (0.237) - this node is a cross-community bridge._
 - **Should `i` be split into smaller, more focused modules?**
   _Cohesion score 0.06256384065372829 - nodes in this community are weakly interconnected._
-- **Why does `Request changes, retry and budget` connect `Decisions` to `run-context.tsx`, `RunService`, `typing`?**
-  _High betweenness centrality (0.208) - this node is a cross-community bridge._
+- **Why does `RunBudgetBanner()` connect `run-context.tsx` to `Decisions`, `runs-view.tsx`?**
+  _High betweenness centrality (0.236) - this node is a cross-community bridge._
 - **Should `web/package.json` be split into smaller, more focused modules?**
   _Cohesion score 0.08712121212121213 - nodes in this community are weakly interconnected._
