@@ -135,3 +135,14 @@ document.addEventListener('keydown', (e) => {
 })
 
 show(location.hash.slice(1) || 'runs')
+
+// MP4 player: chapter seek, missing-file state
+$$('video.player').forEach((v) => {
+  v.addEventListener('error', () => v.parentElement.querySelector('.video-missing')?.removeAttribute('hidden'), true)
+})
+document.addEventListener('click', (e) => {
+  const li = e.target.closest('[data-seek]')
+  if (!li) return
+  const v = li.closest('.panel')?.querySelector('video.player')
+  if (v) { v.currentTime = Number(li.dataset.seek); v.play().catch(() => {}) }
+})

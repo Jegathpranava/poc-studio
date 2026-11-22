@@ -34,3 +34,6 @@ test-results/
 runs/
 *.sqlite
 *.db
+
+# Owner reference material (client/product demos): never commit, repo is public
+reference/
