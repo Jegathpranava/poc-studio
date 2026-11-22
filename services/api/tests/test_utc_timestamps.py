@@ -1,4 +1,7 @@
-"""SQLite drops the UTC offset; the API must still return offset-aware timestamps (browser showed '5 h ago' in IST)."""
+"""SQLite drops the UTC offset; the API must still return offset-aware timestamps.
+
+Without this the browser showed '5 h ago' for a new run in IST.
+"""
 
 from datetime import UTC, datetime
 
