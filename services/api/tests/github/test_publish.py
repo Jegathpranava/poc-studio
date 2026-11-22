@@ -1,3 +1,4 @@
+import base64
 import json
 import subprocess
 from pathlib import Path
@@ -125,7 +126,9 @@ def test_mock_publish_records_calls_and_commits_locally(run_id: str, env: Path) 
     assert _git(out, "log", "--format=%an <%ae>").strip() == "PoC Studio <noreply@example.com>"
     assert _git(out, "branch", "--show-current").strip() == "main"
     config = (out / ".git" / "config").read_text(encoding="utf-8")
-    assert "extraheader" not in config.lower() and "bearer" not in config.lower() and "ghp_" not in config
+    lowered = config.lower()
+    assert "extraheader" not in lowered and "bearer" not in lowered and "basic" not in lowered
+    assert "ghp_" not in config
     assert _git(out, "remote").strip() == ""  # mock never adds a remote
     with open_session() as s:
         repo = s.scalars(select(Artifact).where(Artifact.run_id == run_id, Artifact.type == "repo")).one()
@@ -175,7 +178,8 @@ def test_live_push_keeps_the_token_out_of_config_and_url(
     monkeypatch.setattr(mod, "_git_env", spy)
     pushed, sha = mod.push(out, bare.as_posix(), FAKE_TOKEN)
     assert pushed and len(sha) == 40
-    assert any(e.get("GIT_CONFIG_VALUE_0") == f"AUTHORIZATION: bearer {FAKE_TOKEN}" for e in seen)
+    expected = "AUTHORIZATION: basic " + base64.b64encode(f"x-access-token:{FAKE_TOKEN}".encode()).decode()
+    assert any(e.get("GIT_CONFIG_VALUE_0") == expected for e in seen)
     assert FAKE_TOKEN not in (out / ".git" / "config").read_text(encoding="utf-8")
     assert FAKE_TOKEN not in _git(out, "remote", "-v")
     assert _git(bare, "log", "--oneline", "main").strip()

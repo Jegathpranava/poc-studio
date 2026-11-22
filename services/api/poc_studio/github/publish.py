@@ -1,3 +1,4 @@
+
 """Publish a run to GitHub: build the repo folder, scan it, create the repo, push, file issues.
 
 Order inside `publish`: secret scan, QA `block_publish`, create repo (private by default, `-2` suffix on a
@@ -8,6 +9,7 @@ The token goes to git through `GIT_CONFIG_*` environment variables (`http.extrah
 the remote URL, in `.git/config` or on a command line. Git's output is redacted before it is returned.
 """
 
+import base64
 import json
 import os
 import re
@@ -46,6 +48,12 @@ MAX_VIDEO_BYTES = 50 * 1024 * 1024
 AUTHOR = ("PoC Studio", "noreply@example.com")
 MAX_NAME_TRIES = 20
 GIT_TIMEOUT_S = 120
+
+def git_auth_header(token: str) -> str:
+    """http.extraheader value for git pushes to GitHub: Basic auth with the x-access-token user."""
+    basic = base64.b64encode(f"x-access-token:{token}".encode()).decode()
+    return f"AUTHORIZATION: basic {basic}"
+
 
 
 class PublishBlocked(RuntimeError):
@@ -177,7 +185,8 @@ def _git_env(token: str | None) -> dict[str, str]:
         env |= {
             "GIT_CONFIG_COUNT": "1",
             "GIT_CONFIG_KEY_0": "http.extraheader",
-            "GIT_CONFIG_VALUE_0": f"AUTHORIZATION: bearer {token}",
+            # GitHub git-over-HTTPS takes Basic x-access-token:<token> (as actions/checkout does), not Bearer.
+            "GIT_CONFIG_VALUE_0": git_auth_header(token),
         }
     return env
 
