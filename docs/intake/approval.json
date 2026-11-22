@@ -7,5 +7,19 @@
     "artifact": "step-6.html",
     "sha256": "5fa60f3eb4b65322015513b165f5f149c6cb3727dee2afcafe1625044cbb9778",
     "rounds": 3
+  },
+  "plan": {
+    "decision": "approve",
+    "approved_at": "2026-11-22T11:24:03.544Z",
+    "comments": "",
+    "screenNotes": [],
+    "artifact": null,
+    "sha256": null,
+    "rounds": 1
+  },
+  "build_location": {
+    "choice": "here",
+    "decided_at": "2026-11-22T11:24:38.318Z",
+    "note": "Owner chose to build in the local session (AskUserQuestion)."
   }
 }
