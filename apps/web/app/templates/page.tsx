@@ -1,5 +1,5 @@
-import { PlaceholderPage } from "@/components/shell/placeholder-page";
+import { TemplatesView } from "@/components/templates/templates-view";
 
 export default function TemplatesPage() {
-  return <PlaceholderPage title="Templates" description="Sector kits the Prototype Builder starts from." />;
+  return <TemplatesView />;
 }

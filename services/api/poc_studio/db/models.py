@@ -154,3 +154,15 @@ class Event(Base):
     level: Mapped[str] = mapped_column(String(10), default="log")  # the spec 7b `kind`
     message: Mapped[str] = mapped_column(Text, default="")
     data: Mapped[str | None] = mapped_column(Text)  # JSON of the other spec 7b fields, redacted
+
+
+class ShareToken(Base):
+    """A client share link. Only the sha256 of the token is stored; the token itself is shown once."""
+
+    __tablename__ = "share_tokens"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    run_id: Mapped[str] = mapped_column(ForeignKey("runs.id"), index=True)
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime(), default=now)
+    expires_at: Mapped[datetime] = mapped_column(UTCDateTime())

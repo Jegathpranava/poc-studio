@@ -19,6 +19,7 @@ from poc_studio.graph.state import RunState
 from poc_studio.graph.steps import step_scope
 from poc_studio.ingest import Transcript, parse_files
 from poc_studio.llm import complete_json, wrap_untrusted
+from poc_studio.pii import mask_for_run
 from poc_studio.schemas.requirements import Requirements
 
 AGENT = "intelligence"
@@ -188,6 +189,7 @@ async def run_intelligence(state: RunState) -> dict[str, Any]:
             schema=Requirements,
             max_tokens=MAX_TOKENS,
             run=budget,
+            mask=mask_for_run(run_id),  # None unless the run was started with mask_pii
         )
         _record_usage(step_id, run_id, result.tokens_in, result.tokens_out, result.cost_usd, result.model)
         emit(

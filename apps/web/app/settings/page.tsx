@@ -1,5 +1,5 @@
-import { PlaceholderPage } from "@/components/shell/placeholder-page";
+import { SettingsForm } from "@/components/settings/settings-form";
 
 export default function SettingsPage() {
-  return <PlaceholderPage title="Settings" description="Gateway, budget and retention." />;
+  return <SettingsForm />;
 }

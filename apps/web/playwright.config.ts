@@ -20,7 +20,7 @@ export default defineConfig({
   webServer: [
     {
       command:
-        "node -e \"require('fs').rmSync('../../data/e2e',{recursive:true,force:true})\" && uv run alembic upgrade head && uv run uvicorn poc_studio.main:app --host 127.0.0.1 --port 8000",
+        "node -e \"require('fs').rmSync('../../data/e2e',{recursive:true,force:true})\" && uv run alembic upgrade head && uv run python scripts/dev_with_extra.py",
       cwd: "../../services/api",
       env: apiEnv,
       url: "http://127.0.0.1:8000/api/health",

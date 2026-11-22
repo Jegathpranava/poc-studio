@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from poc_studio.db.models import AgentStep, Artifact, Project, Run
 from poc_studio.db.session import get_session
 from poc_studio.ingest.parse import MAX_FILE_BYTES
+from poc_studio.pii import write_run_options
 from poc_studio.routes.schemas import (
     AgentStepOut,
     ArtifactOut,
@@ -83,6 +84,7 @@ async def create_run(
     sector: Annotated[str | None, Form()] = None,
     title: Annotated[str | None, Form()] = None,
     budget_usd: Annotated[float | None, Form(gt=0)] = None,
+    mask_pii: Annotated[bool, Form()] = False,
 ) -> CreateRunResponse:
     name = (client or client_name or "").strip()
     if not name:
@@ -103,4 +105,6 @@ async def create_run(
         )
     except InvalidUpload as exc:
         raise HTTPException(422, str(exc)) from exc
+    # Written before this handler yields to the event loop, so it exists before the intelligence node starts.
+    write_run_options(run_id, mask=mask_pii)
     return CreateRunResponse(id=run_id)
