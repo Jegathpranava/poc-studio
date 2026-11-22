@@ -1,0 +1,25 @@
+{
+ "slides": [
+  {
+   "id": "welcome",
+   "title": "Weekly sales, finally in one view",
+   "caption": "A short guided tour of the proposed dashboard."
+  },
+  {
+   "id": "overview",
+   "steps": [
+    {
+     "caption": "Your place in the app is always highlighted."
+    }
+   ]
+  },
+  {
+   "id": "regions",
+   "title": "Which regions lead the week"
+  },
+  {
+   "id": "ghost",
+   "title": "Not a real slide"
+  }
+ ]
+}

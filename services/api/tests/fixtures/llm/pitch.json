@@ -1,0 +1,428 @@
+[
+ {
+  "title": "Acme weekly sales prototype",
+  "accent": "#b45309",
+  "accentInk": "#ffffff",
+  "byline": "Prepared by PoC Studio",
+  "playScreens": [
+   {
+    "id": "overview",
+    "label": "Weekly sales overview"
+   },
+   {
+    "id": "regions",
+    "label": "Regions"
+   },
+   {
+    "id": "weekly-report",
+    "label": "Weekly report"
+   }
+  ],
+  "slides": [
+   {
+    "id": "welcome",
+    "kind": "welcome",
+    "eyebrow": "Acme",
+    "title": "Weekly sales, in one place",
+    "caption": "A guided tour of the proposed dashboard."
+   },
+   {
+    "id": "overview",
+    "kind": "overview",
+    "eyebrow": "Overview",
+    "title": "The product at a glance",
+    "caption": "Four moments from a typical sales week.",
+    "steps": [
+     {
+      "title": "Where you are",
+      "caption": "The navigation shows the current page.",
+      "spotlight": "[data-anchor=\"nav-active\"]"
+     },
+     {
+      "title": "Key numbers",
+      "caption": "Weekly sales, orders and targets at a glance.",
+      "spotlight": "[data-anchor=\"kpis\"]"
+     },
+     {
+      "title": "Weekly trend",
+      "caption": "This week against the last eight.",
+      "spotlight": "[data-anchor=\"weekly-chart\"]"
+     },
+     {
+      "title": "Quick action",
+      "caption": "Open the weekly report in one click.",
+      "spotlight": "[data-anchor=\"regions-card\"]"
+     }
+    ]
+   },
+   {
+    "id": "regions",
+    "kind": "area",
+    "eyebrow": "Regions",
+    "title": "Sales by region",
+    "caption": "See which regions lead and which fall behind.",
+    "steps": [
+     {
+      "title": "Pick a period",
+      "caption": "Switch between this week and last.",
+      "spotlight": "[data-anchor=\"nav-active\"]"
+     },
+     {
+      "title": "Compare regions",
+      "caption": "One table ranks every region.",
+      "spotlight": "[data-anchor=\"period-filter\"]"
+     },
+     {
+      "title": "Drill into detail",
+      "caption": "Open a region to see its products.",
+      "spotlight": "[data-anchor=\"region-table\"]"
+     }
+    ]
+   },
+   {
+    "id": "inventory",
+    "kind": "area",
+    "eyebrow": "Products",
+    "title": "Product lines",
+    "caption": "Understand which lines drive the week.",
+    "steps": [
+     {
+      "title": "Filter a line",
+      "caption": "Narrow the view to one product line.",
+      "spotlight": "[data-anchor=\"nav-active\"]"
+     },
+     {
+      "title": "Product table",
+      "caption": "Units and revenue per product.",
+      "spotlight": "[data-anchor=\"line-filter\"]"
+     },
+     {
+      "title": "Line share",
+      "caption": "How each line contributes to the total.",
+      "spotlight": "[data-anchor=\"product-table\"]"
+     }
+    ]
+   },
+   {
+    "id": "weekly-report",
+    "kind": "area",
+    "eyebrow": "Weekly report",
+    "title": "Report without the typing",
+    "caption": "The weekly summary writes itself.",
+    "steps": [
+     {
+      "title": "Report steps",
+      "caption": "The report moves from draft to sent.",
+      "spotlight": "[data-anchor=\"nav-active\"]"
+     },
+     {
+      "title": "Summary",
+      "caption": "A plain-language summary of the week.",
+      "spotlight": "[data-anchor=\"report-steps\"]"
+     },
+     {
+      "title": "Insights",
+      "caption": "Notable movements, ready to review.",
+      "spotlight": "[data-anchor=\"summary\"]"
+     }
+    ]
+   },
+   {
+    "id": "data-import",
+    "kind": "area",
+    "eyebrow": "Data import",
+    "title": "Bring the data in",
+    "caption": "Import the weekly sales export.",
+    "steps": [
+     {
+      "title": "Import steps",
+      "caption": "Upload, check, load.",
+      "spotlight": "[data-anchor=\"nav-active\"]"
+     },
+     {
+      "title": "Status",
+      "caption": "See whether the import succeeded.",
+      "spotlight": "[data-anchor=\"import-steps\"]"
+     },
+     {
+      "title": "Issues",
+      "caption": "Problem rows are listed with a fix.",
+      "spotlight": "[data-anchor=\"import-status\"]"
+     }
+    ]
+   },
+   {
+    "id": "settings",
+    "kind": "area",
+    "eyebrow": "Settings",
+    "title": "Make it yours",
+    "caption": "Schedule reports and choose what is sent.",
+    "steps": [
+     {
+      "title": "Schedule form",
+      "caption": "Choose when the report goes out.",
+      "spotlight": "[data-anchor=\"nav-active\"]"
+     },
+     {
+      "title": "Schedule field",
+      "caption": "Pick the day and time.",
+      "spotlight": "[data-anchor=\"schedule-form\"]"
+     },
+     {
+      "title": "Save",
+      "caption": "Save the schedule.",
+      "spotlight": "[data-anchor=\"schedule-field\"]"
+     }
+    ]
+   },
+   {
+    "id": "play",
+    "kind": "play",
+    "eyebrow": "Hands on",
+    "title": "Try it yourself",
+    "caption": "Click through the prototype with sample data.",
+    "hint": "Sample data only."
+   },
+   {
+    "id": "close",
+    "kind": "close",
+    "eyebrow": "Next steps",
+    "title": "What it takes",
+    "caption": "Within the budget, at a small running cost.",
+    "figures": [
+     {
+      "label": "Hosting per month (USD)",
+      "value": 25,
+      "source": "architecture: monthly_cost.lines.usd",
+      "verified": true
+     },
+     {
+      "label": "Monthly running cost (USD)",
+      "value": 99999,
+      "source": "architecture: monthly_cost.total_usd",
+      "verified": true
+     },
+     {
+      "label": "Dashboard build (weeks)",
+      "value": 2,
+      "source": "architecture: phases.weeks",
+      "verified": true
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "title": "Acme weekly sales prototype",
+  "accent": "#b45309",
+  "accentInk": "#ffffff",
+  "byline": "Prepared by PoC Studio",
+  "playScreens": [
+   {
+    "id": "overview",
+    "label": "Weekly sales overview"
+   },
+   {
+    "id": "regions",
+    "label": "Regions"
+   },
+   {
+    "id": "weekly-report",
+    "label": "Weekly report"
+   }
+  ],
+  "slides": [
+   {
+    "id": "welcome",
+    "kind": "welcome",
+    "eyebrow": "Acme",
+    "title": "Weekly sales, in one place",
+    "caption": "A guided tour of the proposed dashboard."
+   },
+   {
+    "id": "overview",
+    "kind": "overview",
+    "eyebrow": "Overview",
+    "title": "The product at a glance",
+    "caption": "Four moments from a typical sales week.",
+    "steps": [
+     {
+      "title": "Where you are",
+      "caption": "The navigation shows the current page.",
+      "spotlight": "[data-anchor=\"nav-active\"]"
+     },
+     {
+      "title": "Key numbers",
+      "caption": "Weekly sales, orders and targets at a glance.",
+      "spotlight": "[data-anchor=\"kpis\"]"
+     },
+     {
+      "title": "Weekly trend",
+      "caption": "This week against the last eight.",
+      "spotlight": "[data-anchor=\"weekly-chart\"]"
+     },
+     {
+      "title": "Quick action",
+      "caption": "Open the weekly report in one click.",
+      "spotlight": "[data-anchor=\"regions-card\"]"
+     }
+    ]
+   },
+   {
+    "id": "regions",
+    "kind": "area",
+    "eyebrow": "Regions",
+    "title": "Sales by region",
+    "caption": "See which regions lead and which fall behind.",
+    "steps": [
+     {
+      "title": "Pick a period",
+      "caption": "Switch between this week and last.",
+      "spotlight": "[data-anchor=\"nav-active\"]"
+     },
+     {
+      "title": "Compare regions",
+      "caption": "One table ranks every region.",
+      "spotlight": "[data-anchor=\"period-filter\"]"
+     },
+     {
+      "title": "Drill into detail",
+      "caption": "Open a region to see its products.",
+      "spotlight": "[data-anchor=\"region-table\"]"
+     }
+    ]
+   },
+   {
+    "id": "products",
+    "kind": "area",
+    "eyebrow": "Products",
+    "title": "Product lines",
+    "caption": "Understand which lines drive the week.",
+    "steps": [
+     {
+      "title": "Filter a line",
+      "caption": "Narrow the view to one product line.",
+      "spotlight": "[data-anchor=\"nav-active\"]"
+     },
+     {
+      "title": "Product table",
+      "caption": "Units and revenue per product.",
+      "spotlight": "[data-anchor=\"line-filter\"]"
+     },
+     {
+      "title": "Line share",
+      "caption": "How each line contributes to the total.",
+      "spotlight": "[data-anchor=\"product-table\"]"
+     }
+    ]
+   },
+   {
+    "id": "weekly-report",
+    "kind": "area",
+    "eyebrow": "Weekly report",
+    "title": "Report without the typing",
+    "caption": "The weekly summary writes itself.",
+    "steps": [
+     {
+      "title": "Report steps",
+      "caption": "The report moves from draft to sent.",
+      "spotlight": "[data-anchor=\"nav-active\"]"
+     },
+     {
+      "title": "Summary",
+      "caption": "A plain-language summary of the week.",
+      "spotlight": "[data-anchor=\"report-steps\"]"
+     },
+     {
+      "title": "Insights",
+      "caption": "Notable movements, ready to review.",
+      "spotlight": "[data-anchor=\"summary\"]"
+     }
+    ]
+   },
+   {
+    "id": "data-import",
+    "kind": "area",
+    "eyebrow": "Data import",
+    "title": "Bring the data in",
+    "caption": "Import the weekly sales export.",
+    "steps": [
+     {
+      "title": "Import steps",
+      "caption": "Upload, check, load.",
+      "spotlight": "[data-anchor=\"nav-active\"]"
+     },
+     {
+      "title": "Status",
+      "caption": "See whether the import succeeded.",
+      "spotlight": "[data-anchor=\"import-steps\"]"
+     },
+     {
+      "title": "Issues",
+      "caption": "Problem rows are listed with a fix.",
+      "spotlight": "[data-anchor=\"import-status\"]"
+     }
+    ]
+   },
+   {
+    "id": "settings",
+    "kind": "area",
+    "eyebrow": "Settings",
+    "title": "Make it yours",
+    "caption": "Schedule reports and choose what is sent.",
+    "steps": [
+     {
+      "title": "Schedule form",
+      "caption": "Choose when the report goes out.",
+      "spotlight": "[data-anchor=\"nav-active\"]"
+     },
+     {
+      "title": "Schedule field",
+      "caption": "Pick the day and time.",
+      "spotlight": "[data-anchor=\"schedule-form\"]"
+     },
+     {
+      "title": "Save",
+      "caption": "Save the schedule.",
+      "spotlight": "[data-anchor=\"schedule-field\"]"
+     }
+    ]
+   },
+   {
+    "id": "play",
+    "kind": "play",
+    "eyebrow": "Hands on",
+    "title": "Try it yourself",
+    "caption": "Click through the prototype with sample data.",
+    "hint": "Sample data only."
+   },
+   {
+    "id": "close",
+    "kind": "close",
+    "eyebrow": "Next steps",
+    "title": "What it takes",
+    "caption": "Within the budget, at a small running cost.",
+    "figures": [
+     {
+      "label": "Hosting per month (USD)",
+      "value": 25,
+      "source": "architecture: monthly_cost.lines.usd",
+      "verified": true
+     },
+     {
+      "label": "Monthly running cost (USD)",
+      "value": 45,
+      "source": "architecture: monthly_cost.total_usd",
+      "verified": true
+     },
+     {
+      "label": "Dashboard build (weeks)",
+      "value": 2,
+      "source": "architecture: phases.weeks",
+      "verified": true
+     }
+    ]
+   }
+  ]
+ }
+]
