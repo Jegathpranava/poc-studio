@@ -30,7 +30,7 @@ def deck_html(pack: ScreenPack, plan: DeckPlan, icons_css: str) -> str:
     return assemble(pack, plan, None, extra_css=icons_css)
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def browser_name_and_browser():
     """Launch Chromium: bundled, then system Chrome, then Edge; skip when none starts."""
     sync_playwright = pytest.importorskip("playwright.sync_api").sync_playwright

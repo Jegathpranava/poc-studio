@@ -53,7 +53,8 @@ def build_plan(pack: ScreenPack) -> DeckPlan:
 
     area = ["shipments", "create-shipment", "fleet", "routes", "new-route"]
     slides: list[dict] = [
-        {"id": "welcome", "kind": "welcome", "eyebrow": "Northline Freight", "title": "Depot operations, one screen",
+        {"id": "welcome", "kind": "welcome", "eyebrow": "Northline Freight",
+         "title": "Depot operations, one screen",
          "caption": "A guided tour of the proposed prototype."},
         {"id": "dashboard", "kind": "overview", "eyebrow": "Overview", "title": "The product at a glance",
          "caption": "Four moments from a shift.", "steps": steps("dashboard", 4)},
@@ -64,7 +65,8 @@ def build_plan(pack: ScreenPack) -> DeckPlan:
         {"id": "close", "kind": "close", "title": "What it is worth",
          "caption": "Figures from the brief.", "figures": [
              {"label": "Late deliveries cut", "value": 30, "source": "brief: goals", "verified": True},
-             {"label": "Dispatch hours saved per week", "value": 12, "source": "brief: pain points", "verified": True},
+             {"label": "Dispatch hours saved per week", "value": 12,
+              "source": "brief: pain points", "verified": True},
              {"label": "Pilot weeks", "value": 6, "source": "architecture: plan", "verified": True}]},
     ]
     return DeckPlan.model_validate({
