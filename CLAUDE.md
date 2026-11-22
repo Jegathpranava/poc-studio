@@ -6,7 +6,7 @@ A local, single-user developer tool that turns a meeting transcript, BRD, TRD or
 - Requirements: `docs/requirements/original-brief.md` (verbatim brief), `technical-solution-proposal.txt`, `problem-statement.txt`, `owner-direction-2026-11-22.md`.
 - Intake decisions: `docs/intake/answers.json` (budget, single-user scope; overrides the proposal where they differ).
 - Design spec and amendments: `docs/specs/` (written after the UI sample is approved). The spec wins over the brief.
-- Visual reference (once approved): `design/preview/`.
+- Visual reference (APPROVED 2026-11-22, 2 rounds): `design/preview/preview.html` (sources in `design/preview/src/`), tokens frozen in `design/preview/tokens.css`. Approval record with sha256: `docs/intake/approval.json`.
 - Cloud sessions: read `docs/handoff/` first (not prepared; cloud handoff is "maybe").
 
 ## Mission
