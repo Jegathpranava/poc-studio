@@ -2,8 +2,13 @@
   "name": "poc-studio",
   "private": true,
   "version": "0.1.0",
-  "workspaces": ["apps/*"],
+  "workspaces": [
+    "apps/*"
+  ],
   "scripts": {
-    "dev": "node scripts/dev.mjs"
+    "dev": "node scripts/dev.mjs",
+    "lint": "node scripts/run-all.mjs lint",
+    "typecheck": "node scripts/run-all.mjs typecheck",
+    "test": "node scripts/run-all.mjs test"
   }
 }
