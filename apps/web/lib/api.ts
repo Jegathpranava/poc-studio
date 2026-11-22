@@ -73,6 +73,11 @@ const json = (body: unknown): RequestInit => ({
   body: JSON.stringify(body),
 });
 
+export interface Chapter {
+  t: number;
+  title: string;
+}
+
 export interface ArtifactJson<T> {
   type: string;
   version: number;
@@ -87,6 +92,11 @@ export const api = {
     create: (form: FormData) => request<{ id: string }>("/api/runs", { method: "POST", body: form }),
     requirements: (id: string) => request<ArtifactJson<Requirements>>(`/api/runs/${id}/artifacts/requirements`),
     architecture: (id: string) => request<ArtifactJson<Architecture>>(`/api/runs/${id}/artifacts/architecture`),
+    videoChapters: (id: string) => request<Chapter[]>(`/api/runs/${id}/video/chapters`),
+    videoUrl: (id: string) => `${BASE_URL}/api/runs/${id}/video`,
+    deckUrl: (id: string, download = false) => `${BASE_URL}/api/runs/${id}/deck.html${download ? "?download=true" : ""}`,
+    pptxUrl: (id: string) => `${BASE_URL}/api/runs/${id}/deck.pptx`,
+    docUrl: (id: string, name: "exec-summary" | "user-flows") => `${BASE_URL}/api/runs/${id}/docs/${name}`,
     architectureMarkdownUrl: (id: string) => `${BASE_URL}/api/runs/${id}/artifacts/architecture/markdown`,
     files: (id: string) => request<FileNode[]>(`/api/runs/${id}/files`),
     build: (id: string) => request<BuildInfo>(`/api/runs/${id}/build`),

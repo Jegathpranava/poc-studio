@@ -33,3 +33,20 @@ def _no_real_npm(request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch
 
     monkeypatch.setattr(runner, "install", fake_install)
     monkeypatch.setattr(runner, "build", fake_build)
+
+
+@pytest.fixture(autouse=True)
+def _no_real_recorder(request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Graph tests reach the video node: the recorder is a fake unless the test is `browser` or `slow`."""
+    if request.node.get_closest_marker("browser") or request.node.get_closest_marker("slow"):
+        return
+    from poc_studio.media import video
+
+    def fake_record(deck_html_path, out_mp4, hold_s=None, size=(1280, 720)):  # noqa: ANN001, ANN202
+        out_mp4.parent.mkdir(parents=True, exist_ok=True)
+        out_mp4.write_bytes(b"\x00\x00\x00\x18ftypmp42" + b"\x00" * 600)
+        chapters = [video.Chapter(t=0.0, title="Welcome")]
+        (out_mp4.parent / "chapters.json").write_text('[{"t": 0.0, "title": "Welcome"}]', encoding="utf-8")
+        return video.VideoResult(path=out_mp4, duration_s=12.0, chapters=chapters)
+
+    monkeypatch.setattr(video, "record", fake_record)

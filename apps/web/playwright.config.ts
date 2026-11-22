@@ -4,6 +4,7 @@ const apiEnv = {
   LLM_PROVIDER: "mock",
   GITHUB_MODE: "mock",
   APP_ENV: "test",
+  VIDEO_FAKE: "1",
   POC_DATABASE_URL: "sqlite:///data/e2e/poc-studio.sqlite",
   RUNS_DIR: "data/e2e/runs",
 };

@@ -1,5 +1,5 @@
-import { RunPlaceholder } from "@/components/run/run-placeholder";
+import { DeckView } from "@/components/deck/deck-view";
 
-export default function Page() {
-  return <RunPlaceholder title="Deck and video" after="the prototype is built" />;
+export default function DeckPage() {
+  return <DeckView />;
 }
