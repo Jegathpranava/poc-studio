@@ -166,3 +166,19 @@ def test_mock_screens_follow_the_chosen_sector_kit(client_for, env) -> None:
             wait_status(client, run_id, "waiting_gate2")
     finally:
         set_provider(None)
+
+
+def test_kit_css_is_added_once_and_left_out_of_repairs() -> None:
+    from poc_studio.agents.screens import SYSTEM, repair_prompt, with_kit_css
+    from poc_studio.screens.validate import Issue
+
+    kit = load_kit("logistics")
+    valid = ScreenPack.model_validate(FIXTURES[1])
+    lean = valid.model_copy(update={"product_css": valid.product_css.replace(kit.product_css.strip(), "")})
+    merged = with_kit_css(lean, kit)
+    assert merged.product_css.count(kit.product_css.strip()) == 1
+    assert with_kit_css(merged, kit).product_css == merged.product_css  # a copied kit is not doubled
+    assert validate(merged, kit) == []
+    prompt = repair_prompt(merged, [Issue(screen_id=None, code="x", message="y")], kit)
+    assert kit.product_css.strip()[:200] not in prompt
+    assert "at most 2 sample items" in SYSTEM and "never repeat" in SYSTEM

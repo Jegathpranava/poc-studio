@@ -26,7 +26,13 @@ async def test_repair_on_second_attempt() -> None:
     fake = FakeProvider(["not json", '{"answer": "ok"}'])
     res = await _call(fake)
     assert res.value.answer == "ok" and res.attempts == 2
-    assert "Validation error" in fake.calls[1][-1]["content"]
+    assert "not parseable JSON" in fake.calls[1][-1]["content"]  # unparseable: a short note, no echo
+
+
+async def test_schema_error_repair_quotes_the_validation_error() -> None:
+    fake = FakeProvider(['{"answer": 1}', '{"answer": "ok"}'])
+    res = await _call(fake)
+    assert res.attempts == 2 and "Validation error" in fake.calls[1][-1]["content"]
 
 
 async def test_three_invalid_raise() -> None:

@@ -24,9 +24,13 @@ from poc_studio.screens.kits import Kit, load_kit, sector_dir
 from poc_studio.screens.validate import Issue, validate
 
 AGENT = "screens"
-MAX_TOKENS = 16000
+MAX_TOKENS = 8000  # the gateway's completion ceiling; a longer reply is cut off mid-JSON
 MAX_REPAIRS = 2
 TIMEOUT_S = 300.0  # a full pack from the smart reasoning model can take minutes
+TRUNCATED_NOTE = (
+    "Your previous JSON response was cut off because it was too long. Make all HTML fragments much "
+    "shorter and use at most 2 table rows per screen. Leave the kit CSS out of `product_css`."
+)
 
 SYSTEM = (
     "You are the Prototype Builder agent. Write the product screens of a clickable sector prototype as a "
@@ -35,8 +39,13 @@ SYSTEM = (
     'as HTML fragments. Each fragment is rooted at `<div class="<app_class>">`. '
     "Use only classes defined in the kit CSS or in the CSS you add. Icons are "
     '`<span class="ic ic-<name>"></span>` with the names the kit lists.\n'
-    "- `app_class` and `accent` are the kit's values. `product_css` is the kit's product.css, kept in "
-    "full, plus any rules you add; every rule is scoped under `.pf .<app_class>`.\n"
+    "- Keep each screen HTML fragment compact (under 25 to 35 lines of clean HTML).\n"
+    "- Tables, lists and cards contain at most 2 sample items or rows. Never generate large data tables.\n"
+    "- Keep mock text short and concise. Avoid repetitive markup so the entire ScreenPack fits comfortably "
+    "in under 3,000 tokens.\n"
+    "- `app_class` and `accent` are the kit's values. The kit's product.css is applied for you: never repeat "
+    "it. `product_css` holds only the rules you add (usually none, so an empty string); every rule is "
+    "scoped under `.pf .<app_class>`.\n"
     '- `step_css` holds only rules that start with `.pf.sl-<screen id>[data-step="N"]`. It may be empty.\n'
     "- `route` is `/` for exactly one home screen, otherwise `/` plus a kebab-case slug. Routes are unique.\n"
     '- Every screen has 3 to 8 anchors. Each anchor selector is `[data-anchor="<name>"]` and must match '
@@ -97,18 +106,31 @@ def build_prompt(req: Requirements, arch: Architecture | None, kit: Kit, note: s
         f"Sector kit: {kit.sector}; app_class `{kit.app_class}`; accent `{kit.accent}`.\n"
         f"Every P1 feature needs at least one screen: {', '.join(p1) or 'none'}.\n\n"
         "Brief (JSON):\n\n" + wrap_untrusted(json.dumps(brief, indent=2)) + "\n\n"
-        "Kit product.css (return it in `product_css`; you may extend it, keeping the scope):\n"
+        "Kit product.css (already applied; do not repeat it, put only new rules in `product_css`):\n"
         f"```css\n{kit.product_css}\n```\n\n"
         f"Kit selector guide:\n{kit.selectors_md}\n\n{examples}" + note_block(note)
     )
 
 
-def repair_prompt(pack: ScreenPack, issues: list[Issue]) -> str:
+def with_kit_css(pack: ScreenPack, kit: Kit) -> ScreenPack:
+    """The model returns only its added rules; the stored pack carries the kit CSS in front of them.
+    A model that copied the kit CSS anyway is left as it is."""
+    if kit.product_css.strip() in pack.product_css:
+        return pack
+    return pack.model_copy(update={"product_css": f"{kit.product_css}\n{pack.product_css}".rstrip() + "\n"})
+
+
+def _added_css(pack: ScreenPack, kit: Kit) -> str:
+    return pack.product_css.replace(kit.product_css.strip(), "", 1).strip()
+
+
+def repair_prompt(pack: ScreenPack, issues: list[Issue], kit: Kit) -> str:
+    lean = pack.model_copy(update={"product_css": _added_css(pack, kit)})  # never echo the kit CSS back
     return (
         "Your previous ScreenPack failed these checks:\n"
         f"{format_issues(issues)}\n\n"
-        "Previous ScreenPack JSON:\n"
-        f"{pack.model_dump_json()}\n\n"
+        "Previous ScreenPack JSON (kit CSS left out of `product_css`):\n"
+        f"{lean.model_dump_json()}\n\n"
         "Return the complete corrected ScreenPack as one JSON object. Fix every issue, keep everything else."
     )
 
@@ -170,17 +192,17 @@ async def run_screens(state: RunState) -> dict[str, Any]:
         for attempt in range(MAX_REPAIRS + 1):
             result = await complete_json(
                 agent=AGENT, model=model, system=SYSTEM, user=user, schema=ScreenPack,
-                max_tokens=MAX_TOKENS, run=budget, timeout=TIMEOUT_S,
+                max_tokens=MAX_TOKENS, run=budget, timeout=TIMEOUT_S, truncated_note=TRUNCATED_NOTE,
             )  # fmt: skip
             tokens_in += result.tokens_in
             tokens_out += result.tokens_out
             cost += result.cost_usd
-            pack = result.value
+            pack = with_kit_css(result.value, kit)
             issues = validate(pack, kit)
             if not issues:
                 break
             emit(run_id, AGENT, "log", message=f"screenpack attempt {attempt + 1}: {len(issues)} issues")
-            user = repair_prompt(pack, issues)
+            user = repair_prompt(pack, issues, kit)
         with open_session() as session:
             row = session.get(AgentStep, step_id)
             if row is not None:

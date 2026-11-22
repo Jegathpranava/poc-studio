@@ -23,7 +23,7 @@ async def test_missing_usage_falls_back_to_the_estimate() -> None:
 async def test_charge_hook_runs_before_budget_exceeded() -> None:
     charges: list[float] = []
     run = RunBudget("r_000001", 8e-5, on_charge=charges.append)
-    fake = FakeProvider(["not json " + "word " * 300], tokens=(10, 5))
+    fake = FakeProvider(['{"wrong": "' + "word " * 300 + '"}'], tokens=(10, 5))  # echoed back
     with pytest.raises(BudgetExceeded):
         await complete_json(
             agent="a", model="claude-haiku-5-5", system="s", user="hi", schema=Answer,

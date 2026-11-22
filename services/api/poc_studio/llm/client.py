@@ -14,6 +14,11 @@ from poc_studio.llm.pricing import cost_usd
 from poc_studio.llm.provider import ChatProvider, get_provider
 
 MAX_ATTEMPTS = 3  # first try plus 2 repair retries
+TRUNCATED_NOTE = (
+    "Your previous JSON response was cut off because it was too long. "
+    "Reply again with a much shorter JSON object."
+)
+BROKEN_NOTE = "Your previous reply was not parseable JSON ({error}). Reply again with only the JSON object."
 
 _provider: ChatProvider | None = None
 
@@ -47,6 +52,14 @@ def wrap_untrusted(text: str) -> str:
     )
 
 
+def _broken_json(exc: ValidationError) -> str | None:
+    """The parser message when the reply was not JSON at all, else None."""
+    for err in exc.errors():
+        if err["type"] == "json_invalid":
+            return str(err.get("ctx", {}).get("error", err["msg"]))[:200]
+    return None
+
+
 def set_provider(provider: ChatProvider | None) -> None:
     """Override the process-wide provider (tests, wiring). None resets to settings."""
     global _provider
@@ -74,6 +87,7 @@ async def complete_json[T: BaseModel](
     mask: Callable[[str], str] | None = None,
     provider: ChatProvider | None = None,
     timeout: float | None = None,
+    truncated_note: str = TRUNCATED_NOTE,
 ) -> Result[T]:
     prov = _resolve(provider)
     timeout_s = get_settings().llm_timeout_s if timeout is None else timeout
@@ -106,8 +120,13 @@ async def complete_json[T: BaseModel](
             value = schema.model_validate_json(strip_fences(reply.text))
         except ValidationError as exc:
             last_error = str(exc)
+            broken = _broken_json(exc)
         else:
             return Result(value, tokens_in, tokens_out, total_cost, model, attempt)
-        messages.append({"role": "assistant", "content": reply.text})
-        messages.append({"role": "user", "content": repair_prompt(last_error)})
+        if broken is None:  # parseable JSON with schema errors: show it back so the model can fix it
+            messages.append({"role": "assistant", "content": reply.text})
+            messages.append({"role": "user", "content": repair_prompt(last_error)})
+        else:  # unparseable (often cut off): never echo the payload back, start over with a short note
+            note = truncated_note if "EOF while parsing" in broken else BROKEN_NOTE.format(error=broken)
+            messages = [messages[0], {"role": "user", "content": f"{user}\n\n{note}"}]
     raise SchemaError(MAX_ATTEMPTS, last_error)
